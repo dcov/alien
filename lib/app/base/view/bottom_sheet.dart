@@ -126,7 +126,7 @@ class BottomSheetState extends State<BottomSheet> with SingleTickerProviderState
     final double bottomCornerRadius = maxCornerRadius * marginValue;
 
     double bodyHeightFactor;
-    if (_bodyHeight == 0.0) {
+    if (_draggableExtent == 0.0) {
       bodyHeightFactor = 0.0;
     } else {
       final double addableHeight = _bodyHeight - widget.handleHeight;
