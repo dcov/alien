@@ -36,6 +36,7 @@ class SubredditModel extends RouteModel with ThingModelMixin {
     _isSubscriber = thing.userIsSubscriber;
     _keyColor = thing.keyColor;
     _primaryColor = thing.primaryColor != null ? Color(thing.primaryColor) : null;
+    _publicDescription = thing.publicDescription;
     _subscriberCount = thing.subscriberCount;
     initThingModel(thing);
   }
@@ -81,6 +82,9 @@ class SubredditModel extends RouteModel with ThingModelMixin {
   Color get primaryColor => _primaryColor;
   Color _primaryColor;
 
+  String get publicDescription => _publicDescription;
+  String _publicDescription;
+
   int get subscriberCount => _subscriberCount;
   int _subscriberCount;
 
@@ -107,13 +111,20 @@ class SubredditTile extends StatelessWidget {
   final SubredditModel model;
   
   Widget build(BuildContext context) {
-    return ListItem(
+    return ListTile(
       onTap: () => Navigator.push(context, SubredditPageRoute(model: model)),
-      icon: Icon(
+      leading: Icon(
         AlienIcons.subreddit,
         color: Colors.blueGrey,
       ),
-      title: Body2Text(model.displayName)
+      title: Body2Text(model.displayName),
+      subtitle: model.publicDescription == null
+        ? null
+        : Text(
+            model.publicDescription,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
     ); 
   }
 }
@@ -134,21 +145,16 @@ class SubredditPageRoute<T> extends ModelPageRoute<T, SubredditModel> {
   }
 }
 
-enum _SubredditPageOption {
-  refresh,
-  sort,
-}
-
 class _SubredditPage extends View<SubredditModel> {
 
   _SubredditPage({ Key key, @required SubredditModel model })
     : super(key: key, model: model);
 
   @override
-  SubredditPageState createState() => SubredditPageState();
+  _SubredditPageState createState() => _SubredditPageState();
 }
 
-class SubredditPageState extends ViewState<SubredditModel, _SubredditPage> {
+class _SubredditPageState extends ViewState<SubredditModel, _SubredditPage> {
 
   @override
   Widget build(BuildContext context) {
@@ -174,6 +180,11 @@ class SubredditPageState extends ViewState<SubredditModel, _SubredditPage> {
       ],
     );
   }
+}
+
+enum _SubredditPageOption {
+  refresh,
+  sort,
 }
 
 class _SubredditPageBottomHandle extends StatelessWidget {

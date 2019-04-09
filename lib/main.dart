@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 
 import 'package:alien/app/app.dart';
 
-
 import 'credentials.dart' as credentials;
 
 void main() {

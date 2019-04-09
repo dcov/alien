@@ -6,7 +6,7 @@ import 'package:reddit/values.dart';
 import 'base.dart';
 import 'thing.dart';
 
-class VotableModelSideEffects with RedditMixin{
+class VotableModelSideEffects with RedditMixin {
 
   const VotableModelSideEffects();
 

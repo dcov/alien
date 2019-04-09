@@ -8,6 +8,7 @@ import 'base.dart';
 import 'auth.dart';
 import 'browse.dart';
 import 'route.dart';
+import 'search.dart';
 
 class AppModelSideEffects with CacheScopeMixin, 
                                IOScopeMixin,
@@ -32,6 +33,8 @@ class AppModelSideEffects with CacheScopeMixin,
   }
 
   BrowseModel createBrowseModel(bool isSignedIn) => BrowseModel(isSignedIn);
+
+  SearchModel createSearchModel() => SearchModel();
 
   void setCurrentToken(RefreshToken token) {
     setInteractor(RedditInteractor(client: getClient(), refreshToken: token));
@@ -62,6 +65,7 @@ class AppModel extends Model {
           _isSignedIn = true;
           _sideEffects.setCurrentToken(token);
           _browse = _sideEffects.createBrowseModel(_isSignedIn);
+          _search = _sideEffects.createSearchModel();
           notifyListeners();
         }),
         _updateToken,
@@ -83,6 +87,7 @@ class AppModel extends Model {
           _isSignedIn = token != null;
           _sideEffects.setCurrentToken(null);
           _browse = _sideEffects.createBrowseModel(_isSignedIn);
+          _search = _sideEffects.createSearchModel();
           notifyListeners();
         }),
         _updateToken
@@ -101,6 +106,9 @@ class AppModel extends Model {
 
   BrowseModel get browse => _browse;
   BrowseModel _browse;
+
+  SearchModel get search => _search;
+  SearchModel _search;
 
   final AppModelSideEffects _sideEffects;
 
@@ -145,24 +153,26 @@ class _AppScaffold extends View<AppModel> {
   _AppScaffoldState createState() => _AppScaffoldState();
 }
 
-class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with NavigatorObserver, ModelPageRouteObserverMixin {
-  
-  static const String _browseRouteName = 'browse';
-  static const String _appMenuRouteName = 'app_menu';
+class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with SingleTickerProviderStateMixin {
+
+  static const GlobalValueKey<String, NavigatorState> _browseNavigatorKey =
+    GlobalValueKey('browse');
+  static const GlobalValueKey<String, NavigatorState> _searchNavigatorKey =
+    GlobalValueKey('search');
+  static const GlobalValueKey<String, BottomSheetState> _bottomSheetKey =
+    GlobalValueKey('bottomSheet');
+  static const GlobalValueKey<String, NavigatorState> _menuNavigatorKey =
+    GlobalValueKey('menu');
 
   @override
   bool get rebuildOnChanges => true;
 
-  final GlobalKey<NavigatorState> _browseNavigatorKey = GlobalKey<NavigatorState>();
-  final GlobalKey<BottomSheetState> _bottomSheetKey = GlobalKey<BottomSheetState>();
-  final GlobalKey<NavigatorState> _menuNavigatorKey = GlobalKey<NavigatorState>();
-
-  String _currentRouteStack = _browseRouteName;
+  GlobalValueKey<String, NavigatorState> _currentPageNavigatorKey;
 
   @override
-  void didPush(Route route, Route previousRoute) {
-    super.didPush(route, previousRoute);
-    _maybeUpdateBottomSheetHandle(route);
+  void initState() {
+    super.initState();
+    _currentPageNavigatorKey = _browseNavigatorKey;
   }
 
   void _maybeUpdateBottomSheetHandle(Route route) {
@@ -173,10 +183,19 @@ class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with Navigator
     }
   }
 
-  @override
-  void didPop(Route route, Route previousRoute) {
-    super.didPop(route, previousRoute);
+  void _didPush(Route route, Route previousRoute) {
+    _maybeUpdateBottomSheetHandle(route);
+  }
+
+  void _didPop(Route route, Route previousRoute) {
     _maybeUpdateBottomSheetHandle(previousRoute);
+  }
+
+  NavigatorObserver _createNavigatorObserver() {
+    return ModelPageRouteObserver(
+      onDidPush: _didPush,
+      onDidPop: _didPop
+    );
   }
 
   Future<bool> _handleWillPop() async {
@@ -192,9 +211,9 @@ class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with Navigator
       return false;
     }
 
-    final NavigatorState browseNavigator = _browseNavigatorKey.currentState;
-    if (browseNavigator.canPop()) {
-      browseNavigator.pop();
+    final NavigatorState pageNavigator = _currentPageNavigatorKey.currentState;
+    if (pageNavigator.canPop()) {
+      pageNavigator.pop();
       return false;
     }
 
@@ -222,18 +241,35 @@ class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with Navigator
 
   void _handleBottomSheetStatusChange(AnimationStatus status) {
     if (status == AnimationStatus.dismissed) {
-      final NavigatorState navigator = _menuNavigatorKey.currentState;
-      while (navigator.canPop())
-        navigator.pop();
+      final NavigatorState menuNavigator = _menuNavigatorKey.currentState;
+      while (menuNavigator.canPop())
+        menuNavigator.pop();
+    }
+  }
+
+  void _maybeUpdateCurrentPageNavigatorKey(GlobalValueKey<String, NavigatorState> value) {
+    if (_currentPageNavigatorKey != value) {
+      setState(() {
+        _currentPageNavigatorKey = value;
+        _bottomSheetKey.currentState.collapse();
+      });
     }
   }
 
   Route _buildRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case _browseRouteName:
-        return BrowsePageRoute(model: model.browse);
-      case _appMenuRouteName:
-        return FadeRoute(builder: (_) => _AppMenu(model: model));
+    final String routeName = settings.name;
+    if (routeName == _browseNavigatorKey.value) {
+      return BrowsePageRoute(model: model.browse);
+    } else if (routeName == _searchNavigatorKey.value) {
+      return SearchPageRoute(model: model.search);
+    } else if (routeName == _menuNavigatorKey.value) {
+      return FadeRoute(builder: (_) =>
+        _AppMenu(
+          onBrowse: () => _maybeUpdateCurrentPageNavigatorKey(_browseNavigatorKey),
+          onSearch: () => _maybeUpdateCurrentPageNavigatorKey(_searchNavigatorKey),
+          model: model,
+        )
+      );
     }
 
     return MaterialPageRoute(
@@ -242,27 +278,39 @@ class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with Navigator
     );
   }
 
+  Widget _buildPageNavigator(GlobalValueKey<String, NavigatorState> key) {
+    return Offstage(
+      offstage: key != _currentPageNavigatorKey,
+      child: Navigator(
+        key: key,
+        initialRoute: key.value,
+        onGenerateRoute: _buildRoute,
+        observers: <NavigatorObserver>[
+          _createNavigatorObserver()
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => WillPopScope(
     onWillPop: _handleWillPop,
     child: Stack(
       children: <Widget>[
-        Offstage(
-          offstage: _currentRouteStack != _browseRouteName,
-          child: Navigator(
-            key: _browseNavigatorKey,
-            initialRoute: _browseRouteName,
-            onGenerateRoute: _buildRoute,
-            observers: <NavigatorObserver>[ this ],
-          ),
-        ),
+        _buildPageNavigator(_browseNavigatorKey),
+        _buildPageNavigator(_searchNavigatorKey),
         BottomSheet(
           key: _bottomSheetKey,
           onStatusChanged: _handleBottomSheetStatusChange,
-          body: Navigator(
-            key: _menuNavigatorKey,
-            initialRoute: _appMenuRouteName,
-            onGenerateRoute: _buildRoute
+          body: AnimatedSize(
+            vsync: this,
+            duration: const Duration(milliseconds: 300),
+            child: Navigator(
+              key: _menuNavigatorKey,
+              initialRoute: _menuNavigatorKey.value,
+              onGenerateRoute: _buildRoute,
+              stackFit: StackFit.loose,
+            )
           ),
         )
       ],
@@ -274,9 +322,13 @@ class _AppMenu extends StatelessWidget {
 
   _AppMenu({
     Key key,
+    @required this.onBrowse,
+    @required this.onSearch,
     @required this.model
   }) : super(key: key);
 
+  final VoidCallback onBrowse;
+  final VoidCallback onSearch;
   final AppModel model;
 
   @override
@@ -306,22 +358,21 @@ class _AppMenu extends StatelessWidget {
               ],
             )
           ),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                ListItem(
-                  onTap: () {},
-                  icon: Icon(Icons.explore),
-                  title: Text('Browse'),
-                ),
-                ListItem(
-                  onTap: () {},
-                  icon: Icon(Icons.search),
-                  title: Text('Search'),
-                )
-              ],
-            )
+          ListView(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            children: <Widget>[
+              ListTile(
+                onTap: onBrowse,
+                leading: Icon(Icons.explore),
+                title: Text('Browse'),
+              ),
+              ListTile(
+                onTap: onSearch,
+                leading: Icon(Icons.search),
+                title: Text('Search'),
+              )
+            ],
           )
         ],
       )

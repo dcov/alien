@@ -181,3 +181,30 @@ class ImmutableMap<K, V> {
 
   bool get isNotEmpty => _source.isNotEmpty;
 }
+
+class MutableList<E> extends ImmutableList<E> {
+
+  MutableList() : super(List<E>());
+
+  MutableList.from(List<E> source) : super(source);
+
+  List<E> get it => super._source;
+}
+
+class MutableSet<E> extends ImmutableSet<E> {
+
+  MutableSet() : super(Set<E>());
+
+  MutableSet.from(Set<E> source) : super(source);
+
+  Set<E> get it => super._source;
+}
+
+class MutableMap<K, V> extends ImmutableMap<K, V> {
+
+  MutableMap() : super(Map<K, V>());
+
+  MutableMap.from(Map<K, V> source) : super(source);
+
+  Map<K, V> get it => super._source;
+}

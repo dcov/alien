@@ -147,19 +147,18 @@ class AuthMenu extends StatelessWidget {
             middle: SubheadText('Accounts'),
           )
         ),
-        Expanded(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: model.users.map<Widget>((UserModel userModel) {
-              return UserTile(
-                model: userModel,
-              );
-            }).toList()..add(
-              ListTile(
-                onTap: () => LoginMenu.show(context, model.getLogin()),
-                leading: Icon(Icons.add),
-                title: Text('Login'),
-              )
+        ListView(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          children: model.users.map<Widget>((UserModel userModel) {
+            return UserTile(
+              model: userModel,
+            );
+          }).toList()..add(
+            ListTile(
+              onTap: () => LoginMenu.show(context, model.getLogin()),
+              leading: Icon(Icons.add),
+              title: Text('Login'),
             )
           )
         )

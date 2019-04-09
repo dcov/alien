@@ -84,7 +84,7 @@ class MediaModel extends Model {
     if (host.endsWith('reddit.com') || host.endsWith('redd.it')) {
       if (host.startsWith('v')) {
         _type ??= MediaType.video;
-        _source = '$_source/DASHPlaylist.mpd';
+        // _source = '$_source/DASHPlaylist.mpd';
       } else if (host.startsWith('i')) {
         _type ??= MediaType.image;
         trySetThumbnailAsSource();

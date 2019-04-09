@@ -4,6 +4,7 @@ export 'view/basic.dart';
 export 'view/bottom_sheet.dart';
 export 'view/builders.dart';
 export 'view/design.dart';
+export 'view/key.dart';
 export 'view/material.dart';
 export 'view/popups.dart';
 export 'view/routes.dart';

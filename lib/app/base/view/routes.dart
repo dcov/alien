@@ -15,6 +15,9 @@ class FadeRoute<T> extends MaterialPageRoute<T> {
        );
 
   @override
+  bool get hasBarrier => false;
+
+  @override
   bool canTransitionFrom(TransitionRoute previousRoute) {
     return previousRoute is FadeRoute;
   }

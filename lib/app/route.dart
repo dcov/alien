@@ -72,19 +72,31 @@ abstract class ModelPageRoute<T, M extends RouteModel> extends PageRoute<T> {
   String get debugLabel => '${super.debugLabel}(${settings.name})';
 }
 
-mixin ModelPageRouteObserverMixin implements NavigatorObserver { 
+typedef NavigationCallback = void Function(Route route, Route previousRoute);
+
+class ModelPageRouteObserver extends NavigatorObserver {
+
+  ModelPageRouteObserver({
+    this.onDidPush,
+    this.onDidPop,
+  });
+
+  final NavigationCallback onDidPush;
+  final NavigationCallback onDidPop;
 
   @override
   void didPush(Route route, Route previousRoute) {
-    if (route is ModelPageRoute) {
+    if (route is ModelPageRoute)
       route.model.didPush();
-    }
+    if (onDidPush != null)
+      onDidPush(route, previousRoute);
   }
 
   @override
   void didPop(Route route, Route previousRoute) {
-    if (route is ModelPageRoute) {
+    if (route is ModelPageRoute)
       route.model.didPop();
-    }
+    if (onDidPop != null)
+      onDidPop(route, previousRoute);
   }
 }
