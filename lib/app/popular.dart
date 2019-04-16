@@ -19,6 +19,9 @@ class PopularModel extends FeedModel {
   String get feedName => 'Popular';
 
   @override
+  String get description => 'The most popular posts from the most popular communities on Reddit.';
+
+  @override
   IconData get iconData => Icons.trending_up;
 
   @override

@@ -19,6 +19,9 @@ class HomeModel extends FeedModel {
   String get feedName => 'Home';
 
   @override
+  String get description => '';
+
+  @override
   IconData get iconData => Icons.home;
 
   @override

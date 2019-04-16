@@ -21,6 +21,9 @@ class AllModel extends FeedModel {
   String get feedName => 'All';
 
   @override
+  String get description => 'The most popular posts from all of Reddit.';
+
+  @override
   IconData get iconData => Icons.dns;
 
   @override

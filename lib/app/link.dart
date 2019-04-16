@@ -357,7 +357,7 @@ class _LinkPageState extends ViewState<LinkModel, _LinkPage> {
     return Stack(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(top: 72.0, bottom: 48.0),
+          padding: EdgeInsets.only(top: 72.0),
           child: LinkCommentsScrollView(
             heading: _buildHeading(context),
             model: model.comments

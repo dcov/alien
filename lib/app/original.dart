@@ -19,6 +19,9 @@ class OriginalModel extends FeedModel {
   String get feedName => 'Original';
 
   @override
+  String get description => 'Original content only.';
+
+  @override
   IconData get iconData => Icons.donut_small;
 
   @override

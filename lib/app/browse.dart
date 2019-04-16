@@ -85,7 +85,7 @@ class _BrowsePageState extends ViewState<BrowseModel, _BrowsePage> with Scrollab
     model.defaults.ifPresent((DefaultsModel model) {
       slivers.add(
         SliverPadding(
-          padding: EdgeInsets.only(bottom: 68.0),
+          padding: EdgeInsets.only(bottom: 24.0),
           sliver: DefaultsSliver(model: model),
         )
       );
@@ -93,7 +93,7 @@ class _BrowsePageState extends ViewState<BrowseModel, _BrowsePage> with Scrollab
     model.subscriptions.ifPresent((SubscriptionsModel model) {
       slivers.add(
         SliverPadding(
-          padding: EdgeInsets.only(bottom: 60.0),
+          padding: EdgeInsets.only(bottom: 24.0),
           sliver: SubscriptionsSliver(model: model),
         )
       );

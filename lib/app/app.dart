@@ -175,42 +175,7 @@ class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with SingleTic
     _currentPageNavigatorKey = _browseNavigatorKey;
   }
 
-  void _maybeUpdateBottomSheetHandle(Route route) {
-    if (route is ModelPageRoute) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        _bottomSheetKey.currentState.handle = route.buildBottomHandle(context);
-      });
-    }
-  }
-
-  void _didPush(Route route, Route previousRoute) {
-    _maybeUpdateBottomSheetHandle(route);
-  }
-
-  void _didPop(Route route, Route previousRoute) {
-    _maybeUpdateBottomSheetHandle(previousRoute);
-  }
-
-  NavigatorObserver _createNavigatorObserver() {
-    return ModelPageRouteObserver(
-      onDidPush: _didPush,
-      onDidPop: _didPop
-    );
-  }
-
   Future<bool> _handleWillPop() async {
-    final NavigatorState menuNavigator = _menuNavigatorKey.currentState;
-    if (menuNavigator.canPop()) {
-      menuNavigator.pop();
-      return false;
-    }
-
-    final BottomSheetState bottomSheet = _bottomSheetKey.currentState;
-    if (bottomSheet.status == AnimationStatus.forward || bottomSheet.status == AnimationStatus.completed) { 
-      bottomSheet.collapse();
-      return false;
-    }
-
     final NavigatorState pageNavigator = _currentPageNavigatorKey.currentState;
     if (pageNavigator.canPop()) {
       pageNavigator.pop();
@@ -285,9 +250,7 @@ class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with SingleTic
         key: key,
         initialRoute: key.value,
         onGenerateRoute: _buildRoute,
-        observers: <NavigatorObserver>[
-          _createNavigatorObserver()
-        ],
+        observers: [ ModelPageRouteObserver() ],
       ),
     );
   }
@@ -295,26 +258,7 @@ class _AppScaffoldState extends ViewState<AppModel, _AppScaffold> with SingleTic
   @override
   Widget build(BuildContext context) => WillPopScope(
     onWillPop: _handleWillPop,
-    child: Stack(
-      children: <Widget>[
-        _buildPageNavigator(_browseNavigatorKey),
-        _buildPageNavigator(_searchNavigatorKey),
-        BottomSheet(
-          key: _bottomSheetKey,
-          onStatusChanged: _handleBottomSheetStatusChange,
-          body: AnimatedSize(
-            vsync: this,
-            duration: const Duration(milliseconds: 300),
-            child: Navigator(
-              key: _menuNavigatorKey,
-              initialRoute: _menuNavigatorKey.value,
-              onGenerateRoute: _buildRoute,
-              stackFit: StackFit.loose,
-            )
-          ),
-        )
-      ],
-    )
+    child: _buildPageNavigator(_browseNavigatorKey),
   );
 }
 

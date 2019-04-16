@@ -9,6 +9,8 @@ abstract class FeedModel extends RouteModel {
 
   String get feedName;
 
+  String get description;
+
   IconData get iconData;
 
   LinksPaginationModel get links;
@@ -37,15 +39,20 @@ class FeedTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListItem(
+    return ListTile(
       onTap: () => Navigator.push(context, FeedPageRoute(model: model)),
-      icon: CircleIcon(
+      leading: CircleIcon(
         model.iconData,
         circleColor: model.primaryColor,
         iconColor: Theme.of(context).canvasColor,
       ),
       title: Body2Text(
         model.feedName,
+      ),
+      subtitle: Text(
+        model.description,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
