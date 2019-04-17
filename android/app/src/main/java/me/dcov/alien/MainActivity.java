@@ -1,4 +1,4 @@
-package com.example.alien;
+package me.dcov.alien;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
