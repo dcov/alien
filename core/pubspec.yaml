@@ -7,6 +7,6 @@ environment:
 
 dependencies:
   reddit:
-    git: git://github.com/dcov/reddit.git
+    path: ../reddit
 
 dev_dependencies:
