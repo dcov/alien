@@ -1,0 +1,12 @@
+name: core
+description: The core of Alien for Reddit.
+version: 0.1.0
+
+environment:
+  sdk: '>=2.3.0 <3.0.0'
+
+dependencies:
+  reddit:
+    git: git://github.com/dcov/reddit.git
+
+dev_dependencies:

@@ -1,0 +1,42 @@
+name: alien
+description: A Reddit client built with Flutter.
+
+version: 0.1.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cached_network_image:
+
+  flutter_markdown:
+    git:
+      url: git://github.com/dcov/flutter_markdown.git
+      ref: alien
+
+  isolate:
+   
+  path_provider:
+  
+  markdown:
+
+  scraper:
+    git: git://github.com/dcov/scraper.git
+
+  url_launcher:
+
+  video_player:
+
+  webview_flutter:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: AlienIcons
+      fonts:
+        - asset: fonts/subreddit.ttf
