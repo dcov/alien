@@ -6,6 +6,11 @@ environment:
   sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
+  loux:
+    git:
+      url: git://github.com/dcov/loux.dart.git
+      path: loux
+
   reddit:
     path: ../reddit
 
