@@ -6,10 +6,10 @@ environment:
   sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
-  loux:
+  elmer:
     git:
-      url: git://github.com/dcov/loux.dart.git
-      path: loux
+      url: git://github.com/dcov/elmer.git
+      path: elmer
 
   reddit:
     path: ../reddit
