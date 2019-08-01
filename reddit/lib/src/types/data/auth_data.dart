@@ -1,8 +1,8 @@
-part of '../decoders.dart';
+part of '../data.dart';
 
-class RefreshTokenDecoder {
+class RefreshTokenData {
 
-  RefreshTokenDecoder(this._data);
+  RefreshTokenData(this._data);
 
   final Map _data;
 
@@ -11,9 +11,9 @@ class RefreshTokenDecoder {
   String get value => _data['refresh_token'];
 }
 
-class AccessTokenDecoder {
+class AccessTokenData {
 
-  AccessTokenDecoder(this._data);
+  AccessTokenData(this._data);
 
   final Map _data;
 

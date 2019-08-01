@@ -1,8 +1,8 @@
-part of '../decoders.dart';
+part of '../data.dart';
 
-class ScopeDecoder {
+class ScopeData {
 
-  ScopeDecoder._(this._data);
+  ScopeData._(this._data);
 
   final Map _data;
 
@@ -15,9 +15,9 @@ class ScopeDecoder {
   String _parseScopeId(String id) => (id == 'wiki') ? 'wikiedit' : id;
 }
 
-class MultiDecoder {
+class MultiData {
 
-  MultiDecoder(this._data);
+  MultiData(this._data);
 
   final Map _data;
 

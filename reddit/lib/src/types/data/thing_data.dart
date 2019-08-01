@@ -1,4 +1,13 @@
-part of '../decoders.dart';
+part of '../data.dart';
+
+Map _extractData(Map obj) {
+  return obj['data'] ?? obj;
+}
+
+Map _decodeData(String json) {
+  final obj = jsonDecode(json);
+  return _extractData(obj);
+}
 
 List<T> _castList<T>(List list) =>
   (list != null && list.isNotEmpty) ? list.cast<T>() : null;
@@ -23,22 +32,22 @@ int _parseColor(String color) {
   return null;
 }
 
-mixin ThingDecoder {
+mixin ThingData {
 
-  static ThingDecoder from(Map data) {
+  static ThingData from(Map data) {
     switch (data['kind']) {
       case 't1':
-        return CommentDecoder(data);
+        return CommentData(data);
       case 't2':
-        return AccountDecoder(data);
+        return AccountData(data);
       case 't3':
-        return PostDecoder(data);
+        return PostData(data);
       case 't4':
-        return MessageDecoder(data);
+        return MessageData(data);
       case 't5':
-        return SubredditDecoder(data);
+        return SubredditData(data);
       case 'more':
-        return MoreDecoder(data);
+        return MoreData(data);
     }
     return null;
   }
@@ -52,14 +61,14 @@ mixin ThingDecoder {
   String get fullId => '${kind}_$id';
 }
 
-mixin CreatedDecoder {
+mixin CreatedData {
 
   Map get _data;
 
   int get createdAtUtc => _parseNum(_data['created_utc']);
 }
 
-mixin GildableDecoder {
+mixin GildableData {
 
   Map get _data;
 
@@ -68,7 +77,7 @@ mixin GildableDecoder {
   int get gildCount => _parseNum(_data['gilded']);
 }
 
-mixin VotableDecoder {
+mixin VotableData {
 
   Map get _data;
 
@@ -85,16 +94,16 @@ mixin VotableDecoder {
   int get upvoteCount => _parseNum(_data['ups']);
 }
 
-mixin SaveableDecoder {
+mixin SaveableData {
 
   Map get _data;
 
   bool get isSaved => _data['saved'];
 }
 
-class AccountDecoder with ThingDecoder, CreatedDecoder {
+class AccountData with ThingData, CreatedData {
 
-  AccountDecoder(this._data);
+  AccountData(this._data);
 
   final Map _data;
 
@@ -122,10 +131,10 @@ class AccountDecoder with ThingDecoder, CreatedDecoder {
   String get username => _data['name'];
 }
 
-class CommentDecoder with ThingDecoder, CreatedDecoder, GildableDecoder,
-    VotableDecoder, SaveableDecoder {
+class CommentData with ThingData, CreatedData, GildableData,
+    VotableData, SaveableData {
   
-  CommentDecoder(this._data);
+  CommentData(this._data);
 
   final Map _data;
 
@@ -196,12 +205,12 @@ class CommentDecoder with ThingDecoder, CreatedDecoder, GildableDecoder,
 
   String get removalReason => _data['removal_reason'];
 
-  Iterable<ThingDecoder> get replies sync* {
+  Iterable<ThingData> get replies sync* {
     final obj = _data['replies'];
     if (obj is Map) {
       final replies = obj['data']['children'];
       for (final reply in replies) {
-        yield ThingDecoder.from(reply);
+        yield ThingData.from(reply);
       }
     }
   }
@@ -221,9 +230,9 @@ class CommentDecoder with ThingDecoder, CreatedDecoder, GildableDecoder,
   Iterable<String> get userReports => _castList<String>(_data['user_reports']);
 }
 
-class MessageDecoder with ThingDecoder, CreatedDecoder {
+class MessageData with ThingData, CreatedData {
 
-  MessageDecoder(this._data);
+  MessageData(this._data);
 
   final Map _data;
 
@@ -247,9 +256,9 @@ class MessageDecoder with ThingDecoder, CreatedDecoder {
   bool get wasComment => _data["was_comment"];
 }
 
-class MoreDecoder with ThingDecoder {
+class MoreData with ThingData {
 
-  MoreDecoder(this._data);
+  MoreData(this._data);
 
   final Map _data;
 
@@ -265,9 +274,9 @@ class MoreDecoder with ThingDecoder {
   String get fullParentId => _data["parent_id"];
 }
 
-class ResolutionDecoder {
+class ResolutionData {
 
-  ResolutionDecoder(this._data);
+  ResolutionData(this._data);
 
   final Map _data;
 
@@ -278,33 +287,33 @@ class ResolutionDecoder {
   String get height => _data['height'];
 }
 
-class PreviewDecoder {
+class PreviewData {
 
-  PreviewDecoder(this._data);
+  PreviewData(this._data);
 
   final Map _data;
 
   bool get enabled => _data['enabled'];
 
-  Iterable<ResolutionDecoder> get resolutions sync* {
+  Iterable<ResolutionData> get resolutions sync* {
     final obj = _data['images'][0];
     final source = obj['source'];
     if (source != null) {
-      yield ResolutionDecoder(source);
+      yield ResolutionData(source);
     }
     final extras = obj['resolutions'];
     if (extras != null) {
       for (final extra in extras) {
-        yield ResolutionDecoder(extra);
+        yield ResolutionData(extra);
       }
     }
   }
 }
 
-class PostDecoder with ThingDecoder, CreatedDecoder, GildableDecoder,
-    VotableDecoder, SaveableDecoder {
+class PostData with ThingData, CreatedData, GildableData,
+    VotableData, SaveableData {
 
-  PostDecoder(this._data);
+  PostData(this._data);
 
   final Map _data;
 
@@ -413,9 +422,9 @@ class PostDecoder with ThingDecoder, CreatedDecoder, GildableDecoder,
 
   String get postHint => _data['post_hint'];
 
-  PreviewDecoder get preview {
+  PreviewData get preview {
     final preview = _data['preview'];
-    return preview != null ? PreviewDecoder(preview) : null;
+    return preview != null ? PreviewData(preview) : null;
   }
 
   String get removalReason => _data['removal_reason'];
@@ -453,9 +462,9 @@ class PostDecoder with ThingDecoder, CreatedDecoder, GildableDecoder,
   String get whitelistStatus => _data['whitelist_status'];
 }
 
-class SubredditDecoder with ThingDecoder, CreatedDecoder {
+class SubredditData with ThingData, CreatedData {
 
-  SubredditDecoder(this._data);
+  SubredditData(this._data);
 
   final Map _data;
 
@@ -493,9 +502,14 @@ class SubredditDecoder with ThingDecoder, CreatedDecoder {
   bool get userIsSubscriber => _data['user_is_subscriber'];
 }
 
-class ListingDecoder {
+class ListingData<T extends ThingData> {
 
-  ListingDecoder(this._data);
+  factory ListingData.fromJson(String json, [Map extractor(Map obj)]) {
+    final Map data = extractor != null ? extractor(jsonDecode(json)) : _decodeData(json);
+    return ListingData(data);
+  }
+
+  ListingData(this._data);
 
   final Map _data;
 
@@ -503,10 +517,10 @@ class ListingDecoder {
 
   String get previousId => _data['before'];
 
-  Iterable<ThingDecoder> get things sync* {
+  Iterable<T> get things sync* {
     final Iterable items = _data['children'] ?? _data['things'];
     for (final item in items) {
-      yield ThingDecoder.from(item['data']);
+      yield ThingData.from(item['data']);
     }
   }
 }
