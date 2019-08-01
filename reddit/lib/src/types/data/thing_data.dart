@@ -1,14 +1,5 @@
 part of '../data.dart';
 
-Map _extractData(Map obj) {
-  return obj['data'] ?? obj;
-}
-
-Map _decodeData(String json) {
-  final obj = jsonDecode(json);
-  return _extractData(obj);
-}
-
 List<T> _castList<T>(List list) =>
   (list != null && list.isNotEmpty) ? list.cast<T>() : null;
 
@@ -103,6 +94,10 @@ mixin SaveableData {
 
 class AccountData with ThingData, CreatedData {
 
+  factory AccountData.fromJson(String json, [DataExtractor extractor]) {
+    return AccountData(extractor(jsonDecode(json)));
+  }
+
   AccountData(this._data);
 
   final Map _data;
@@ -133,6 +128,10 @@ class AccountData with ThingData, CreatedData {
 
 class CommentData with ThingData, CreatedData, GildableData,
     VotableData, SaveableData {
+
+  factory CommentData.fromJson(String json, [DataExtractor extractor = _extractData]) {
+    return CommentData(extractor(jsonDecode(json)));
+  }
   
   CommentData(this._data);
 
@@ -232,6 +231,10 @@ class CommentData with ThingData, CreatedData, GildableData,
 
 class MessageData with ThingData, CreatedData {
 
+  factory MessageData.fromJson(String json, [DataExtractor extractor]) {
+    return MessageData(extractor(jsonDecode(json)));
+  }
+
   MessageData(this._data);
 
   final Map _data;
@@ -312,6 +315,10 @@ class PreviewData {
 
 class PostData with ThingData, CreatedData, GildableData,
     VotableData, SaveableData {
+
+  factory PostData.fromJson(String json, [DataExtractor extractor = _extractData]) {
+    return PostData(extractor(jsonDecode(json)));
+  }
 
   PostData(this._data);
 
@@ -464,6 +471,15 @@ class PostData with ThingData, CreatedData, GildableData,
 
 class SubredditData with ThingData, CreatedData {
 
+  static Iterable<SubredditData> iterableFromJson(String json, [DataExtractor extractor = _extractNothing]) {
+    final obj = extractor(jsonDecode(json));
+    return obj.map((data) => SubredditData(data));
+  }
+
+  factory SubredditData.fromJson(String json, [DataExtractor extractor = _extractData]) {
+    return SubredditData(extractor(jsonDecode(json)));
+  }
+
   SubredditData(this._data);
 
   final Map _data;
@@ -504,9 +520,8 @@ class SubredditData with ThingData, CreatedData {
 
 class ListingData<T extends ThingData> {
 
-  factory ListingData.fromJson(String json, [Map extractor(Map obj)]) {
-    final Map data = extractor != null ? extractor(jsonDecode(json)) : _decodeData(json);
-    return ListingData(data);
+  factory ListingData.fromJson(String json, [DataExtractor extractor = _extractData]) {
+    return ListingData(extractor(jsonDecode(json)));
   }
 
   ListingData(this._data);

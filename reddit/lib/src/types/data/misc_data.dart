@@ -2,7 +2,14 @@ part of '../data.dart';
 
 class ScopeData {
 
-  ScopeData._(this._data);
+  static Iterable<ScopeData> iterableFromJson(String json, [DataExtractor extractor = _extractNothing]) sync* {
+    final obj = extractor(jsonDecode(json));
+    for (final data in obj.values) {
+      yield ScopeData(data);
+    }
+  }
+
+  ScopeData(this._data);
 
   final Map _data;
 
@@ -16,6 +23,15 @@ class ScopeData {
 }
 
 class MultiData {
+
+  factory MultiData.fromJson(String json, [DataExtractor extractor = _extractData]) {
+    return MultiData(extractor(jsonDecode(json)));
+  }
+
+  static Iterable<MultiData> iterableFromJson(String json, [DataExtractor extractor = _extractNothing]) {
+    final obj = extractor(jsonDecode(json));
+    return obj.map((data) => MultiData(data));
+  }
 
   MultiData(this._data);
 
