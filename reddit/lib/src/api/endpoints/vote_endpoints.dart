@@ -4,6 +4,6 @@ mixin VoteEndpoints on EndpointInteractor {
 
   Future<void> postVote(String fullVotableId, VoteDir voteDir) {
     return post('${_kOAuthUrl}/api/vote',
-        'id=${fullVotableId}&dir=${voteDir.value}');
+        'id=${fullVotableId}&dir=${voteDir}');
   }
 }

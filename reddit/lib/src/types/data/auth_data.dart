@@ -10,7 +10,12 @@ class RefreshTokenData {
 
   final Map _data;
 
-  Iterable<String> get scopes => _data['scope'].split(' ');
+  Iterable<Scope> get scopes sync* {
+    final Iterable<String> values = _data['scope'].split(' ');
+    for (final String value in values) {
+      yield Scope.from(value);
+    }
+  }
 
   String get token => _data['refresh_token'];
 }

@@ -3,12 +3,12 @@ part of '../endpoints.dart';
 mixin ReadEndpoints on EndpointInteractor {
 
   Future<ListingData> getHomePosts(HomeSort sort, Page page) {
-    return get('${_kOAuthUrl}/${sort.value}/${_kRawJsonArgs}&${page}')
+    return get('${_kOAuthUrl}/${sort}/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
   Future<ListingData> getPostComments(String permalink, CommentsSort sort) {
-    return get('${_kOAuthUrl}/${permalink}/${_kRawJsonArgs}&sort=${sort.value}')
+    return get('${_kOAuthUrl}/${permalink}/${_kRawJsonArgs}&sort=${sort}')
         .then((String json) => ListingData.fromJson(json));
   }
 
@@ -43,7 +43,7 @@ mixin ReadEndpoints on EndpointInteractor {
   }
 
   Future<ListingData> getOriginalPosts(OriginalSort sort, Page page) {
-    return get('${_kOAuthUrl}/original/${sort.value}/${_kRawJsonArgs}&${page}')
+    return get('${_kOAuthUrl}/original/${sort}/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
@@ -63,13 +63,13 @@ mixin ReadEndpoints on EndpointInteractor {
   }
 
   Future<ListingData> getSubreddits(Subreddits where, Page page) {
-    return get('${_kOAuthUrl}/subreddits/${where.value}/?${page}')
+    return get('${_kOAuthUrl}/subreddits/${where}/?${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
   Future<ListingData> getSubredditPosts(String subredditName,
       SubredditSort sort, Page page) {
-    return get('${_kOAuthUrl}/r/${subredditName}/${sort.value}'
+    return get('${_kOAuthUrl}/r/${subredditName}/${sort}'
                '/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }

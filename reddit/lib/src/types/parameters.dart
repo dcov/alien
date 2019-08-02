@@ -11,4 +11,7 @@ abstract class Parameter {
   final String name;
 
   final String value;
+
+  @override
+  String toString() => this.value;
 }

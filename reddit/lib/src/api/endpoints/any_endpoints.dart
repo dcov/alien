@@ -2,7 +2,7 @@ part of '../endpoints.dart';
 
 mixin AnyEndpoints on EndpointInteractor {
 
-  Future<Iterable<ScopeData>> getScopeDescriptions([Iterable<String> scopes]) {
+  Future<Iterable<ScopeData>> getScopeDescriptions([Iterable<Scope> scopes]) {
     final String parameter = scopes != null
         ? '?scopes=${scopes.join(' ')}'
         : '';
