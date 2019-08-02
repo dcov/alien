@@ -1,52 +1,27 @@
-import 'package:loux/loux.dart';
+part of 'votable.dart';
 
-class PostUpvote extends Effect {
+class PostVote extends Effect {
 
-  PostUpvote({
-    this.fullId,
-    this.key,
+  PostVote({
+    @required this.userToken,
+    @required this.fullVotableId,
+    @required this.newVoteDir,
+    @required this.votableKey,
+    @required this.oldVoteDir,
   });
 
-  final String fullId;
-  final ModelKey key;
+  final String userToken;
+  final String fullVotableId;
+  final VoteDir newVoteDir;
+  final ModelKey votableKey;
+  final VoteDir oldVoteDir;
 
   @override
   Future<Event> perform(Container container) {
-    // TODO: Implement PostUpvote Effect
-    return null;
-  }
-}
-
-class PostDownvote extends Effect {
-
-  PostDownvote({
-    this.fullId,
-    this.key
-  });
-
-  final String fullId;
-  final ModelKey key;
-
-  @override
-  Future<Event> perform(Container container) {
-    // TODO: Implement PostDownvote Effect
-    return null;
-  }
-}
-
-class PostUnvote extends Effect {
-
-  PostUnvote({
-    this.fullId,
-    this.key
-  });
-
-  final String fullId;
-  final ModelKey key;
-
-  @override
-  Future<Event> perform(Container container) {
-    // TODO: Implement PostUnvote Effect
-    return null;
+    final RedditClient client = container.get();
+    return client.asUser(userToken).postVote(fullVotableId, newVoteDir)
+        .catchError((e) {
+          // TODO: PostVote error catching
+        });
   }
 }

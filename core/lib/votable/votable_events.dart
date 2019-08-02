@@ -1,68 +1,82 @@
-import 'package:loux/loux.dart';
-
-import 'votable_effect.dart';
-import 'votable_model.dart';
+part of 'votable.dart';
 
 class Upvote extends Event {
 
   const Upvote({
-    this.key
-  });
+    @required this.votableKey,
+    this.userKey,
+  }) : assert(votableKey != null);
 
-  final ModelKey key;
+  final ModelKey votableKey;
+
+  final ModelKey userKey;
 
   @override
   Effect update(Store store) {
-    final Votable votable = store.get(this.key);
+    final Votable votable = store.get(this.votableKey);
+    final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.up) {
       votable..score -= 1
              ..voteDir = VoteDir.none;
-
-      return PostUnvote(
-        fullId: votable.fullId,
-        key: this.key
-      );
     } else {
       votable..score += votable.voteDir == VoteDir.down ? 2 : 1
              ..voteDir = VoteDir.up;
-
-      return PostUpvote(
-        fullId: votable.fullId,
-        key: this.key
-      );
     }
+
+    return PostVote(
+      userToken: utils.getUserToken(store, this.userKey),
+      fullVotableId: votable.fullId,
+      newVoteDir: votable.voteDir,
+      votableKey: votable.key,
+      oldVoteDir: oldVoteDir
+    );
   }
 }
 
 class Downvote extends Event {
 
   const Downvote({
-    this.key
+    @required this.votableKey,
+    this.userKey,
   });
 
-  final ModelKey key;
+  final ModelKey votableKey;
+
+  final ModelKey userKey;
 
   @override
   Effect update(Store store) {
-    final Votable votable = store.get(this.key);
+    final Votable votable = store.get(this.votableKey);
+    final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.down) {
       votable..score += 1
              ..voteDir = VoteDir.none;
-      
-      return PostUnvote(
-        fullId: votable.fullId,
-        key: this.key
-      );
     } else {
       votable..score -= votable.voteDir == VoteDir.up ? 2 : 1
              ..voteDir = VoteDir.down;
-      
-      return PostDownvote(
-        fullId: votable.fullId,
-        key: this.key
-      );
     }
+
+    return PostVote(
+      userToken: utils.getUserToken(store, userKey)
+    );
+  }
+}
+
+class VoteFailed extends Event {
+
+  VoteFailed({
+    @required this.oldVoteDir,
+    this.votableKey
+  });
+
+  final VoteDir oldVoteDir;
+  final ModelKey votableKey;
+
+  @override
+  Effect update(Store store) {
+    final Votable votable = store.get(votableKey);
+
   }
 }

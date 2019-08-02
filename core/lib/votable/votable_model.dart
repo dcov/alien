@@ -1,10 +1,4 @@
-import '../thing/thing_model.dart';
-
-enum VoteDir {
-  up,
-  down,
-  none
-}
+part of 'votable.dart';
 
 mixin Votable on Thing {
 

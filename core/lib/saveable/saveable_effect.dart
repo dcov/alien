@@ -1,4 +1,4 @@
-import 'package:loux/loux.dart';
+part of 'saveable.dart';
 
 class PostSave extends Effect {
 

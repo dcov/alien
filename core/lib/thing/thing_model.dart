@@ -1,4 +1,4 @@
-import 'package:loux/loux.dart';
+part of 'thing.dart';
 
 abstract class Thing extends Model {
 

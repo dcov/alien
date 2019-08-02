@@ -1,4 +1,4 @@
-import '../thing/thing_model.dart';
+part of 'saveable.dart';
 
 mixin Saveable on Thing {
 
