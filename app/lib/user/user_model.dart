@@ -1,16 +1,10 @@
 part of 'user.dart';
 
-class User extends Model {
+abstract class User extends Model {
 
-  User(this.token, this.username);
+  String get token;
 
-  final String token;
+  String get username;
 
-  final String username;
-
-  ModelSet<Scope> get permissions => _permissions;
-  ModelSet<Scope> _permissions;
-  set permissions(ModelSet<Scope> value) {
-    _permissions = set(_permissions, value);
-  }
+  Set<Scope> permissions;
 }

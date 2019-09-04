@@ -1,11 +1,6 @@
 part of 'subscriptions.dart';
 
-class Subscriptions extends Model {
+abstract class Subscriptions extends Model {
 
-  Subscriptions() {
-    this._subreddits = ModelList<Subreddit>(this);
-  }
-
-  ModelList<Subreddit> get subreddits => _subreddits; 
-  ModelList<Subreddit> _subreddits;
+  List<Subreddit> get subreddits; 
 }

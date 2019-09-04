@@ -1,10 +1,9 @@
 part of 'thing.dart';
 
+@abs
 abstract class Thing extends Model {
 
-  Thing(this.id);
-
-  final String id;
+  String get id;
 
   String get kind;
 

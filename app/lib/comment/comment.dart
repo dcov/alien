@@ -8,3 +8,4 @@ import '../votable/votable.dart';
 part 'comment_effects.dart';
 part 'comment_events.dart';
 part 'comment_model.dart';
+part 'comment.g.dart';

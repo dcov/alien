@@ -10,3 +10,4 @@ part 'app_model.dart';
 part 'app_widgets/alien_app.dart';
 part 'app_widgets/app_home.dart';
 part 'app_widgets/app_scaffold.dart';
+part 'app.g.dart';

@@ -1,14 +1,9 @@
 part of 'subreddit.dart';
 
-class Subreddit extends Thing {
-
-  Subreddit({
-    String id,
-    this.name,
-  }) : super(id);
+abstract class Subreddit extends Thing {
 
   @override
   String get kind => 't5';
 
-  final String name;
+  String get name;
 }

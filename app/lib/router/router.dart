@@ -4,3 +4,4 @@ import 'package:flutter/material.dart';
 
 part 'router_model.dart';
 part 'router_widgets.dart';
+part 'router.g.dart';

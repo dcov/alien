@@ -1,4 +1,4 @@
 part of 'app.dart';
 
-class AppState extends Model {
+abstract class AppState extends Model {
 }

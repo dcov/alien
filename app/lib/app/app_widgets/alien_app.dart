@@ -12,7 +12,7 @@ class AlienApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         color: themingState.data.primaryColor,
         builder: (BuildContext context, Widget child) {
-          return Theming(
+          return Themer(
             child: child,
           );
         },

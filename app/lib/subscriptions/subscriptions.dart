@@ -6,3 +6,4 @@ import '../subreddit/subreddit.dart';
 
 part 'subscriptions_events.dart';
 part 'subscriptions_model.dart';
+part 'subscriptions.g.dart';

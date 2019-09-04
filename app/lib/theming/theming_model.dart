@@ -5,17 +5,14 @@ enum ThemeType {
   dark
 }
 
-class ThemingState extends Model {
+abstract class Theming extends Model {
 
-  ThemeData get data => _data;
-  ThemeData _data;
-  set data(ThemeData value) {
-    _data = set(_data, value);
-  }
+  factory Theming({
+    ThemeData data,
+    ThemeType type
+  }) = _$Theming;
 
-  ThemeType get type => _type;
-  ThemeType _type;
-  set type(ThemeType value) {
-    _type = set(_type, value);
-  }
+  ThemeData data;
+
+  ThemeType type;
 }

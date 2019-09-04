@@ -11,7 +11,7 @@ class PostSave extends Effect {
   final ModelKey key;
 
   @override
-  Future<Event> perform(Container container) {
+  Future<Event> perform(Repository repository) {
     // TODO: Implement PostSave Effect
     return null;
   }
@@ -28,7 +28,7 @@ class PostUnsave extends Effect {
   final ModelKey key;
 
   @override
-  Future<Event> perform(Container container) {
+  Future<Event> perform(Repository repository) {
     // TODO: Implement PostUnsave Effect
     return null;
   }

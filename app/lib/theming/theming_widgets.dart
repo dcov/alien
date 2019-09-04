@@ -1,8 +1,8 @@
 part of 'theming.dart';
 
-class Theming extends StatelessWidget {
+class Themer extends StatelessWidget {
 
-  Theming({
+  Themer({
     Key key,
     @required this.child,
   }) : super(key: key);
@@ -12,7 +12,7 @@ class Theming extends StatelessWidget {
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final ThemingState state = store.get();
+      final Theming state = store.get();
       return AnimatedTheme(
         data: state.data,
         child: this.child,

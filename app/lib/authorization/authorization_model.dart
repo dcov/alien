@@ -1,24 +1,17 @@
 part of 'authorization.dart';
 
-class Authorization extends Model {
+abstract class Authorization extends Model {
 
-  Authorization({
-    @required this.clientId,
-    @required this.redirectUri
-  }) {
-    this._users = ModelSet<User>(this);
-  }
+  factory Authorization({
+    String clientId,
+    String redirectUri
+  }) = _$Authorization;
 
-  final String clientId;
+  String get clientId;
 
-  final String redirectUri;
+  String get redirectUri;
 
-  User get currentUser => _currentUser;
-  User _currentUser;
-  set currentUser(User value) {
-    _currentUser = set(_currentUser, value);
-  }
+  User currentUser;
 
-  ModelSet<User> get users => _users;
-  ModelSet<User> _users;
+  Set<User> get users;
 }

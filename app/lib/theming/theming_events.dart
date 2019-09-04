@@ -10,7 +10,7 @@ class UpdateTheme extends Event {
 
   @override
   void update(Store store) {
-    store.get<ThemingState>()
+    store.get<Theming>()
       ..data = () {
           switch (this.type) {
             case ThemeType.light:
