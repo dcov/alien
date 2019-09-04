@@ -1,4 +1,4 @@
-part of '../main.dart';
+part of '../common.dart';
 
 const double _radiansPerDegree = math.pi / 180;
 
@@ -8,13 +8,13 @@ const double _oneHundredEightyDegreesInRadians = 180 * _radiansPerDegree;
 
 const double _twoHundredSeventyDegreesInRadians = 270 * _radiansPerDegree;
 
-abstract class _OutwardBorder extends ShapeBorder {
+abstract class OutwardBorder extends ShapeBorder {
 
-  const factory _OutwardBorder.top(double radius) = _TopOutwardBorder;
+  const factory OutwardBorder.top(double radius) = _TopOutwardBorder;
 
-  const factory _OutwardBorder.bottom(double radius) = _BottomOutwardBorder;
+  const factory OutwardBorder.bottom(double radius) = _BottomOutwardBorder;
 
-  const _OutwardBorder._(this.radius);
+  const OutwardBorder._(this.radius);
 
   final double radius;
 
@@ -43,7 +43,7 @@ abstract class _OutwardBorder extends ShapeBorder {
   void paint(Canvas canvas, Rect rect, {TextDirection textDirection}) { }
 }
 
-class _TopOutwardBorder extends _OutwardBorder {
+class _TopOutwardBorder extends OutwardBorder {
 
   const _TopOutwardBorder(double radius) : super._(radius);
 
@@ -68,7 +68,7 @@ class _TopOutwardBorder extends _OutwardBorder {
   }
 }
 
-class _BottomOutwardBorder extends _OutwardBorder {
+class _BottomOutwardBorder extends OutwardBorder {
 
   const _BottomOutwardBorder(double radius) : super._(radius);
 

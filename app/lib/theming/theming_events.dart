@@ -1,4 +1,4 @@
-part of 'main.dart';
+part of 'theming.dart';
 
 class UpdateTheme extends Event {
 
@@ -10,7 +10,7 @@ class UpdateTheme extends Event {
 
   @override
   void update(Store store) {
-    store.get<Theming>()
+    store.get<ThemingState>()
       ..data = () {
           switch (this.type) {
             case ThemeType.light:
@@ -21,6 +21,5 @@ class UpdateTheme extends Event {
           return null;
         }()
       ..type  = this.type;
-
   }
 }

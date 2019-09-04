@@ -7,9 +7,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  core:
-    path: ../core
-
   elmer_flutter:
     git:
       url: git://github.com/dcov/elmer.git

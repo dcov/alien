@@ -1,17 +1,11 @@
-part of 'main.dart';
+part of 'theming.dart';
 
 enum ThemeType {
   light,
   dark
 }
 
-class ThemeState {
-  ThemeState(this.data, this.type);
-  final ThemeData data;
-  final ThemeType type;
-}
-
-class Theming extends Model {
+class ThemingState extends Model {
 
   ThemeData get data => _data;
   ThemeData _data;

@@ -1,11 +1,12 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 
-import 'main/main.dart';
+import 'app/app.dart';
+import 'theming/theming.dart';
 
 void main() {
   runLoop(
     rootModels: {
-      MainState()
+      ThemingState()
     },
     app: AlienApp()
   );
