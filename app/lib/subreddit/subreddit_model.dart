@@ -1,9 +1,12 @@
 part of 'subreddit.dart';
 
-abstract class Subreddit extends Thing {
+abstract class Subreddit extends Model implements Thing, RoutingTarget {
 
-  @override
-  String get kind => 't5';
+  factory Subreddit.fromData(SubredditData data) {
+    return _$Subreddit(
+      name: data.displayName
+    );
+  }
 
   String get name;
 }

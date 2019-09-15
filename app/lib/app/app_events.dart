@@ -1,11 +1,19 @@
 part of 'app.dart';
 
-class Init extends Event {
+class InitApp extends Event {
 
-  const Init();
+  const InitApp();
 
   @override
-  Set<Effect> update(Store store) {
+  void update(Store store) {
+    store.get<AppState>()
+        ..initialized = true;
 
+    store.get<Theming>()
+        ..type = ThemeType.light
+        ..data = ThemeData.light();
+
+    store.get<Routing>()
+        ..targets.add(Browse()..depth = 0);
   }
 }

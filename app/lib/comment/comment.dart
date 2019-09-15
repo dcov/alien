@@ -1,5 +1,5 @@
-import 'package:elmer/elmer.dart';
-import 'package:meta/meta.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
 
 import '../saveable/saveable.dart';
 import '../thing/thing.dart';

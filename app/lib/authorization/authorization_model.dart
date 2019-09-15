@@ -3,9 +3,13 @@ part of 'authorization.dart';
 abstract class Authorization extends Model {
 
   factory Authorization({
-    String clientId,
-    String redirectUri
-  }) = _$Authorization;
+    @required String clientId,
+    @required String redirectUri
+  }) => _$Authorization(
+    clientId: clientId,
+    redirectUri: redirectUri,
+    users: const <User>{}
+  );
 
   String get clientId;
 

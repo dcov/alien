@@ -1,5 +1,7 @@
 name: alien
 description: A Reddit client built with Flutter.
+author: Diego Covarrubias <dcov@pm.me>
+homepage: https://github.com/dcov/alien
 
 version: 0.1.0
 

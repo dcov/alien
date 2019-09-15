@@ -7,6 +7,7 @@ part 'endpoints/identity_endpoints.dart';
 part 'endpoints/my_subreddits_endpoints.dart';
 part 'endpoints/read_endpoints.dart';
 part 'endpoints/save_endpoints.dart';
+part 'endpoints/subscribe_endpoints.dart';
 part 'endpoints/vote_endpoints.dart';
 
 const String _kOAuthUrl = 'https://oauth.reddit.com';

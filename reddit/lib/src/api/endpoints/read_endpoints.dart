@@ -2,17 +2,17 @@ part of '../endpoints.dart';
 
 mixin ReadEndpoints on EndpointInteractor {
 
-  Future<ListingData> getHomePosts(HomeSort sort, Page page) {
+  Future<ListingData<PostData>> getHomePosts(HomeSort sort, Page page) {
     return get('${_kOAuthUrl}/${sort}/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
-  Future<ListingData> getPostComments(String permalink, CommentsSort sort) {
+  Future<ListingData<CommentData>> getPostComments(String permalink, CommentsSort sort) {
     return get('${_kOAuthUrl}/${permalink}/${_kRawJsonArgs}&sort=${sort}')
         .then((String json) => ListingData.fromJson(json));
   }
 
-  Future<ListingData> getPostsById(Iterable<String> fullPostIds) {
+  Future<ListingData<PostData>> getPostsById(Iterable<String> fullPostIds) {
     return get('${_kOAuthUrl}/by_id/${fullPostIds.join(',')}')
         .then((String json) => ListingData.fromJson(json));
   }
@@ -25,7 +25,7 @@ mixin ReadEndpoints on EndpointInteractor {
         });
   }
 
-  Future<ListingData> getMoreComments(String fullPostId, String moreId,
+  Future<ListingData<CommentData>> getMoreComments(String fullPostId, String moreId,
       Iterable<String> thingIds) {
     return get('${_kOAuthUrl}/api/morechildren/${_kRawJsonArgs}'
                '&link_id=${fullPostId}&id=${moreId}'
@@ -42,7 +42,7 @@ mixin ReadEndpoints on EndpointInteractor {
         .then((String json) => MultiData.fromJson(json));
   }
 
-  Future<ListingData> getOriginalPosts(OriginalSort sort, Page page) {
+  Future<ListingData<PostData>> getOriginalPosts(OriginalSort sort, Page page) {
     return get('${_kOAuthUrl}/original/${sort}/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
@@ -62,12 +62,12 @@ mixin ReadEndpoints on EndpointInteractor {
     return result;
   }
 
-  Future<ListingData> getSubreddits(Subreddits where, Page page) {
+  Future<ListingData<SubredditData>> getSubreddits(Subreddits where, Page page) {
     return get('${_kOAuthUrl}/subreddits/${where}/?${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
-  Future<ListingData> getSubredditPosts(String subredditName,
+  Future<ListingData<PostData>> getSubredditPosts(String subredditName,
       SubredditSort sort, Page page) {
     return get('${_kOAuthUrl}/r/${subredditName}/${sort}'
                '/${_kRawJsonArgs}&${page}')

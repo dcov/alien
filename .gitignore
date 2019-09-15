@@ -76,6 +76,8 @@ build/
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
-# App specific
-lib/credentials.dart
+# Project specific
 *.g.dart
+
+# App module specific
+app/lib/app/app_credentials.dart

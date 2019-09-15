@@ -2,7 +2,7 @@ part of '../client.dart';
 
 class RedditInteractor extends EndpointInteractor
     with AnyEndpoints, IdentityEndpoints, MySubreddditsEndpoints,
-         ReadEndpoints, SaveEndpoints, VoteEndpoints {
+         ReadEndpoints, SaveEndpoints, SubscribeEndpoints, VoteEndpoints {
 
   RedditInteractor(this._client, this._store);
 
