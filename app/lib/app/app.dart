@@ -1,3 +1,4 @@
+import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
@@ -16,8 +17,8 @@ part 'app.g.dart';
 
 void run() {
   runLoop(
-    services: <Object> {
-      RedditClient(''),
+    dependencies: <Object> {
+      RedditClient(_Credentials.clientId),
     },
     rootModels: <Model> {
       AppState(),

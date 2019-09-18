@@ -1,11 +1,12 @@
+import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../defaults/defaults.dart';
 import '../routing/routing.dart';
 import '../subscriptions/subscriptions.dart';
-import '../subreddit/subreddit.dart';
 import '../utils/utils.dart' as utils;
+import '../widgets/widgets.dart';
 
 part 'browse_events.dart';
 part 'browse_model.dart';

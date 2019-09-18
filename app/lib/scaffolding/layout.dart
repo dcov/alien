@@ -108,7 +108,11 @@ class _ScaffoldingLayoutState extends State<_ScaffoldingLayout>
   Widget build(BuildContext context) {
     final Widget overlapped = widget.overlappedBuilder(context, _controller);
     final Widget overlap = widget.overlapBuilder(context, _controller);
+
+    // We always give it a new UniqueKey, otherwise it doesn't rebuild on
+    // certain occasions which causes problems down the build pipeline.
     return LayoutBuilder(
+      key: UniqueKey(),
       builder: (BuildContext context, BoxConstraints constraints) {
         return ValueListenableBuilder(
             valueListenable: _controller,

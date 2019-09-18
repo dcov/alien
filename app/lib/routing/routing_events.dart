@@ -3,9 +3,9 @@ part of 'routing.dart';
 /// Base class for an [Event] that represents a push to [Routing.targets].
 /// Implementations should call [push] once they've acquired/instantiated the
 /// [RoutingTarget].
-abstract class TargetPush extends Event {
+abstract class PushTarget extends Event {
 
-  const TargetPush();
+  const PushTarget();
 
   @protected
   bool push(Store store, RoutingTarget target) {
@@ -17,16 +17,19 @@ abstract class TargetPush extends Event {
       assert(currentIndex != -1);
       target.depth = currentDepth + 1;
       routing.targets.insert(currentIndex + 1, target);
-      return true;
     }
     routing.currentTarget = target;
+    if (target.active != true) {
+      target.active = true;
+      return true;
+    }
     return false;
   }
 }
 
-abstract class TargetPop extends Event {
+abstract class PopTarget extends Event {
 
-  const TargetPop();
+  const PopTarget();
 
   @protected
   void pop(Store store, RoutingTarget target) {
@@ -44,15 +47,14 @@ abstract class TargetPop extends Event {
       routing.targets.removeAt(i);
     }
 
-    if (target.depth == 0) {
-      if (routing.currentTarget == target) {
-        routing.currentTarget = null;
-      }
-    } else {
+    if (target.depth > 0) {
       routing.targets.removeAt(index);
       if (routing.currentTarget == target) {
         routing.currentTarget = routing.targets[index - 1];
       }
+    } else if (routing.currentTarget == target) {
+      routing.currentTarget = null;
     }
+    target.active = false;
   }
 }

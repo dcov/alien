@@ -25,8 +25,10 @@ int _parseColor(String color) {
 
 mixin ThingData {
 
-  static ThingData from(Map data) {
-    switch (data['kind']) {
+  static ThingData from(Map obj) {
+    final String kind = obj['kind'];
+    final Map data = obj['data'];
+    switch (kind) {
       case 't1':
         return CommentData(data);
       case 't2':
@@ -76,13 +78,19 @@ mixin VotableData {
 
   bool get isArchived => _data['archived'];
 
-  bool get isLiked => _data['likes'];
-
   bool get isScoreHidden => _data['score_hidden'];
 
   int get score => _parseNum(_data['score']);
 
   int get upvoteCount => _parseNum(_data['ups']);
+
+  VoteDir get voteDir {
+    final bool likes = _data['likes'];
+    if (likes == null)
+      return VoteDir.none;
+    
+    return likes ? VoteDir.up : VoteDir.down;
+  }
 }
 
 mixin SaveableData {
@@ -535,7 +543,7 @@ class ListingData<T extends ThingData> {
   Iterable<T> get things sync* {
     final Iterable items = _data['children'] ?? _data['things'];
     for (final item in items) {
-      yield ThingData.from(item['data']);
+      yield ThingData.from(item);
     }
   }
 }

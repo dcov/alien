@@ -26,7 +26,7 @@ class Upvote extends Event {
 
     return PostVote(
       userToken: utils.getUserToken(store, this.userKey),
-      fullVotableId: votable.fullId,
+      fullVotableId: utils.makeFullId(votable),
       newVoteDir: votable.voteDir,
       votableKey: votable.key,
       oldVoteDir: oldVoteDir

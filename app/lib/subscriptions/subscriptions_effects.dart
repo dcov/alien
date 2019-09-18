@@ -12,8 +12,8 @@ class GetSubscriptions extends Effect {
   final String userToken;
 
   @override
-  Future<Event> perform(Repository repository) async {
-    final RedditInteractor reddit = repository
+  Future<Event> perform(Repo repo) async {
+    final RedditInteractor reddit = repo
         .get<RedditClient>()
         .asUser(this.userToken);
 

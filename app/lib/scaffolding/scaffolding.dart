@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../browse/browse.dart';
 import '../routing/routing.dart';
+import '../subreddit/subreddit.dart';
 
 part 'layout.dart';
 part 'targets.dart';

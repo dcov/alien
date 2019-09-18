@@ -13,10 +13,6 @@ class PostSubscribe extends Effect {
   final bool subscribe;
 
   @override
-  void perform(Repository repository) {
-    repository
-        .get<RedditClient>()
-        .asUser(userToken)
-        .postSubscribe(fullSubredditId, subscribe);
+  void perform(Repo repo) {
   }
 }

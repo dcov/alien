@@ -17,11 +17,12 @@ class PostVote extends Effect {
   final VoteDir oldVoteDir;
 
   @override
-  Future<Event> perform(Repository repository) {
-    final RedditClient client = repository.get();
-    return client.asUser(userToken).postVote(fullVotableId, newVoteDir)
-        .catchError((e) {
-          // TODO: PostVote error catching
-        });
+  Future<Event> perform(Repo repo) {
+    return repo
+      .get<RedditClient>()
+      .asUser(userToken)
+      .postVote(fullVotableId, newVoteDir)
+      .catchError((e) {
+      });
   }
 }

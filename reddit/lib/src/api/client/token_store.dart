@@ -13,8 +13,6 @@ abstract class TokenStore {
   Map<String, String> _header;
   Future<Map<String, String>> _futureHeader;
 
-  int get _currentUtc => DateTime.now().millisecondsSinceEpoch;
-
   Future<Map<String, String>> get tokenHeader {
     return _futureHeader
         ?? _isHeaderValid() ? Future.value(_header) : _updateToken();
@@ -25,9 +23,7 @@ abstract class TokenStore {
         && _expirationUtc > _currentUtc;
   }
 
-  @protected
-  @visibleForTesting
-  Future<Response> postTokenRequest();
+  int get _currentUtc => DateTime.now().millisecondsSinceEpoch;
 
   Future<Map<String, String>> _updateToken() {
     _futureHeader = postTokenRequest().then((Response response) {
@@ -42,6 +38,10 @@ abstract class TokenStore {
     });
     return _futureHeader;
   }
+
+  @protected
+  @visibleForTesting
+  Future<Response> postTokenRequest();
 }
 
 @visibleForTesting

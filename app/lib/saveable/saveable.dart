@@ -1,6 +1,4 @@
 import 'package:elmer/elmer.dart';
-import 'package:meta/meta.dart';
-import 'package:reddit/reddit.dart';
 
 import '../thing/thing.dart';
 

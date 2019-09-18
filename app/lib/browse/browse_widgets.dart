@@ -12,7 +12,7 @@ class BrowseTile extends StatelessWidget {
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      return ListTile(
+      return CustomTile(
         onTap: () => dispatch(PushBrowse(browseKey: this.browseKey)),
         title: Text('Browse'),
       );
@@ -68,9 +68,13 @@ class _BrowsePageState extends State<BrowsePage> {
               child: CustomScrollView(
                 slivers: <Widget>[
                   if (browse.subscriptions != null)
-                    _SubscriptionsSliver(
+                    SubscriptionsSliver(
                       subscriptionsKey: browse.subscriptions.key,
-                    )
+                    ),
+                  if (browse.defaults != null)
+                    DefaultsSliver(
+                      defaultsKey: browse.defaults.key,
+                    ),
                 ],
               ),
             )
@@ -78,52 +82,5 @@ class _BrowsePageState extends State<BrowsePage> {
         ],
       );
     }
-  );
-}
-
-class _SubscriptionsSliver extends StatelessWidget {
-
-  _SubscriptionsSliver({
-    Key key,
-    @required this.subscriptionsKey,
-  }) : super(key: key);
-
-  final ModelKey subscriptionsKey;
-
-  @override
-  Widget build(_) => Connector(
-    builder: (BuildContext _, Store store, EventDispatch dispatch) {
-      final List<Subreddit> subscriptions = store.get<Subscriptions>(subscriptionsKey).subreddits;
-      return SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (_, int index) {
-          },
-          childCount: subscriptions.length,
-        ),
-      );
-    }
-  );
-}
-
-class _DefaultsSliver extends StatelessWidget {
-
-  _DefaultsSliver({
-    Key key,
-    @required this.defaultsKey
-  }) : super(key: key);
-
-  final ModelKey defaultsKey;
-
-  @override
-  Widget build(BuildContext context) => Connector(
-    builder: (BuildContext _, Store store, EventDispatch dispatch) {
-      final List<Subreddit> defaults = store.get<Defaults>(this.defaultsKey).subreddits;
-      return SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (_, int index) { },
-          childCount: defaults.length
-        ),
-      );
-    },
   );
 }

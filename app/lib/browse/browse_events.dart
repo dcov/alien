@@ -1,30 +1,28 @@
 part of 'browse.dart';
 
-class PushBrowse extends TargetPush {
+class PushBrowse extends PushTarget {
 
   PushBrowse({ @required this.browseKey });
 
   final ModelKey browseKey;
 
   @override
-  Effect update(Store store) {
+  Event update(Store store) {
     final Browse browse = store.get(browseKey);
     if (push(store, browse)) {
       if (utils.userIsSignedIn(store)) {
         browse.subscriptions = Subscriptions();
-        return RefreshSubscriptions(
-          subscriptionsKey: browse.subscriptions.key).update(store);
+        return RefreshSubscriptions(subscriptionsKey: browse.subscriptions.key);
       } else {
         browse.defaults = Defaults();
-        return RefreshDefaults(
-          defaultsKey: browse.defaults.key).update(store);
+        return LoadDefaults(defaultsKey: browse.defaults.key);
       }
     }
     return null;
   }
 }
 
-class PopBrowseTarget extends TargetPop {
+class PopBrowseTarget extends PopTarget {
 
   PopBrowseTarget({ @required this.browseKey });
 

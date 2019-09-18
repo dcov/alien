@@ -12,7 +12,7 @@ class RedditInteractor extends EndpointInteractor
 
   Client get _ioClient => RedditClient._ioClient;
 
-  String _extractBody(Response response) => response.body;
+  static String _extractBody(Response response) => response.body;
 
   @override
   Future<String> get(String url) async {

@@ -22,7 +22,7 @@ const String _kAuthorizationHeaderKey = 'Authorization';
 class RedditClient {
 
   RedditClient(String id)
-    : this._deviceId = Uuid().v1().toString(),
+    : this._deviceId = Uuid().v1().toString().substring(0, 30),
       this._basicHeader = {
         _kFormHeaderKey : _kFormHeaderValue,
         _kAuthorizationHeaderKey : 'basic ${base64.encode(utf8.encode('${id}:'))}'
@@ -36,7 +36,7 @@ class RedditClient {
 
   final Map<String, RedditInteractor> _interactors = Map<String, RedditInteractor>();
 
-  static Client _ioClient;
+  static Client _ioClient = Client();
   static set ioClient(Client value) {
     assert(value != null);
     _ioClient = value;

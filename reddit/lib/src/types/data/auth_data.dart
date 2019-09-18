@@ -32,5 +32,5 @@ class AccessTokenData {
 
   int get expiresIn => _data['expires_in'];
 
-  String get token => _data['value'];
+  String get token => _data['access_token'];
 }

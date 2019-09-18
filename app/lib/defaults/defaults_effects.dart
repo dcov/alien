@@ -7,8 +7,8 @@ class GetDefaults extends Effect {
   final ModelKey defaultsKey;
 
   @override
-  Future<Event> perform(Repository repository) {
-    return repository
+  Future<Event> perform(Repo repo) {
+    return repo
         .get<RedditClient>()
         .asDevice()
         .getSubreddits(
@@ -16,13 +16,12 @@ class GetDefaults extends Effect {
             Page(limit: Page.kMaxLimit))
         .then(
             (ListingData<SubredditData> listing) {
-              return UpdateDefaults(
+              return DefaultsLoaded(
                 defaultsKey: this.defaultsKey,
                 subreddits: listing.things
               );
             },
             onError: (e) {
-
             });
   }
 }

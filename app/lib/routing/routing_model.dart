@@ -3,6 +3,8 @@ part of 'routing.dart';
 @abs
 abstract class RoutingTarget extends Model {
 
+  bool active;
+
   int depth;
 }
 
