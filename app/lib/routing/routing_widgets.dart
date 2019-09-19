@@ -80,3 +80,12 @@ class _RouterState extends State<Router> {
     },
   );
 }
+
+class PushNotification extends Notification {
+
+  const PushNotification();
+
+  static void notify(BuildContext context) {
+    const PushNotification().dispatch(context);
+  }
+}

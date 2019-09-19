@@ -13,7 +13,10 @@ class BrowseTile extends StatelessWidget {
   Widget build(_) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
       return CustomTile(
-        onTap: () => dispatch(PushBrowse(browseKey: this.browseKey)),
+        onTap: () {
+          dispatch(PushBrowse(browseKey: this.browseKey));
+          PushNotification.notify(context);
+        },
         title: Text('Browse'),
       );
     },

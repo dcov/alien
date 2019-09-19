@@ -16,21 +16,18 @@ class SubredditTile extends StatelessWidget {
   Widget build(BuildContext context) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
       final Subreddit subreddit = store.get(this.subredditKey);
-      return InkWell(
-        onTap: () => dispatch(PushSubreddit(subredditKey: this.subredditKey)),
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16.0 * (1 + (includeDepth ? subreddit.depth : 0)),
-            top: 16.0,
-            right: 16.0,
-            bottom: 16.0
-          ),
-          child:Row(
-            children: <Widget>[
-              Text(subreddit.name)
-            ],
-          ),
+      return CustomTile(
+        onTap: () {
+          dispatch(PushSubreddit(subredditKey: this.subredditKey));
+          PushNotification.notify(context);
+        },
+        padding: EdgeInsets.only(
+          left: 16.0 * (1 + (includeDepth ? subreddit.depth : 0)),
+          top: 16.0,
+          right: 16.0,
+          bottom: 16.0
         ),
+        title: Text(subreddit.name),
       );
     },
   );

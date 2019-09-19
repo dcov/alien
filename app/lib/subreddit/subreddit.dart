@@ -7,6 +7,7 @@ import '../listing/listing.dart';
 import '../routing/routing.dart';
 import '../subreddit_posts/subreddit_posts.dart';
 import '../thing/thing.dart';
+import '../widgets/widgets.dart';
 
 part 'subreddit_effects.dart';
 part 'subreddit_events.dart';

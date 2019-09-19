@@ -1,31 +1,41 @@
 part of 'scaffolding.dart';
 
-typedef _ScaffoldingWidgetBuilder = Widget Function(
+typedef _LayoutWidgetBuilder = Widget Function(
   BuildContext context,
   Animation<double> animation
 );
 
-class _ScaffoldingLayout extends StatefulWidget {
+class _Layout extends StatefulWidget {
 
-  _ScaffoldingLayout({
+  _Layout({
     Key key,
     @required this.overlappedBuilder,
     @required this.overlapBuilder
   }) : super(key: key);
 
-  final _ScaffoldingWidgetBuilder overlappedBuilder;
+  final _LayoutWidgetBuilder overlappedBuilder;
 
-  final _ScaffoldingWidgetBuilder overlapBuilder;
+  final _LayoutWidgetBuilder overlapBuilder;
 
   @override
-  _ScaffoldingLayoutState createState() => _ScaffoldingLayoutState();
+  _LayoutState createState() => _LayoutState();
 }
 
-class _ScaffoldingLayoutState extends State<_ScaffoldingLayout>
+class _LayoutState extends State<_Layout>
     with SingleTickerProviderStateMixin {
 
   AnimationController _controller;
   double _draggableExtent;
+
+  bool get overlapIsVisible => _controller.value == 1.0;
+
+  void showOverlap() {
+    _controller.fling(velocity: 1.0);
+  }
+
+  void hideOverlap() {
+    _controller.fling(velocity: -1.0);
+  }
 
   @override
   void initState() {
