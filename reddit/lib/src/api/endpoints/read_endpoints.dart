@@ -9,7 +9,11 @@ mixin ReadEndpoints on EndpointInteractor {
 
   Future<ListingData<ThingData>> getPostComments(String permalink, CommentsSort sort) {
     return get('${_kOAuthUrl}/${permalink}/${_kRawJsonArgs}&sort=${sort}')
-        .then((String json) => ListingData.fromJson(json));
+        .then((String json) {
+          return ListingData.fromJson(json, (data) {
+            return data[1]['data'];
+          });
+        });
   }
 
   Future<ListingData<PostData>> getPostsById(Iterable<String> fullPostIds) {
@@ -32,7 +36,7 @@ mixin ReadEndpoints on EndpointInteractor {
                '&children=${thingIds.join(',')}')
         .then((String json) {
           return ListingData.fromJson(json,
-              (Map obj) => obj['data']['json']);
+              (obj) => obj['data']['json']);
         });
   }
 

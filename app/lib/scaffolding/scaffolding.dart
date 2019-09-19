@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../browse/browse.dart';
+import '../post/post.dart';
 import '../routing/routing.dart';
 import '../subreddit/subreddit.dart';
 

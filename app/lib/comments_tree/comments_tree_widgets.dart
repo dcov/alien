@@ -43,7 +43,8 @@ class _CommentsTreeScrollableState extends State<CommentsTreeScrollable> {
                   );
                 
                 return const SizedBox();
-              }
+              },
+              childCount: tree.things.length
             ),
           )
         ],

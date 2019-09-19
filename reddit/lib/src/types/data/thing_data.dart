@@ -150,7 +150,7 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   int get approvedAtUtc => _data['approved_at_utc'];
 
-  String get authorName => _data['author_name'];
+  String get authorName => _data['author'];
 
   String get authorFlairBackgroundColor => _data['author_flair_background_color'];
 

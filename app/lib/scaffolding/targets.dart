@@ -7,6 +7,9 @@ Widget _buildTarget(RoutingTarget target, bool isPage) {
   else if (target is Subreddit)
     return isPage ? SubredditPage(subredditKey: target.key)
                   : SubredditTile(subredditKey: target.key);
+  else if (target is Post)
+    return isPage ? PostPage(postKey: target.key)
+                  : PostTile(postKey: target.key);
   
   return const SizedBox();
 }

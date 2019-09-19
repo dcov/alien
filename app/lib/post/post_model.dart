@@ -12,6 +12,7 @@ abstract class Post extends Model
     isSaved: data.isSaved,
     isSelf: data.isSelf,
     kind: data.kind,
+    permalink: data.permalink,
     score: data.score,
     selfText: data.selfText,
     subredditName: data.subredditName,
@@ -31,6 +32,8 @@ abstract class Post extends Model
 
   bool get isSelf;
 
+  String get permalink;
+
   String selfText;
 
   String get subredditName;
@@ -40,4 +43,6 @@ abstract class Post extends Model
   String get title;
 
   String get url;
+
+  CommentsTree comments;
 }
