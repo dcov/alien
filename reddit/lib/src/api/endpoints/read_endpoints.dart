@@ -7,7 +7,7 @@ mixin ReadEndpoints on EndpointInteractor {
         .then((String json) => ListingData.fromJson(json));
   }
 
-  Future<ListingData<CommentData>> getPostComments(String permalink, CommentsSort sort) {
+  Future<ListingData<ThingData>> getPostComments(String permalink, CommentsSort sort) {
     return get('${_kOAuthUrl}/${permalink}/${_kRawJsonArgs}&sort=${sort}')
         .then((String json) => ListingData.fromJson(json));
   }
@@ -25,7 +25,7 @@ mixin ReadEndpoints on EndpointInteractor {
         });
   }
 
-  Future<ListingData<CommentData>> getMoreComments(String fullPostId, String moreId,
+  Future<ListingData<ThingData>> getMoreComments(String fullPostId, String moreId,
       Iterable<String> thingIds) {
     return get('${_kOAuthUrl}/api/morechildren/${_kRawJsonArgs}'
                '&link_id=${fullPostId}&id=${moreId}'
