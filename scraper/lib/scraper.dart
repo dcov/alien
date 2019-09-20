@@ -1,8 +1,19 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
 library scraper;
 
-export 'src/scraper_base.dart';
+import 'package:http/http.dart';
+import 'package:html/parser.dart' as parser;
+import 'package:isolate/isolate.dart';
 
-// TODO: Export any libraries intended for clients of this package.
+part 'src/base_scraper.dart';
+part 'src/image_scraper.dart';
+
+final Client _client = Client();
+
+class Scraper extends _BaseScraper with _ImageScraper {
+
+  LoadBalancer _runner;
+
+  Future<void> init() async {
+    _runner = await LoadBalancer.create(5, IsolateRunner.spawn);
+  }
+}

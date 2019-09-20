@@ -1,13 +1,14 @@
 name: alien
 description: A Reddit client built with Flutter.
+version: 0.1.0
 author: Diego Covarrubias <dcov@pm.me>
 homepage: https://github.com/dcov/alien
-
-version: 0.1.0
 
 dependencies:
   flutter:
     sdk: flutter
+
+  cached_network_image: ^1.1.1
 
   elmer_flutter:
     git:
@@ -23,6 +24,9 @@ dependencies:
 
   reddit:
     path: ../reddit
+  
+  scraper:
+    path: ../scraper
 
 dev_dependencies:
   flutter_test:

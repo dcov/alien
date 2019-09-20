@@ -5,9 +5,9 @@ class InitApp extends Event {
   const InitApp();
 
   @override
-  void update(Store store) {
+  Effect update(Store store) {
     store.get<AppState>()
-        ..initialized = true;
+        ..initialized = false;
 
     store.get<Theming>()
         ..type = ThemeType.light
@@ -15,5 +15,17 @@ class InitApp extends Event {
 
     store.get<Routing>()
         ..targets.add(Browse()..depth = 0);
+    
+    return const InitResources();
+  }
+}
+
+class ResourcesInitialized extends Event {
+
+  const ResourcesInitialized();
+
+  void update(Store store) {
+    store.get<AppState>()
+        ..initialized = true;
   }
 }
