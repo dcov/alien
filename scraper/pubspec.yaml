@@ -1,0 +1,13 @@
+name: scraper
+description:
+version: 1.0.0
+author: Diego Covarrubias <dcov@pm.me>
+homepage: https://github.com/dcov/alien
+
+environment:
+  sdk: '>=2.3.0 <3.0.0'
+
+dependencies:
+
+dev_dependencies:
+  test: ^1.0.0
