@@ -1,15 +1,21 @@
 part of 'scaffolding.dart';
 
-Widget _buildTarget(RoutingTarget target, bool isPage) {
-  if (target is Browse)
-    return isPage ? BrowsePage(browseKey: target.key)
-                  : BrowseTile(browseKey: target.key);
-  else if (target is Subreddit)
-    return isPage ? SubredditPage(subredditKey: target.key)
-                  : SubredditTile(subredditKey: target.key);
-  else if (target is Post)
-    return isPage ? PostPage(postKey: target.key)
-                  : PostTile(postKey: target.key);
-  
-  return const SizedBox();
+enum _MapType {
+  page,
+  tile,
+  pop_event
 }
+
+dynamic _mapTarget(RoutingTarget target, _MapType type) =>
+  target is Browse ?
+    type == _MapType.page ? BrowsePage(browseKey: target.key) :
+    type == _MapType.tile ? BrowseTile(browseKey: target.key) :
+                            PopBrowse(browseKey: target.key) :
+  target is Subreddit ?
+    type == _MapType.page ? SubredditPage(subredditKey: target.key) :
+    type == _MapType.tile ? SubredditTile(subredditKey: target.key) :
+                            PopSubreddit(subredditKey: target.key) :
+  target is Post ?
+    type == _MapType.page ? PostPage(postKey: target.key) :
+    type == _MapType.tile ? PostTile(postKey: target.key) :
+                            PopPost(postKey: target.key) : null;

@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../browse/browse.dart';
 import '../post/post.dart';
@@ -25,40 +28,62 @@ class _ScaffoldingState extends State<Scaffolding>
   final GlobalKey<_LayoutState> _layoutKey = GlobalKey<_LayoutState>();
 
   @override
-  Widget build(_) => Router(
-    builder: (BuildContext _,
-              List<RoutingTarget> targets,
-              RoutingTarget oldTarget,
-              RoutingTarget newTarget,
-              RoutingTransition transition) {
-      
-      return NotificationListener<PushNotification>(
-        onNotification: (_) {
-          final _LayoutState layout = _layoutKey.currentState;
-          if (!layout.overlapIsVisible) {
-            layout.showOverlap();
+  Widget build(_) => Connector(
+    builder: (_, __, EventDispatch dispatch) {
+      return Router(
+        builder: (BuildContext _,
+                  List<RoutingTarget> targets,
+                  RoutingTarget oldTarget,
+                  RoutingTarget newTarget,
+                  RoutingTransition transition) {
+          
+          if (newTarget == null) {
+            final _LayoutState layout = _layoutKey.currentState;
+            if (layout != null && layout.overlapIsVisible) {
+              layout.hideOverlap();
+            }
           }
-          return true;
-        },
-        child: _Layout(
-          key: _layoutKey,
-          overlappedBuilder: (BuildContext context, Animation<double> animation) {
-            return Material(
-              child: Padding(
-                padding: EdgeInsets.only(top: 72.0),
-                child: ListView.builder(
-                  itemCount: targets.length,
-                  itemBuilder: (BuildContext _, int index) {
-                    return _buildTarget(targets[index], false);
-                  },
-                )
+          
+          return WillPopScope(
+            onWillPop: () {
+              bool result = true;
+              if (newTarget != null) {
+                dispatch(_mapTarget(newTarget, _MapType.pop_event));
+                result = false;
+              }
+              return Future.value(result);
+            },
+            child: NotificationListener<PushNotification>(
+              onNotification: (_) {
+                final _LayoutState layout = _layoutKey.currentState;
+                if (!layout.overlapIsVisible) {
+                  layout.showOverlap();
+                }
+                return true;
+              },
+              child: _Layout(
+                key: _layoutKey,
+                canDrag: newTarget != null,
+                overlappedBuilder: (BuildContext context, Animation<double> animation) {
+                  return Material(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 72.0),
+                      child: ListView.builder(
+                        itemCount: targets.length,
+                        itemBuilder: (BuildContext _, int index) {
+                          return _mapTarget(targets[index], _MapType.tile);
+                        },
+                      )
+                    )
+                  );
+                },
+                overlapBuilder: (BuildContext context, Animation<double> animation) {
+                  return _mapTarget(newTarget, _MapType.page);
+                },
               )
-            );
-          },
-          overlapBuilder: (BuildContext context, Animation<double> animation) {
-            return _buildTarget(newTarget, true);
-          },
-        )
+            )
+          );
+        }
       );
     }
   );

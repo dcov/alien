@@ -9,9 +9,12 @@ class _Layout extends StatefulWidget {
 
   _Layout({
     Key key,
+    @required this.canDrag,
     @required this.overlappedBuilder,
     @required this.overlapBuilder
   }) : super(key: key);
+
+  final bool canDrag;
 
   final _LayoutWidgetBuilder overlappedBuilder;
 
@@ -100,16 +103,17 @@ class _LayoutState extends State<_Layout>
             shape: _OutwardBorder(24.0),
           ),
         ),
-        Positioned.fill(
-          top: constraints.maxHeight - bottomInset - 36.0,
-          bottom: bottomInset,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            child: SizedBox.expand(),
-            onVerticalDragUpdate: _handleDragUpdate,
-            onVerticalDragEnd: _handleDragEnd,
+        if (widget.canDrag)
+          Positioned.fill(
+            top: constraints.maxHeight - bottomInset - 36.0,
+            bottom: bottomInset,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              child: SizedBox.expand(),
+              onVerticalDragUpdate: _handleDragUpdate,
+              onVerticalDragEnd: _handleDragEnd,
+            ),
           ),
-        ),
       ],
     );
   }

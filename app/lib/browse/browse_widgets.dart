@@ -72,7 +72,7 @@ class _BrowsePageState extends State<BrowsePage> {
                   leading: IconButton(
                     icon: Icon(Icons.close),
                     onPressed: () {
-                      dispatch(PopBrowseTarget(browseKey: widget.browseKey));
+                      dispatch(PopBrowse(browseKey: widget.browseKey));
                     }
                   ),
                   middle: Text('Browse'),

@@ -23,9 +23,9 @@ class PushBrowse extends PushTarget {
   }
 }
 
-class PopBrowseTarget extends PopTarget {
+class PopBrowse extends PopTarget {
 
-  PopBrowseTarget({ @required this.browseKey });
+  PopBrowse({ @required this.browseKey });
 
   final ModelKey browseKey;
 
