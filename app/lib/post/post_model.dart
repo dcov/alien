@@ -3,28 +3,54 @@ part of 'post.dart';
 abstract class Post extends Model
     implements Thing, Saveable, Votable, RoutingTarget {
   
-  factory Post.fromData(PostData data) => _$Post(
-    authorName: data.authorName,
-    commentCount: data.commentCount,
-    domainName: data.domainName,
-    id: data.id,
-    isNSFW: data.isNSFW,
-    isSaved: data.isSaved,
-    isSelf: data.isSelf,
-    kind: data.kind,
-    permalink: data.permalink,
-    score: data.score,
-    selfText: data.selfText,
-    subredditName: data.subredditName,
-    thumbnailUrl: data.thumbnailUrl,
-    title: data.title,
-    url: data.url,
-    voteDir: data.voteDir
-  );
+  factory Post.fromData(PostData data) {
+    Media media;
+    if (!data.isSelf) {
+      String thumbnail = data.thumbnailUrl;
+      if (thumbnail == null) {
+        thumbnail = data
+          .preview
+          ?.resolutions
+          ?.firstWhere((_) => true, orElse: () => null)
+          ?.url;
+      }
+      media = Media(
+        source: data.url,
+        thumbnailUrl: thumbnail
+      );
+    }
+
+    Snudown snudown;
+    if (data.selfText != null) {
+      snudown = Snudown(data.selfText);
+    }
+    return _$Post(
+      authorName: data.authorName,
+      commentCount: data.commentCount,
+      createdAtUtc: data.createdAtUtc,
+      domainName: data.domainName,
+      id: data.id,
+      isNSFW: data.isNSFW,
+      isSaved: data.isSaved,
+      isSelf: data.isSelf,
+      kind: data.kind,
+      media: media,
+      permalink: data.permalink,
+      score: data.score,
+      selfText: snudown,
+      subredditName: data.subredditName,
+      thumbnailUrl: data.thumbnailUrl,
+      title: data.title,
+      url: data.url,
+      voteDir: data.voteDir
+    );
+  }
 
   String get authorName;
 
   int commentCount;
+
+  int get createdAtUtc;
 
   String get domainName;
 
@@ -32,9 +58,11 @@ abstract class Post extends Model
 
   bool get isSelf;
 
+  Media get media;
+
   String get permalink;
 
-  String selfText;
+  Snudown get selfText;
 
   String get subredditName;
 

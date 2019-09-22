@@ -9,6 +9,7 @@ class LoadMediaThumbnail extends Event {
   @override
   Effect update(Store store) {
     final Media media = store.get(this.mediaKey);
+    assert(media != null);
     if (media.thumbnailUrl is ThumbnailUrlLoading ||
         media.thumbnailUrl is ThumbnailUrlValue ||
         media.thumbnailUrl is ThumbnailUrlNotFound)
@@ -35,8 +36,7 @@ class MediaThumbnailFound extends Event {
 
   @override
   void update(Store store) {
-    store.get<Media>()
-      ..thumbnailUrl = ThumbnailUrlValue(this.value);
+    store.get<Media>()?.thumbnailUrl = ThumbnailUrlValue._(this.value);
   }
 }
 
@@ -48,7 +48,6 @@ class MediaThumbnailNotFound extends Event {
 
   @override
   void update(Store store) {
-    store.get<Media>()
-      ..thumbnailUrl = const ThumbnailUrlNotFound._();
+    store.get<Media>()?.thumbnailUrl = const ThumbnailUrlNotFound._();
   }
 }

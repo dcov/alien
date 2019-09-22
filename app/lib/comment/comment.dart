@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
 import '../saveable/saveable.dart';
+import '../snudown/snudown.dart';
 import '../thing/thing.dart';
 import '../votable/votable.dart';
+import '../widgets/widgets.dart';
 
 part 'comment_effects.dart';
 part 'comment_events.dart';

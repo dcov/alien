@@ -9,6 +9,7 @@ class RefreshCommentsTree extends Event {
   @override
   Effect update(Store store) {
     final CommentsTree tree = store.get(this.commentsTreeKey);
+    assert(tree != null);
     if (tree.isRefreshing)
       return null;
 
@@ -36,17 +37,19 @@ class CommentsTreeRefreshed extends Event {
 
   @override
   void update(Store store) {
-    final CommentsTree tree = store.get(this.commentsTreeKey);
-    assert(tree.isRefreshing);
+    ifNotNull(store.get<CommentsTree>(this.commentsTreeKey), (CommentsTree tree) {
+      assert(tree.isRefreshing);
 
-    tree..isRefreshing = false
-        ..things.addAll(this.data.map(_mapThing));
+
+      tree..isRefreshing = false
+          ..things.addAll(_expandTree(data).map(_mapThing));
+    });
   }
 }
 
 class LoadMoreComments extends Event {
 
-  LoadMoreComments({
+  const LoadMoreComments({
     @required this.commentsTreeKey,
     @required this.moreKey,
   });
@@ -58,7 +61,11 @@ class LoadMoreComments extends Event {
   @override
   Effect update(Store store) {
     final CommentsTree tree = store.get(this.commentsTreeKey);
+    assert(tree != null);
+
     final More more = store.get(this.moreKey);
+    assert(more != null);
+
     if (more.isLoading)
       return null;
     
@@ -89,13 +96,14 @@ class MoreCommentsLoaded extends Event {
 
   @override
   void update(Store store) {
-    final CommentsTree tree = store.get(this.commentsTreeKey);
-    final More more = store.get(this.moreKey);
-    assert(more.isLoading);
-
-    more.isLoading = false;
-    final int insertIndex = tree.things.indexOf(more);
-    final Iterable<Thing> newThings = this.data.map(_mapThing);
-    tree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
+    ifNotNull(store.get<CommentsTree>(this.commentsTreeKey), (CommentsTree tree) {
+      ifNotNull(store.get<More>(this.moreKey), (More more) {
+        assert(more.isLoading);
+        more.isLoading = false;
+        final int insertIndex = tree.things.indexOf(more);
+        final Iterable<Thing> newThings = _expandTree(data).map(_mapThing);
+        tree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
+      });
+    });
   }
 }

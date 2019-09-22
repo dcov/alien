@@ -42,12 +42,30 @@ class _BrowsePageState extends State<BrowsePage> {
   Widget build(BuildContext context) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
       final Browse browse = store.get(widget.browseKey);
-      return Column(
+      return Stack(
         children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 56.0),
+            child: Material(
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  if (browse.subscriptions != null)
+                    SubscriptionsSliver(
+                      subscriptionsKey: browse.subscriptions.key,
+                    ),
+                  if (browse.defaults != null)
+                    DefaultsSliver(
+                      defaultsKey: browse.defaults.key,
+                    ),
+                ],
+              ),
+            )
+          ),
           Material(
-            elevation: 2.0,
+            elevation: 1.0,
             child: Padding(
-              padding: const EdgeInsets.only(top: 24.0),
+              padding: MediaQuery.of(context).padding,
               child: SizedBox(
                 height: 56.0,
                 child: NavigationToolbar(
@@ -66,22 +84,6 @@ class _BrowsePageState extends State<BrowsePage> {
               )
             )
           ),
-          Expanded(
-            child: Material(
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  if (browse.subscriptions != null)
-                    SubscriptionsSliver(
-                      subscriptionsKey: browse.subscriptions.key,
-                    ),
-                  if (browse.defaults != null)
-                    DefaultsSliver(
-                      defaultsKey: browse.defaults.key,
-                    ),
-                ],
-              ),
-            )
-          )
         ],
       );
     }

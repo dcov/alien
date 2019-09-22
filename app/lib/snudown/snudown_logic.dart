@@ -1,19 +1,6 @@
 part of 'snudown.dart';
 
-class UpdateSnudown extends Event {
-
-  const UpdateSnudown({
-    @required this.snudownKey,
-    @required this.data
-  });
-
-  final ModelKey snudownKey;
-
-  final String data;
-
-  @override
-  void update(Store store) {
-    final Snudown snudown = store.get(this.snudownKey);
+void parseSnudown(Snudown snudown, String data) {
     final List<String> lines = data.replaceAll('\r\n', '\n').split('\n');
     final Document document = Document(
       encodeHtml: false,
@@ -55,5 +42,4 @@ class UpdateSnudown extends Event {
     });
 
     hrefsToRemove.forEach(snudown.models.remove);
-  }
 }

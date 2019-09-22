@@ -31,10 +31,11 @@ class DefaultsLoaded extends Event {
 
   @override
   void update(Store store) {
-    store.get<Defaults>(this.defaultsKey)
-      ..refreshing = false
-      ..subreddits.addAll(
-        this.subreddits.map((data) => Subreddit.fromData(data)))
-      ..subreddits.sort(utils.compareSubreddits);
+    ifNotNull(store.get<Defaults>(this.defaultsKey), (Defaults defaults) {
+        defaults..refreshing = false
+                ..subreddits.addAll(
+                  this.subreddits.map((data) => Subreddit.fromData(data)))
+                ..subreddits.sort(compareSubreddits);
+    });
   }
 }

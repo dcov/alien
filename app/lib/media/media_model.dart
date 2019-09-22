@@ -9,7 +9,7 @@ class ThumbnailUrlLoading implements ThumbnailUrl {
 }
 
 class ThumbnailUrlValue implements ThumbnailUrl {
-  ThumbnailUrlValue(this.value);
+  ThumbnailUrlValue._(this.value);
   final String value;
 }
 
@@ -26,7 +26,7 @@ abstract class Media extends Model {
     return _$Media(
       source: source,
       thumbnailUrl: thumbnailUrl != null
-          ? ThumbnailUrlValue(thumbnailUrl)
+          ? ThumbnailUrlValue._(thumbnailUrl)
           : const ThumbnailUrl._(),
     );
   }

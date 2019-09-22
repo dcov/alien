@@ -6,6 +6,7 @@ import 'package:reddit/reddit.dart';
 import '../comment/comment.dart';
 import '../more/more.dart';
 import '../thing/thing.dart';
+import '../utils/utils.dart';
 
 part 'comments_tree_effects.dart';
 part 'comments_tree_events.dart';
@@ -20,4 +21,12 @@ Thing _mapThing(ThingData data) {
     return More.fromData(data);
   
   return null;
+}
+
+Iterable<ThingData> _expandTree(Iterable<ThingData> data) sync* {
+  for (final ThingData td in data) {
+    yield td;
+    if (td is CommentData)
+      yield* _expandTree(td.replies);
+  }
 }

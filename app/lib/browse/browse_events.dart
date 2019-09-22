@@ -9,8 +9,9 @@ class PushBrowse extends PushTarget {
   @override
   Event update(Store store) {
     final Browse browse = store.get(browseKey);
+    assert(browse != null);
     if (push(store, browse)) {
-      if (utils.userIsSignedIn(store)) {
+      if (userIsSignedIn(store)) {
         browse.subscriptions = Subscriptions();
         return RefreshSubscriptions(subscriptionsKey: browse.subscriptions.key);
       } else {
@@ -31,6 +32,7 @@ class PopBrowseTarget extends PopTarget {
   @override
   void update(Store store) {
     final Browse browse = store.get(browseKey);
+    assert(browse != null);
     pop(store, browse);
     browse..defaults = null
           ..subscriptions = null;

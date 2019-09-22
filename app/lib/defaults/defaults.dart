@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
 import '../subreddit/subreddit.dart';
-import '../utils/utils.dart' as utils;
+import '../utils/utils.dart';
 
 part 'defaults_effects.dart';
 part 'defaults_events.dart';

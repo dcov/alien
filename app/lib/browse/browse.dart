@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../defaults/defaults.dart';
 import '../routing/routing.dart';
 import '../subscriptions/subscriptions.dart';
-import '../utils/utils.dart' as utils;
+import '../utils/utils.dart';
 import '../widgets/widgets.dart';
 
 part 'browse_events.dart';

@@ -18,7 +18,7 @@ class RefreshSubscriptions extends Event {
     subscriptions.refreshing = true;
     return GetSubscriptions(
       subscriptionsKey: this.subscriptionsKey,
-      userToken: utils.getUserToken(store)
+      userToken: getUserToken(store)
     );
   }
 }
@@ -36,10 +36,14 @@ class UpdateSubscriptions extends Event {
 
   @override
   void update(Store store) {
-    store.get<Subscriptions>(this.subscriptionsKey)
-      ..refreshing = false
-      ..subreddits.clear()
-      ..subreddits.addAll(
-        this.subreddits.map((data) => Subreddit.fromData(data)));
+    ifNotNull(store.get<Subscriptions>(this.subscriptionsKey),
+      (Subscriptions subscriptions) {
+        subscriptions
+          ..refreshing = false
+          ..subreddits.clear()
+          ..subreddits.addAll(
+            this.subreddits.map((data) => Subreddit.fromData(data)));
+      }
+    );
   }
 }

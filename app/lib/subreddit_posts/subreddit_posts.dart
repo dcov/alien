@@ -6,7 +6,7 @@ import 'package:reddit/reddit.dart';
 import '../listing/listing.dart';
 import '../post/post.dart';
 import '../thing/thing.dart';
-import '../utils/utils.dart' as utils;
+import '../utils/utils.dart';
 
 part 'subreddit_posts_effects.dart';
 part 'subreddit_posts_events.dart';

@@ -35,7 +35,10 @@ class _CommentsTreeScrollableState extends State<CommentsTreeScrollable> {
               (_, int index) {
                 final Thing thing = tree.things[index];
                 if (thing is Comment)
-                  return CommentTile(commentKey: thing.key);
+                  return CommentTile(
+                    commentKey: thing.key,
+                    includeDepthPadding: true,
+                  );
                 else if (thing is More)
                   return MoreTile(
                     commentsTreeKey: tree.key,

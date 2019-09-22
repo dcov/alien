@@ -278,7 +278,7 @@ class MoreData with ThingData {
 
   int get count => _parseNum(_data["count"]);
 
-  Iterable<String> get thingIds => _data['children'];
+  Iterable<String> get thingIds => _data['children'].cast<String>();
 
   int get depth => _parseNum(_data["depth"]);
 

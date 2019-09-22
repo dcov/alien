@@ -14,7 +14,7 @@ class UpdateSubredditPosts extends UpdateListing {
   @override
   Effect update(Store store) {
     final SubredditPosts sp = store.get(this.subredditPostsKey);
-    return utils.ifNotNull(
+    return ifNotNull(
       super.updateStatus(sp, this.status),
       (Page page) {
         return GetSubredditPosts(
@@ -43,12 +43,14 @@ class FinishSubredditPostsUpdate extends FinishListingUpdate {
 
   @override
   void update(Store store) {
-    super.endUpdate(
-      store.get<SubredditPosts>(this.subredditPostsKey),
-      status,
-      data,
-      (data) {
-        return Post.fromData(data);
+    ifNotNull(store.get<SubredditPosts>(this.subredditPostsKey),
+      (SubredditPosts sp) {
+        super.endUpdate(
+          sp,
+          status,
+          data,
+          (data) => Post.fromData(data)
+        );
       }
     );
   }
