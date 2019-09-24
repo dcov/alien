@@ -27,6 +27,10 @@ class SubredditTile extends StatelessWidget {
           right: 16.0,
           bottom: 16.0
         ),
+        icon: Icon(
+          CustomIcons.subreddit,
+          color: Colors.blueGrey,
+        ),
         title: Text(subreddit.name),
       );
     },
@@ -49,33 +53,45 @@ class SubredditPage extends StatefulWidget {
 class _SubredditPageState extends State<SubredditPage> {
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(_) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
       final Subreddit subreddit = store.get(widget.subredditKey);
+      final EdgeInsets mediaPadding = MediaQuery.of(context).padding;
       return Column(
         children: <Widget>[
-          Material(
-            elevation: 1.0,
-            child: Padding(
-              padding: MediaQuery.of(context).padding,
+          Padding(
+            padding: mediaPadding,
+            child: Material(
+              elevation: 1.0,
               child: SizedBox(
                 height: 56.0,
                 child: NavigationToolbar(
                   leading: IconButton(
                     onPressed: () => dispatch(PopSubreddit(subredditKey: subreddit.key)),
-                    icon: Icon(Icons.close),
+                    icon: Icon(Icons.close, color: Colors.black,),
                   ),
-                  middle: Text(subreddit.name),
-                ),
+                  middle: Text(
+                    subreddit.name,
+                    style: TextStyle(
+                      color: Colors.black
+                    ),
+                  ),
+                )
               ),
-            ),
+            )
           ),
           Expanded(
             child: SubredditPostsScrollable(
               subredditPostsKey: subreddit.posts.key,
+              topPadding: 16.0,
             ),
           )
-        ],
+        ]
       );
     },
   );

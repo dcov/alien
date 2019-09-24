@@ -38,53 +38,56 @@ class BrowsePage extends StatefulWidget {
 
 class _BrowsePageState extends State<BrowsePage> {
 
+  TextEditingController _textController;
+  FocusNode _focusNode;
+
   @override
-  Widget build(BuildContext context) => Connector(
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: '');
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _textController.dispose();
+    _focusNode.dispose();
+  }
+
+  @override
+  Widget build(_) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
       final Browse browse = store.get(widget.browseKey);
-      return Stack(
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 56.0),
-            child: Material(
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  if (browse.subscriptions != null)
-                    SubscriptionsSliver(
-                      subscriptionsKey: browse.subscriptions.key,
-                    ),
-                  if (browse.defaults != null)
-                    DefaultsSliver(
-                      defaultsKey: browse.defaults.key,
-                    ),
-                ],
+      return Scaffold(
+        appBar: AppBar(
+          elevation: 1.0,
+          backgroundColor: Colors.white,
+          title: TextField(
+            controller: _textController,
+            focusNode: _focusNode,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.all(4.0),
+              hintText: 'Browse',
+              border: InputBorder.none
+            ),
+            textInputAction: TextInputAction.search,
+          )
+        ),
+        body: CustomScrollView(
+          slivers: <Widget>[
+            SliverToBoxAdapter(child: SizedBox(height: 16.0)),
+            if (browse.subscriptions != null)
+              SubscriptionsSliver(
+                subscriptionsKey: browse.subscriptions.key,
               ),
-            )
-          ),
-          Material(
-            elevation: 1.0,
-            child: Padding(
-              padding: MediaQuery.of(context).padding,
-              child: SizedBox(
-                height: 56.0,
-                child: NavigationToolbar(
-                  leading: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      dispatch(PopBrowse(browseKey: widget.browseKey));
-                    }
-                  ),
-                  middle: Text('Browse'),
-                  trailing: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.more_vert),
-                  ),
-                )
-              )
-            )
-          ),
-        ],
+            if (browse.defaults != null)
+              DefaultsSliver(
+                defaultsKey: browse.defaults.key,
+              ),
+            SliverToBoxAdapter(child: SizedBox(height: 16.0))
+          ],
+        ),
       );
     }
   );

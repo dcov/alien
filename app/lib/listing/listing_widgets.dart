@@ -10,7 +10,8 @@ class ListingScrollable extends StatefulWidget {
     Key key,
     @required this.listingKey,
     @required this.builder,
-    @required this.onUpdateListing
+    @required this.onUpdateListing,
+    this.topPadding = 0,
   }) : super(key: key);
 
   final ModelKey listingKey;
@@ -18,6 +19,8 @@ class ListingScrollable extends StatefulWidget {
   final ThingWidgetBuilder builder;
 
   final UpdateCallback onUpdateListing;
+
+  final double topPadding;
 
   @override
   _ListingScrollableState createState() => _ListingScrollableState();
@@ -45,6 +48,10 @@ class _ListingScrollableState extends State<ListingScrollable> {
       return CustomScrollView(
         controller: _controller,
         slivers: <Widget>[
+          if (widget.topPadding > 0)
+            SliverToBoxAdapter(
+              child: SizedBox(height: widget.topPadding),
+            ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {

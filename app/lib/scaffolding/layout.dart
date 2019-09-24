@@ -78,6 +78,8 @@ class _LayoutState extends State<_Layout>
     final double topBarHeight = MediaQuery.of(context).padding.top + 56.0;
     _draggableExtent = constraints.maxHeight - topBarHeight;
     final double bottomInset = (1.0 - value) * _draggableExtent;
+
+    final double addedRadius = 20 * (value);
     return Stack(
       children: <Widget>[
         overlapped,
@@ -88,7 +90,7 @@ class _LayoutState extends State<_Layout>
             elevation: 1.0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(24.0)
+                bottom: Radius.circular(16.0 + addedRadius)
               )
             ),
             clipBehavior: Clip.antiAlias,
@@ -96,11 +98,35 @@ class _LayoutState extends State<_Layout>
           )
         ),
         Positioned.fill(
-          top: constraints.maxHeight + ((1.0 - value) * 24.0),
+          top: constraints.maxHeight + ((1.0 - value) * 36.0),
           child: Material(
             elevation: 1.0 - value,
             color: const Color(0xFFF0F0F0),
-            shape: _OutwardBorder(24.0),
+            shape: _OutwardBorder(36.0),
+          ),
+        ),
+        Positioned.fill(
+          top: constraints.maxHeight - bottomInset - (36.0 * value),
+          bottom: bottomInset,
+          child: IgnorePointer(
+            ignoring: true,
+            child: ClipRRect(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(36.0)
+              ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: <Color>[
+                      const Color(0x00FFFFFF),
+                      const Color(0xFFF0F0F0)
+                    ]
+                  )
+                ),
+              )
+            )
           ),
         ),
         if (widget.canDrag)
@@ -109,9 +135,9 @@ class _LayoutState extends State<_Layout>
             bottom: bottomInset,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
-              child: SizedBox.expand(),
               onVerticalDragUpdate: _handleDragUpdate,
               onVerticalDragEnd: _handleDragEnd,
+              child: const SizedBox()
             ),
           ),
       ],

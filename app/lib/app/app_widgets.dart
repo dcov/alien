@@ -4,20 +4,11 @@ class AlienApp extends StatelessWidget {
 
   AlienApp({ Key key }) : super(key: key);
 
-  static PageRoute<T> _pageRouteBuilder<T>(
-      RouteSettings settings,
-      WidgetBuilder builder) {
-    return MaterialPageRoute(
-      settings: settings,
-      builder: builder
-    );
-  }
-
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context, Store store, EventDispatch dispatch) {
       final AppState state = store.get();
-      return WidgetsApp(
+      return MaterialApp(
         debugShowCheckedModeBanner: false,
         color: Colors.deepOrange,
         builder: (_, Widget child) {
@@ -25,7 +16,6 @@ class AlienApp extends StatelessWidget {
             child: child,
           );
         },
-        pageRouteBuilder: _pageRouteBuilder,
         home: state.initialized ? Scaffolding() : SplashScreen()
       );
     },
@@ -38,6 +28,6 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox();
+    return const SizedBox();
   }
 }
