@@ -2,20 +2,19 @@ part of 'post.dart';
 
 class PushPost extends PushTarget {
 
-  const PushPost({ @required this.postKey });
+  const PushPost({ @required this.post });
 
-  final ModelKey postKey;
+  final Post post;
 
   @override
-  Event update(Store store) {
-    final Post post = store.get(this.postKey);
-    if (super.push(store, post)) {
+  Event update(AppState state) {
+    if (super.push(state.routing, post)) {
       post.comments = CommentsTree(
-        fullPostId: utils.makeFullId(post),
+        fullPostId: makeFullId(post),
         permalink: post.permalink,
       );
       return RefreshCommentsTree(
-        commentsTreeKey: post.comments.key
+        commentsTree: post.comments
       );
     }
     return null;
@@ -24,14 +23,13 @@ class PushPost extends PushTarget {
 
 class PopPost extends PopTarget {
 
-  const PopPost({ @required this.postKey });
+  const PopPost({ @required this.post });
 
-  final ModelKey postKey;
+  final Post post;
 
   @override
-  void update(Store store) {
-    final Post post = store.get(this.postKey);
-    super.pop(store, post);
-    post.comments = null;
+  void update(AppState state) {
+    super.pop(state.routing, post);
+    // post.comments = null;
   }
 }

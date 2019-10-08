@@ -1,14 +1,14 @@
 part of 'routing.dart';
 
 @abs
-abstract class RoutingTarget extends Model {
+abstract class RoutingTarget implements Model {
 
   bool active;
 
   int depth;
 }
 
-abstract class Routing extends Model {
+abstract class Routing implements Model {
 
   factory Routing() => _$Routing(targets: const <RoutingTarget>[]);
 

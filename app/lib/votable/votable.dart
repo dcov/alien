@@ -2,8 +2,10 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
+import '../app/app.dart';
+import '../common/common.dart';
 import '../thing/thing.dart';
-import '../utils/utils.dart' as utils;
+import '../user/user.dart';
 
 export 'package:reddit/reddit.dart' show VoteDir;
 

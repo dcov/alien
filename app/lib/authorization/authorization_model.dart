@@ -1,6 +1,6 @@
 part of 'authorization.dart';
 
-abstract class Authorization extends Model {
+abstract class Authorization implements Model {
 
   factory Authorization({
     @required String clientId,

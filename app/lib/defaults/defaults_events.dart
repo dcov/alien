@@ -2,40 +2,38 @@ part of 'defaults.dart';
 
 class LoadDefaults extends Event {
 
-  const LoadDefaults({ @required this.defaultsKey });
+  const LoadDefaults({ @required this.defaults });
 
-  final ModelKey defaultsKey;
+  final Defaults defaults;
 
   @override
-  Effect update(Store store) {
-    final Defaults defaults = store.get(this.defaultsKey);
+  Effect update(_) {
     if (defaults.refreshing)
       return null;
     
     defaults..refreshing = true
             ..subreddits.clear();
-    return GetDefaults(defaultsKey: this.defaultsKey);
+    return GetDefaults(defaults: defaults);
   }
 }
 
 class DefaultsLoaded extends Event {
 
   const DefaultsLoaded({
-    @required this.defaultsKey,
+    @required this.defaults,
     @required this.subreddits
   });
 
-  final ModelKey defaultsKey;
+  final Defaults defaults;
 
   final Iterable<SubredditData> subreddits;
 
   @override
-  void update(Store store) {
-    ifNotNull(store.get<Defaults>(this.defaultsKey), (Defaults defaults) {
-        defaults..refreshing = false
-                ..subreddits.addAll(
-                  this.subreddits.map((data) => Subreddit.fromData(data)))
-                ..subreddits.sort(compareSubreddits);
-    });
+  void update(_) {
+    defaults
+      ..refreshing = false
+      ..subreddits.addAll(
+        this.subreddits.map((data) => Subreddit.fromData(data)))
+      ..subreddits.sort(compareSubreddits);
   }
 }

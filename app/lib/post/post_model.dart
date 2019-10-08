@@ -1,7 +1,6 @@
 part of 'post.dart';
 
-abstract class Post extends Model
-    implements Thing, Saveable, Votable, RoutingTarget {
+abstract class Post implements Saveable, Votable, RoutingTarget {
   
   factory Post.fromData(PostData data) {
     Media media;
@@ -16,7 +15,7 @@ abstract class Post extends Model
       }
       media = Media(
         source: data.url,
-        thumbnailUrl: thumbnail
+        thumbnail: thumbnail
       );
     }
 

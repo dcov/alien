@@ -1,7 +1,7 @@
 part of 'saveable.dart';
 
 @abs
-abstract class Saveable extends Model implements Thing {
+abstract class Saveable implements Thing {
 
-  bool get isSaved;
+  bool isSaved;
 }

@@ -1,4 +1,4 @@
-part of 'widgets.dart';
+import 'package:flutter/widgets.dart';
 
 EdgeInsets paddingWithLeftDepth(double padding, int depth) {
   return EdgeInsets.fromLTRB(

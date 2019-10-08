@@ -8,8 +8,7 @@ abstract class PushTarget extends Event {
   const PushTarget();
 
   @protected
-  bool push(Store store, RoutingTarget target) {
-    final Routing routing = store.get();
+  bool push(Routing routing, RoutingTarget target) {
     if (!routing.targets.contains(target)) {
       final int currentDepth = routing.currentTarget.depth;
       assert(currentDepth != null);
@@ -32,9 +31,8 @@ abstract class PopTarget extends Event {
   const PopTarget();
 
   @protected
-  void pop(Store store, RoutingTarget target) {
+  void pop(Routing routing, RoutingTarget target) {
     assert(target != null);
-    final Routing routing = store.get();
     assert(routing.targets.contains(target));
 
     final int index = routing.targets.indexOf(target);

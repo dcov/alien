@@ -3,10 +3,11 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
+import '../app/app.dart';
+import '../common/common.dart';
 import '../listing/listing.dart';
 import '../post/post.dart';
 import '../thing/thing.dart';
-import '../utils/utils.dart';
 
 part 'subreddit_posts_effects.dart';
 part 'subreddit_posts_events.dart';

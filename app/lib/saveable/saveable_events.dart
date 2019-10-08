@@ -3,13 +3,20 @@ part of 'saveable.dart';
 class ToggleSaved extends Event {
 
   ToggleSaved({
-    this.key
+    @required this.saveable,
+    this.user,
   });
 
-  final ModelKey key;
+  final Saveable saveable;
+
+  final User user;
 
   @override
-  Effect update(Store store) {
-    return null;
+  Effect update(AppState state) {
+    saveable.isSaved = !saveable.isSaved;
+    return PostSaveable(
+      saveable: saveable,
+      user: user ?? state.auth.currentUser,
+    );
   }
 }

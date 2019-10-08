@@ -3,32 +3,26 @@ part of 'subreddit_posts.dart';
 class GetSubredditPosts extends Effect {
 
   const GetSubredditPosts({
-    @required this.subredditPostsKey,
+    @required this.subredditPosts,
     @required this.status,
-    @required this.subredditName,
-    @required this.sort,
     @required this.page
   });
 
-  final ModelKey subredditPostsKey;
+  final SubredditPosts subredditPosts;
 
   final ListingStatus status;
-
-  final String subredditName;
-
-  final SubredditSort sort;
 
   final Page page;
   
   @override
-  Future<Event> perform(Repo repo) {
-    return repo
-      .get<RedditClient>()
+  Future<Event> perform(AppContainer container) {
+    return container.client
       .asDevice()
-      .getSubredditPosts(subredditName, sort, page)
+      .getSubredditPosts(
+        subredditPosts.subredditName, subredditPosts.sort, page)
       .then((ListingData<PostData> data) {
           return FinishSubredditPostsUpdate(
-            subredditPostsKey: this.subredditPostsKey,
+            subredditPosts: this.subredditPosts,
             status: this.status,
             data: data
           );

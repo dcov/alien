@@ -1,6 +1,6 @@
 part of 'browse.dart';
 
-abstract class Browse extends RoutingTarget {
+abstract class Browse implements RoutingTarget {
 
   factory Browse() => _$Browse(
     defaults: Defaults(),

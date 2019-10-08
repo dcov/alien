@@ -1,21 +1,72 @@
 part of 'post.dart';
 
+class PostPage extends StatefulWidget {
+
+  PostPage({
+    Key key,
+    @required this.post
+  }) : super(key: key);
+
+  final Post post;
+
+  @override
+  _PostPageState createState() => _PostPageState();
+}
+
+class _PostPageState extends State<PostPage> {
+
+  @override
+  Widget build(_) => Connector(
+    builder: (BuildContext context, EventDispatch dispatch) {
+      final Post post = widget.post;
+      return Stack(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 56.0),
+            child: CommentsTreeScrollable(commentsTree: post.comments),
+          ),
+          Material(
+            elevation: 1.0,
+            child: Padding(
+              padding: MediaQuery.of(context).padding,
+              child: SizedBox(
+                height: 56.0,
+                child: NavigationToolbar(
+                  leading: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close),
+                  ),
+                  middle: Text(
+                    post.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+  );
+}
+
 class PostTile extends StatelessWidget {
 
   PostTile({
     Key key,
-    @required this.postKey,
+    @required this.post,
     this.includeSubredditName = true,
   }) : super(key: key);
 
-  final ModelKey postKey;
+  final Post post;
 
   final bool includeSubredditName;
   
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Post post = store.get(this.postKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
       return DecoratedBox(
         decoration: BoxDecoration(
           border: Border(
@@ -23,10 +74,7 @@ class PostTile extends StatelessWidget {
           )
         ),
         child: InkWell(
-          onTap: () {
-            dispatch(PushPost(postKey: post.key));
-            PushNotification.notify(context);
-          },
+          onTap: () => PushNotification.notify(context, PushPost(post: post)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -81,7 +129,7 @@ class PostTile extends StatelessWidget {
                             width: 70,
                             height: 60,
                             child: MediaThumbnail(
-                              mediaKey: post.media.key,
+                              media: post.media,
                             )
                           )
                         )
@@ -94,57 +142,5 @@ class PostTile extends StatelessWidget {
         )
       );
     },
-  );
-}
-
-class PostPage extends StatefulWidget {
-
-  PostPage({
-    Key key,
-    @required this.postKey
-  }) : super(key: key);
-
-  final ModelKey postKey;
-
-  @override
-  _PostPageState createState() => _PostPageState();
-}
-
-class _PostPageState extends State<PostPage> {
-
-  @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Post post = store.get(widget.postKey);
-      return Stack(
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 56.0),
-            child: CommentsTreeScrollable(commentsTreeKey: post.comments.key),
-          ),
-          Material(
-            elevation: 1.0,
-            child: Padding(
-              padding: MediaQuery.of(context).padding,
-              child: SizedBox(
-                height: 56.0,
-                child: NavigationToolbar(
-                  leading: IconButton(
-                    onPressed: () => dispatch(PopPost(postKey: post.key)),
-                    icon: Icon(Icons.close),
-                  ),
-                  middle: Text(
-                    post.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
   );
 }

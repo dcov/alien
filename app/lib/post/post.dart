@@ -3,15 +3,14 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
+import '../app/app.dart';
 import '../comments_tree/comments_tree.dart';
+import '../common/common.dart';
 import '../media/media.dart';
 import '../routing/routing.dart';
 import '../saveable/saveable.dart';
 import '../snudown/snudown.dart';
-import '../thing/thing.dart';
-import '../utils/utils.dart' as utils;
 import '../votable/votable.dart';
-import '../widgets/widgets.dart';
 
 part 'post_effects.dart';
 part 'post_events.dart';

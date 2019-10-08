@@ -3,7 +3,8 @@ import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:scraper/scraper.dart';
+
+import '../app/app.dart';
 
 part 'media_effects.dart';
 part 'media_events.dart';

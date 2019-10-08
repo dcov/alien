@@ -2,21 +2,20 @@ part of 'browse.dart';
 
 class PushBrowse extends PushTarget {
 
-  PushBrowse({ @required this.browseKey });
+  PushBrowse({ @required this.browse });
 
-  final ModelKey browseKey;
+  final Browse browse;
 
   @override
-  Event update(Store store) {
-    final Browse browse = store.get(browseKey);
+  Event update(AppState state) {
     assert(browse != null);
-    if (push(store, browse)) {
-      if (userIsSignedIn(store)) {
+    if (push(state.routing, browse)) {
+      if (state.auth.currentUser != null) {
         browse.subscriptions = Subscriptions();
-        return RefreshSubscriptions(subscriptionsKey: browse.subscriptions.key);
+        return RefreshSubscriptions(subscriptions: browse.subscriptions);
       } else {
         browse.defaults = Defaults();
-        return LoadDefaults(defaultsKey: browse.defaults.key);
+        return LoadDefaults(defaults: browse.defaults);
       }
     }
     return null;
@@ -25,16 +24,14 @@ class PushBrowse extends PushTarget {
 
 class PopBrowse extends PopTarget {
 
-  PopBrowse({ @required this.browseKey });
+  PopBrowse({ @required this.browse });
 
-  final ModelKey browseKey;
+  final Browse browse;
 
   @override
-  void update(Store store) {
-    final Browse browse = store.get(browseKey);
-    assert(browse != null);
-    pop(store, browse);
-    browse..defaults = null
-          ..subscriptions = null;
+  void update(AppState state) {
+    pop(state.routing, browse);
+    //browse..defaults = null
+    //      ..subscriptions = null;
   }
 }

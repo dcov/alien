@@ -1,6 +1,6 @@
 part of 'defaults.dart';
 
-abstract class Defaults extends Model {
+abstract class Defaults implements Model {
 
   factory Defaults() {
     return _$Defaults(

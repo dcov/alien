@@ -3,14 +3,17 @@ part of 'theming.dart';
 class UpdateTheme extends Event {
 
   UpdateTheme({
-    @required this.type
+    @required this.theming,
+    this.type = ThemeType.light,
   });
+
+  final Theming theming;
 
   final ThemeType type;
 
   @override
-  void update(Store store) {
-    store.get<Theming>()
+  void update(_) {
+    theming
       ..data = () {
           switch (this.type) {
             case ThemeType.light:

@@ -3,17 +3,16 @@ part of 'votable.dart';
 class Upvote extends Event {
 
   const Upvote({
-    @required this.votableKey,
-    this.userKey,
-  }) : assert(votableKey != null);
+    @required this.votable,
+    this.user,
+  });
 
-  final ModelKey votableKey;
+  final Votable votable;
 
-  final ModelKey userKey;
+  final User user;
 
   @override
-  Effect update(Store store) {
-    final Votable votable = store.get(this.votableKey);
+  Effect update(AppState state) {
     final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.up) {
@@ -25,11 +24,9 @@ class Upvote extends Event {
     }
 
     return PostVote(
-      userToken: utils.getUserToken(store, this.userKey),
-      fullVotableId: utils.makeFullId(votable),
-      newVoteDir: votable.voteDir,
-      votableKey: votable.key,
-      oldVoteDir: oldVoteDir
+      votable: votable,
+      oldVoteDir: oldVoteDir,
+      user: user ?? state.auth.currentUser,
     );
   }
 }

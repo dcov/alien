@@ -4,25 +4,24 @@ class MoreTile extends StatelessWidget {
 
   const MoreTile({
     Key key,
-    @required this.commentsTreeKey,
-    @required this.moreKey
+    @required this.commentsTree,
+    @required this.more
   }) : super(key: key);
 
-  final ModelKey commentsTreeKey;
+  final CommentsTree commentsTree;
 
-  final ModelKey moreKey;
+  final More more;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext _, Store store, EventDispatch dispatch) {
-      final More more = store.get(this.moreKey);
+    builder: (BuildContext _, EventDispatch dispatch) {
       return Padding(
         padding: EdgeInsets.only(left: 16.0 * more.depth),
         child: Material(
           child: InkWell(
             onTap: !more.isLoading
               ? () => dispatch(LoadMoreComments(
-                    commentsTreeKey: this.commentsTreeKey, moreKey: more.key))
+                    commentsTree: commentsTree, more: more))
               : null,
             child: Padding(
               padding: EdgeInsets.all(16.0),

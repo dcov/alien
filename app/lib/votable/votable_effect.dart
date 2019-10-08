@@ -3,25 +3,20 @@ part of 'votable.dart';
 class PostVote extends Effect {
 
   PostVote({
-    @required this.userToken,
-    @required this.fullVotableId,
-    @required this.newVoteDir,
-    @required this.votableKey,
+    @required this.votable,
+    @required this.user,
     @required this.oldVoteDir,
   });
 
-  final String userToken;
-  final String fullVotableId;
-  final VoteDir newVoteDir;
-  final ModelKey votableKey;
+  final Votable votable;
+  final User user;
   final VoteDir oldVoteDir;
 
   @override
-  Future<Event> perform(Repo repo) {
-    return repo
-      .get<RedditClient>()
-      .asUser(userToken)
-      .postVote(fullVotableId, newVoteDir)
+  Future<Event> perform(AppContainer container) {
+    return container.client
+      .asUser(user.token)
+      .postVote(makeFullId(votable), votable.voteDir)
       .catchError((e) {
       });
   }

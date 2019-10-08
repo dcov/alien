@@ -5,11 +5,11 @@ import 'package:reddit/reddit.dart';
 import 'package:scraper/scraper.dart';
 
 import '../authorization/authorization.dart';
-import '../browse/browse.dart';
+import '../common/common.dart';
 import '../routing/routing.dart';
-import '../scaffolding/scaffolding.dart';
 import '../theming/theming.dart';
 
+part 'app_container.dart';
 part 'app_credentials.dart';
 part 'app_effects.dart';
 part 'app_events.dart';
@@ -19,20 +19,12 @@ part 'app.g.dart';
 
 void run() {
   runLoop(
-    dependencies: <Object> {
-      RedditClient(_Credentials.clientId),
-      Scraper(),
-    },
-    rootModels: <Model> {
-      AppState(),
-      Authorization(
-        clientId: _Credentials.clientId,
-        redirectUri: _Credentials.redirectUri
-      ),
-      Routing(),
-      Theming()
-    },
-    initialEvent: InitApp(),
+    container: AppContainer(_Credentials.clientId),
+    state: AppState(
+      clientId: _Credentials.clientId,
+      redirectUri: _Credentials.redirectUri,
+    ),
+    init: InitApp(),
     app: AlienApp()
   );
 }

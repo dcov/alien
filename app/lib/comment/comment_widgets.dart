@@ -4,18 +4,17 @@ class CommentTile extends StatelessWidget {
 
   CommentTile({
     Key key,
-    @required this.commentKey,
+    @required this.comment,
     @required this.includeDepthPadding
   }) : super(key: key);
 
-  final ModelKey commentKey;
+  final Comment comment;
 
   final bool includeDepthPadding;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Comment comment = store.get(this.commentKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
       Widget result = Material(
         child: Padding(
           padding: includeDepthPadding
@@ -40,7 +39,7 @@ class CommentTile extends StatelessWidget {
                 child: DefaultTextStyle(
                   style: Theme.of(context).textTheme.body1,
                   child: SnudownBody(
-                    snudownKey: comment.body.key,
+                    snudown: comment.body,
                     scrollable: false,
                   ),
                 )

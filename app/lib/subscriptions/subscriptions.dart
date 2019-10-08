@@ -3,8 +3,10 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
+import '../app/app.dart';
+import '../common/common.dart';
 import '../subreddit/subreddit.dart';
-import '../utils/utils.dart';
+import '../user/user.dart';
 
 part 'subscriptions_effects.dart';
 part 'subscriptions_events.dart';

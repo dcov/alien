@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-part 'formatting.dart';
-part 'icons.dart';
-part 'insets.dart';
-
 class CustomTile extends StatelessWidget {
 
   CustomTile({

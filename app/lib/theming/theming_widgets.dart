@@ -4,17 +4,19 @@ class Themer extends StatelessWidget {
 
   Themer({
     Key key,
+    @required this.theming,
     @required this.child,
   }) : super(key: key);
+
+  final Theming theming;
 
   final Widget child;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Theming state = store.get();
+    builder: (BuildContext context, EventDispatch dispatch) {
       return AnimatedTheme(
-        data: state.data,
+        data: theming.data,
         child: this.child,
       );
     },

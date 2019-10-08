@@ -1,6 +1,6 @@
 part of 'subscriptions.dart';
 
-abstract class Subscriptions extends Model {
+abstract class Subscriptions implements Model {
 
   factory Subscriptions() {
     return _$Subscriptions(

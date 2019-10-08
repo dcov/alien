@@ -1,53 +1,36 @@
 part of 'media.dart';
 
-class LoadMediaThumbnail extends Event {
+class LoadThumbnail extends Event {
 
-  const LoadMediaThumbnail({ @required this.mediaKey });
+  const LoadThumbnail({ @required this.media });
 
-  final ModelKey mediaKey;
+  final Media media;
 
   @override
-  Effect update(Store store) {
-    final Media media = store.get(this.mediaKey);
-    assert(media != null);
-    if (media.thumbnailUrl is ThumbnailUrlLoading ||
-        media.thumbnailUrl is ThumbnailUrlValue ||
-        media.thumbnailUrl is ThumbnailUrlNotFound)
-      return null;
-    
-    media.thumbnailUrl = const ThumbnailUrlLoading._();
-    return ScrapeThumbnailUrl(
-      mediaKey: this.mediaKey,
-      source: media.source
-    );
+  Effect update(_) {
+    assert(media.thumbnailStatus == ThumbnailStatus.notLoaded);
+    media.thumbnailStatus = ThumbnailStatus.loading;
+    return ScrapeThumbnail(media: this.media);
   }
 }
 
-class MediaThumbnailFound extends Event {
+class ThumbnailScraped extends Event {
 
-  const MediaThumbnailFound({
-    @required this.mediaKey,
-    @required this.value
+  const ThumbnailScraped({
+    @required this.media,
+    @required this.result
   });
 
-  final ModelKey mediaKey;
+  final Media media;
 
-  final String value;
-
-  @override
-  void update(Store store) {
-    store.get<Media>()?.thumbnailUrl = ThumbnailUrlValue._(this.value);
-  }
-}
-
-class MediaThumbnailNotFound extends Event {
-
-  const MediaThumbnailNotFound({ @required this.mediaKey });
-
-  final ModelKey mediaKey;
+  final String result;
 
   @override
-  void update(Store store) {
-    store.get<Media>()?.thumbnailUrl = const ThumbnailUrlNotFound._();
+  void update(_) {
+    media
+      ..thumbnailStatus = result != null
+          ? ThumbnailStatus.loaded
+          : ThumbnailStatus.notFound
+      ..thumbnail = result;
   }
 }

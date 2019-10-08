@@ -1,6 +1,6 @@
 part of 'user.dart';
 
-abstract class User extends Model {
+abstract class User implements Model {
 
   String get token;
 

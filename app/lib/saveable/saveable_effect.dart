@@ -1,33 +1,22 @@
 part of 'saveable.dart';
 
-class PostSave extends Effect {
+class PostSaveable extends Effect {
 
-  PostSave({
-    this.fullId,
-    this.key
+  PostSaveable({
+     @required this.saveable,
+     @required this.user
   });
 
-  final String fullId;
-  final ModelKey key;
+  final Saveable saveable;
+
+  final User user;
 
   @override
-  Future<Event> perform(Repo repo) {
-    return null;
-  }
-}
-
-class PostUnsave extends Effect {
-
-  PostUnsave({
-    this.fullId,
-    this.key
-  });
-
-  final String fullId;
-  final ModelKey key;
-
-  @override
-  Future<Event> perform(Repo repo) {
-    return null;
+  Future<Event> perform(AppContainer container) async {
+    final RedditInteractor reddit = container.client.asUser(user.token);
+    return (saveable.isSaved
+        ? reddit.postSave(makeFullId(saveable))
+        : reddit.postUnsave(makeFullId(saveable)))
+      .then((_) => null, onError: (_) => null);
   }
 }

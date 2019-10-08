@@ -4,30 +4,29 @@ class MediaThumbnail extends StatelessWidget {
 
   MediaThumbnail({
     Key key,
-    @required this.mediaKey
+    @required this.media
   }) : super(key: key);
 
-  final ModelKey mediaKey;
+  final Media media;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final ThumbnailUrl thumbnailUrl = store.get<Media>(this.mediaKey).thumbnailUrl;
-      if (thumbnailUrl is ThumbnailUrlValue) {
-        return Image(
-          image: CachedNetworkImageProvider(thumbnailUrl.value),
-        );
-      } else if (thumbnailUrl is ThumbnailUrlLoading) {
-        return Center(
-          child: CircularProgressIndicator(),
-        );
-      } else if (thumbnailUrl is! ThumbnailUrlNotFound) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          dispatch(LoadMediaThumbnail(mediaKey: this.mediaKey));
-        });
+    builder: (BuildContext context, EventDispatch dispatch) {
+      switch (media.thumbnailStatus) {
+        case ThumbnailStatus.notLoaded:
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            dispatch(LoadThumbnail(media: this.media));
+          });
+          continue loading;
+        loading:
+        case ThumbnailStatus.loading:
+          return Center(child: CircularProgressIndicator());
+        case ThumbnailStatus.notFound:
+          return Icon(Icons.broken_image);
+        case ThumbnailStatus.loaded:
+          return Image(image: CachedNetworkImageProvider(media.thumbnail));
       }
-
-      return Icon(Icons.broken_image);
+      return Container();
     }
   );
 }

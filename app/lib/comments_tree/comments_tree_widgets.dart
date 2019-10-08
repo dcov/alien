@@ -4,10 +4,10 @@ class CommentsTreeScrollable extends StatefulWidget {
 
   CommentsTreeScrollable({
     Key key,
-    @required this.commentsTreeKey,
+    @required this.commentsTree,
   }) : super(key: key);
 
-  final ModelKey commentsTreeKey;
+  final CommentsTree commentsTree;
 
   @override
   _CommentsTreeScrollableState createState() => _CommentsTreeScrollableState();
@@ -25,29 +25,29 @@ class _CommentsTreeScrollableState extends State<CommentsTreeScrollable> {
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final CommentsTree tree = store.get(widget.commentsTreeKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
+      final CommentsTree commentsTree = widget.commentsTree;
       return CustomScrollView(
         controller: _controller,
         slivers: <Widget>[
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (_, int index) {
-                final Thing thing = tree.things[index];
+                final Thing thing = commentsTree.things[index];
                 if (thing is Comment)
                   return CommentTile(
-                    commentKey: thing.key,
+                    comment: thing,
                     includeDepthPadding: true,
                   );
                 else if (thing is More)
                   return MoreTile(
-                    commentsTreeKey: tree.key,
-                    moreKey: thing.key,
+                    commentsTree: commentsTree,
+                    more: thing,
                   );
                 
                 return const SizedBox();
               },
-              childCount: tree.things.length
+              childCount: commentsTree.things.length
             ),
           )
         ],

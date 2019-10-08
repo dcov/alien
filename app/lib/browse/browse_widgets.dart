@@ -1,36 +1,13 @@
 part of 'browse.dart';
 
-class BrowseTile extends StatelessWidget {
-
-  BrowseTile({
-    Key key,
-    @required this.browseKey,
-  }) : super(key: key);
-
-  final ModelKey browseKey;
-
-  @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      return CustomTile(
-        onTap: () {
-          dispatch(PushBrowse(browseKey: this.browseKey));
-          PushNotification.notify(context);
-        },
-        title: Text('Browse'),
-      );
-    },
-  );
-}
-
 class BrowsePage extends StatefulWidget {
 
   BrowsePage({
     Key key,
-    @required this.browseKey
+    @required this.browse
   }) : super(key: key);
 
-  final ModelKey browseKey;
+  final Browse browse;
 
   @override
   _BrowsePageState createState() => _BrowsePageState();
@@ -57,12 +34,13 @@ class _BrowsePageState extends State<BrowsePage> {
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Browse browse = store.get(widget.browseKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
+      final Browse browse = widget.browse;
       return Scaffold(
         appBar: AppBar(
           elevation: 1.0,
           backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
           title: TextField(
             controller: _textController,
             focusNode: _focusNode,
@@ -78,17 +56,33 @@ class _BrowsePageState extends State<BrowsePage> {
           slivers: <Widget>[
             SliverToBoxAdapter(child: SizedBox(height: 16.0)),
             if (browse.subscriptions != null)
-              SubscriptionsSliver(
-                subscriptionsKey: browse.subscriptions.key,
-              ),
+              SubscriptionsSliver(subscriptions: browse.subscriptions),
             if (browse.defaults != null)
-              DefaultsSliver(
-                defaultsKey: browse.defaults.key,
-              ),
+              DefaultsSliver(defaults: browse.defaults),
             SliverToBoxAdapter(child: SizedBox(height: 16.0))
           ],
         ),
       );
     }
+  );
+}
+
+class BrowseTile extends StatelessWidget {
+
+  BrowseTile({
+    Key key,
+    @required this.browse,
+  }) : super(key: key);
+
+  final Browse browse;
+
+  @override
+  Widget build(_) => Connector(
+    builder: (BuildContext context, EventDispatch dispatch) {
+      return CustomTile(
+        onTap: () => PushNotification.notify(context, PushBrowse(browse: browse)),
+        title: Text('Browse'),
+      );
+    },
   );
 }

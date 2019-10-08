@@ -1,6 +1,6 @@
 part of 'comments_tree.dart';
 
-abstract class CommentsTree extends Model {
+abstract class CommentsTree implements Model {
 
   factory CommentsTree({
     @required String fullPostId,

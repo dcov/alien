@@ -1,6 +1,6 @@
 part of 'comment.dart';
 
-abstract class Comment extends Model implements Thing, Saveable, Votable {
+abstract class Comment implements Saveable, Votable {
 
   factory Comment.fromData(CommentData data) {
     return _$Comment(

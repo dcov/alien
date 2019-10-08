@@ -2,68 +2,56 @@ part of 'comments_tree.dart';
 
 class RefreshCommentsTree extends Event {
 
-  const RefreshCommentsTree({ @required this.commentsTreeKey });
+  const RefreshCommentsTree({ @required this.commentsTree });
 
-  final ModelKey commentsTreeKey;
+  final CommentsTree commentsTree;
 
   @override
-  Effect update(Store store) {
-    final CommentsTree tree = store.get(this.commentsTreeKey);
-    assert(tree != null);
-    if (tree.isRefreshing)
+  Effect update(_) {
+    assert(commentsTree != null);
+    if (commentsTree.isRefreshing)
       return null;
 
-    tree..isRefreshing = true
+    commentsTree..isRefreshing = true
         ..things.clear();
     
-    return GetPostComments(
-      commentsTreeKey: this.commentsTreeKey,
-      permalink: tree.permalink,
-      sort: tree.sort
-    );
+    return GetPostComments(commentsTree: this.commentsTree);
   }
 }
 
-class CommentsTreeRefreshed extends Event {
+class RefreshedCommentsTree extends Event {
 
-  const CommentsTreeRefreshed({
-    @required this.commentsTreeKey,
+  const RefreshedCommentsTree({
+    @required this.commentsTree,
     @required this.data
   });
 
-  final ModelKey commentsTreeKey;
+  final CommentsTree commentsTree;
 
   final Iterable<ThingData> data;
 
   @override
-  void update(Store store) {
-    ifNotNull(store.get<CommentsTree>(this.commentsTreeKey), (CommentsTree tree) {
-      assert(tree.isRefreshing);
-
-
-      tree..isRefreshing = false
-          ..things.addAll(_expandTree(data).map(_mapThing));
-    });
+  void update(_) {
+    assert(commentsTree.isRefreshing);
+    commentsTree..isRefreshing = false
+        ..things.addAll(_expandTree(data).map(_mapThing));
   }
 }
 
 class LoadMoreComments extends Event {
 
   const LoadMoreComments({
-    @required this.commentsTreeKey,
-    @required this.moreKey,
+    @required this.commentsTree,
+    @required this.more,
   });
 
-  final ModelKey commentsTreeKey;
+  final CommentsTree commentsTree;
 
-  final ModelKey moreKey;
+  final More more;
 
   @override
-  Effect update(Store store) {
-    final CommentsTree tree = store.get(this.commentsTreeKey);
-    assert(tree != null);
-
-    final More more = store.get(this.moreKey);
+  Effect update(_) {
+    assert(commentsTree != null);
     assert(more != null);
 
     if (more.isLoading)
@@ -71,39 +59,32 @@ class LoadMoreComments extends Event {
     
     more.isLoading = true;
     return GetMoreComments(
-      commentsTreeKey: this.commentsTreeKey,
-      moreKey: this.moreKey,
-      fullPostId: tree.fullPostId,
-      moreId: more.id,
-      thingIds: more.thingIds,
+      commentsTree: this.commentsTree,
+      more: this.more,
     );
   }
 }
 
-class MoreCommentsLoaded extends Event {
+class LoadedMoreComments extends Event {
 
-  const MoreCommentsLoaded({
-    @required this.commentsTreeKey,
-    @required this.moreKey,
+  const LoadedMoreComments({
+    @required this.commentsTree,
+    @required this.more,
     @required this.data,
   });
 
-  final ModelKey commentsTreeKey;
+  final CommentsTree commentsTree;
 
-  final ModelKey moreKey;
+  final More more;
 
   final Iterable<ThingData> data;
 
   @override
-  void update(Store store) {
-    ifNotNull(store.get<CommentsTree>(this.commentsTreeKey), (CommentsTree tree) {
-      ifNotNull(store.get<More>(this.moreKey), (More more) {
-        assert(more.isLoading);
-        more.isLoading = false;
-        final int insertIndex = tree.things.indexOf(more);
-        final Iterable<Thing> newThings = _expandTree(data).map(_mapThing);
-        tree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
-      });
-    });
+  void update(_) {
+    assert(more.isLoading);
+    more.isLoading = false;
+    final int insertIndex = commentsTree.things.indexOf(more);
+    final Iterable<Thing> newThings = _expandTree(data).map(_mapThing);
+    commentsTree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
   }
 }

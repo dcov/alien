@@ -1,7 +1,7 @@
 part of 'thing.dart';
 
 @abs
-abstract class Thing extends Model {
+abstract class Thing implements Model {
 
   String get id;
 

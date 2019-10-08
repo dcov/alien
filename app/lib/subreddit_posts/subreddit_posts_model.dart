@@ -1,6 +1,6 @@
 part of 'subreddit_posts.dart';
 
-abstract class SubredditPosts extends Model implements Listing {
+abstract class SubredditPosts implements Listing {
 
   factory SubredditPosts({
     @required String subredditName,

@@ -4,19 +4,18 @@ class SubscriptionsSliver extends StatelessWidget {
 
   SubscriptionsSliver({
     Key key,
-    @required this.subscriptionsKey
+    @required this.subscriptions
   }) : super(key: key);
 
-  final ModelKey subscriptionsKey;
+  final Subscriptions subscriptions;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Subscriptions subscriptions = store.get(this.subscriptionsKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
       return SliverList(
         delegate: SliverChildBuilderDelegate(
           (_, int index) => SubredditTile(
-            subredditKey: subscriptions.subreddits[index].key),
+            subreddit: subscriptions.subreddits[index]),
           childCount: subscriptions.subreddits.length
         ),
       );

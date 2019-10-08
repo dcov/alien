@@ -4,24 +4,24 @@ class SubredditPostsScrollable extends StatelessWidget {
 
   SubredditPostsScrollable({
     Key key,
-    @required this.subredditPostsKey,
+    @required this.subredditPosts,
     this.topPadding,
   }) : super(key: key);
 
-  final ModelKey subredditPostsKey;
+  final SubredditPosts subredditPosts;
 
   final double topPadding;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext _, Store __, EventDispatch dispatch) {
+    builder: (BuildContext _, EventDispatch dispatch) {
       return ListingScrollable(
-        listingKey: this.subredditPostsKey,
+        listing: this.subredditPosts,
         topPadding: this.topPadding,
-        builder: (_, Thing thing) => PostTile(postKey: thing.key),
+        builder: (_, Post post) => PostTile(post: post),
         onUpdateListing: (ListingStatus status) {
           dispatch(UpdateSubredditPosts(
-            subredditPostsKey: this.subredditPostsKey,
+            subredditPosts: this.subredditPosts,
             status: status
           ));
         },

@@ -2,19 +2,18 @@ part of 'subreddit.dart';
 
 class PushSubreddit extends PushTarget {
 
-  const PushSubreddit({ @required this.subredditKey });
+  const PushSubreddit({ @required this.subreddit });
 
-  final ModelKey subredditKey;
+  final Subreddit subreddit;
 
   @override
-  Event update(Store store) {
-    final Subreddit subreddit = store.get(this.subredditKey);
-    if (push(store, subreddit)) {
+  Event update(AppState state) {
+    if (push(state.routing, subreddit)) {
       subreddit.posts = SubredditPosts(
         subredditName: subreddit.name,
       );
       return UpdateSubredditPosts(
-        subredditPostsKey: subreddit.posts.key,
+        subredditPosts: subreddit.posts,
         status: ListingStatus.loadingFirst
       );
     }
@@ -24,14 +23,13 @@ class PushSubreddit extends PushTarget {
 
 class PopSubreddit extends PopTarget {
 
-  const PopSubreddit({ @required this.subredditKey });
+  const PopSubreddit({ @required this.subreddit });
 
-  final ModelKey subredditKey;
+  final Subreddit subreddit;
 
   @override
-  void update(Store store) {
-    final Subreddit subreddit = store.get(this.subredditKey);
-    super.pop(store, subreddit);
-    subreddit.posts = null;
+  void update(AppState state) {
+    super.pop(state.routing, subreddit);
+    // subreddit.posts = null;
   }
 }

@@ -3,22 +3,19 @@ part of 'subscriptions.dart';
 class GetSubscriptions extends Effect {
 
   const GetSubscriptions({
-    @required this.subscriptionsKey,
-    @required this.userToken,
+    @required this.subscriptions,
+    @required this.user,
   });
 
-  final ModelKey subscriptionsKey;
+  final Subscriptions subscriptions;
 
-  final String userToken;
+  final User user;
 
   @override
-  Future<Event> perform(Repo repo) async {
-    final RedditInteractor reddit = repo
-        .get<RedditClient>()
-        .asUser(this.userToken);
+  Future<Event> perform(AppContainer container) async {
+    final RedditInteractor reddit = container.client.asUser(user.token);
 
     try {
-
       final List<SubredditData> subreddits = List<SubredditData>();
       Pagination pagination = Pagination.maxLimit();
 
@@ -33,7 +30,7 @@ class GetSubscriptions extends Effect {
       } while(pagination.nextPageExists);
 
       return UpdateSubscriptions(
-        subscriptionsKey: this.subscriptionsKey,
+        subscriptions: this.subscriptions,
         subreddits: subreddits
       );
     } catch (e) {

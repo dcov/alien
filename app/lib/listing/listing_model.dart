@@ -18,7 +18,7 @@ class ListingState {
 }
 
 @abs
-abstract class Listing extends Model {
+abstract class Listing implements Model {
 
   ListingMode mode;
 

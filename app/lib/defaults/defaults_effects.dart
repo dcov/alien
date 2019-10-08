@@ -2,14 +2,13 @@ part of 'defaults.dart';
 
 class GetDefaults extends Effect {
 
-  const GetDefaults({ @required this.defaultsKey });
+  const GetDefaults({ @required this.defaults });
 
-  final ModelKey defaultsKey;
+  final Defaults defaults;
 
   @override
-  Future<Event> perform(Repo repo) {
-    return repo
-        .get<RedditClient>()
+  Future<Event> perform(AppContainer container) {
+    return container.client
         .asDevice()
         .getSubreddits(
             Subreddits.defaults,
@@ -17,7 +16,7 @@ class GetDefaults extends Effect {
         .then(
             (ListingData<SubredditData> listing) {
               return DefaultsLoaded(
-                defaultsKey: this.defaultsKey,
+                defaults: defaults,
                 subreddits: listing.things
               );
             },

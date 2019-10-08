@@ -1,32 +1,35 @@
 part of 'listing.dart';
 
-typedef ThingWidgetBuilder = Widget Function(BuildContext context, Thing thing);
+typedef ThingWidgetBuilder<T extends Thing> = Widget Function(
+  BuildContext context,
+  T thing,
+);
 
 typedef UpdateCallback = void Function(ListingStatus status);
 
-class ListingScrollable extends StatefulWidget {
+class ListingScrollable<T extends Thing> extends StatefulWidget {
 
   ListingScrollable({
     Key key,
-    @required this.listingKey,
+    @required this.listing,
     @required this.builder,
     @required this.onUpdateListing,
     this.topPadding = 0,
   }) : super(key: key);
 
-  final ModelKey listingKey;
+  final Listing listing;
 
-  final ThingWidgetBuilder builder;
+  final ThingWidgetBuilder<T> builder;
 
   final UpdateCallback onUpdateListing;
 
   final double topPadding;
 
   @override
-  _ListingScrollableState createState() => _ListingScrollableState();
+  _ListingScrollableState<T> createState() => _ListingScrollableState<T>();
 }
 
-class _ListingScrollableState extends State<ListingScrollable> {
+class _ListingScrollableState<T extends Thing> extends State<ListingScrollable<T>> {
 
   ScrollController _controller;
 
@@ -39,8 +42,8 @@ class _ListingScrollableState extends State<ListingScrollable> {
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Listing listing = store.get(widget.listingKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
+      final Listing listing = widget.listing;
       _controller ??= ScrollController(
         initialScrollOffset: listing.state.scrollOffset
       );

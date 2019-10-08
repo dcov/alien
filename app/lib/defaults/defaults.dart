@@ -3,8 +3,9 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
+import '../app/app.dart';
+import '../common/common.dart';
 import '../subreddit/subreddit.dart';
-import '../utils/utils.dart';
 
 part 'defaults_effects.dart';
 part 'defaults_events.dart';

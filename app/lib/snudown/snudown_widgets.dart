@@ -51,18 +51,17 @@ class SnudownBody extends StatelessWidget {
 
   SnudownBody({
     Key key,
-    @required this.snudownKey,
+    @required this.snudown,
     @required this.scrollable,
   }) : super(key: key);
 
-  final ModelKey snudownKey;
+  final Snudown snudown;
 
   final bool scrollable;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Snudown snudown = store.get(this.snudownKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
       return Markdown(
         nodes: snudown.nodes,
         styleSheet: _createStyleSheet(context),

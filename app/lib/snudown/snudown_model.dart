@@ -1,6 +1,6 @@
 part of 'snudown.dart';
 
-abstract class Snudown extends Model {
+abstract class Snudown implements Model {
 
   factory Snudown(String data) {
     final Snudown result = _$Snudown(

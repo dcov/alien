@@ -3,22 +3,24 @@ part of 'subscriptions.dart';
 class RefreshSubscriptions extends Event {
 
   const RefreshSubscriptions({
-    @required this.subscriptionsKey,
+    @required this.subscriptions,
+    this.user,
   });
 
-  final ModelKey subscriptionsKey;
+  final Subscriptions subscriptions;
+
+  final User user;
 
   @override
-  Effect update(Store store) {
-    final Subscriptions subscriptions = store.get(this.subscriptionsKey);
+  Effect update(AppState state) {
     // We're already refreshing, so we don't need to do anything.
     if (subscriptions.refreshing)
       return null;
 
     subscriptions.refreshing = true;
     return GetSubscriptions(
-      subscriptionsKey: this.subscriptionsKey,
-      userToken: getUserToken(store)
+      subscriptions: this.subscriptions,
+      user: user ?? state.auth.currentUser
     );
   }
 }
@@ -26,24 +28,20 @@ class RefreshSubscriptions extends Event {
 class UpdateSubscriptions extends Event {
 
   const UpdateSubscriptions({
-    @required this.subscriptionsKey,
+    @required this.subscriptions,
     @required this.subreddits,
   });
 
-  final ModelKey subscriptionsKey;
+  final Subscriptions subscriptions;
 
   final List<SubredditData> subreddits;
 
   @override
-  void update(Store store) {
-    ifNotNull(store.get<Subscriptions>(this.subscriptionsKey),
-      (Subscriptions subscriptions) {
-        subscriptions
-          ..refreshing = false
-          ..subreddits.clear()
-          ..subreddits.addAll(
-            this.subreddits.map((data) => Subreddit.fromData(data)));
-      }
-    );
+  void update(_) {
+    subscriptions
+      ..refreshing = false
+      ..subreddits.clear()
+      ..subreddits.addAll(
+        this.subreddits.map((data) => Subreddit.fromData(data)));
   }
 }

@@ -1,6 +1,6 @@
 part of 'more.dart';
 
-abstract class More extends Model implements Thing {
+abstract class More implements Thing {
 
   factory More.fromData(MoreData data) {
     return _$More(

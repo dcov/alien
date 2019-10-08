@@ -5,7 +5,7 @@ enum ThemeType {
   dark
 }
 
-abstract class Theming extends Model {
+abstract class Theming implements Model {
 
   factory Theming({
     ThemeData data,

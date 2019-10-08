@@ -1,37 +1,30 @@
 part of 'media.dart';
 
-class ThumbnailUrl {
-  const ThumbnailUrl._();
+enum ThumbnailStatus {
+  notLoaded,
+  loading,
+  notFound,
+  loaded
 }
 
-class ThumbnailUrlLoading implements ThumbnailUrl {
-  const ThumbnailUrlLoading._();
-}
-
-class ThumbnailUrlValue implements ThumbnailUrl {
-  ThumbnailUrlValue._(this.value);
-  final String value;
-}
-
-class ThumbnailUrlNotFound implements ThumbnailUrl {
-  const ThumbnailUrlNotFound._();
-}
-
-abstract class Media extends Model {
+abstract class Media implements Model {
 
   factory Media({
     @required String source,
-    String thumbnailUrl
+    String thumbnail
   }) {
     return _$Media(
       source: source,
-      thumbnailUrl: thumbnailUrl != null
-          ? ThumbnailUrlValue._(thumbnailUrl)
-          : const ThumbnailUrl._(),
+      thumbnailStatus: thumbnail != null
+          ? ThumbnailStatus.loaded
+          : ThumbnailStatus.notLoaded,
+      thumbnail: thumbnail
     );
   }
 
   String get source;
 
-  ThumbnailUrl thumbnailUrl;
+  ThumbnailStatus thumbnailStatus;
+
+  String thumbnail;
 }

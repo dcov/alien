@@ -5,27 +5,20 @@ class InitApp extends Event {
   const InitApp();
 
   @override
-  Effect update(Store store) {
-    store.get<AppState>()
-        ..initialized = false;
-
-    store.get<Theming>()
-        ..type = ThemeType.light
-        ..data = ThemeData.light();
-
-    store.get<Routing>()
-        ..targets.add(Browse()..depth = 0);
-    
-    return const InitResources();
+  Set<Message> update(AppState state) {
+    state.initialized = false;
+    return <Message>{
+      UpdateTheme(theming: state.theming),
+      const InitResources(),
+    };
   }
 }
 
-class ResourcesInitialized extends Event {
+class InitializedResources extends Event {
 
-  const ResourcesInitialized();
+  const InitializedResources();
 
-  void update(Store store) {
-    store.get<AppState>()
-        ..initialized = true;
+  void update(AppState state) {
+    state.initialized = true;
   }
 }

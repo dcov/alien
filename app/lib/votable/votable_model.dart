@@ -1,7 +1,7 @@
 part of 'votable.dart';
 
 @abs
-abstract class Votable extends Model implements Thing {
+abstract class Votable implements Thing {
 
   int score;
 

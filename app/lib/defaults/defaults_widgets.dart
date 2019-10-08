@@ -4,20 +4,19 @@ class DefaultsSliver extends StatelessWidget {
 
   const DefaultsSliver({
     Key key,
-    @required this.defaultsKey
+    @required this.defaults
   });
 
-  final ModelKey defaultsKey;
+  final Defaults defaults;
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, Store store, EventDispatch dispatch) {
-      final Defaults defaults = store.get(this.defaultsKey);
+    builder: (BuildContext context, EventDispatch dispatch) {
       return SliverList(
         delegate: SliverChildBuilderDelegate(
           (_, int index) {
             return SubredditTile(
-              subredditKey: defaults.subreddits[index].key);
+              subreddit: defaults.subreddits[index]);
           },
           childCount: defaults.subreddits.length
         ),
