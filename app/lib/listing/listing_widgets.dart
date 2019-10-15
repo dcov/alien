@@ -29,27 +29,18 @@ class ListingScrollable<T extends Thing> extends StatefulWidget {
   _ListingScrollableState<T> createState() => _ListingScrollableState<T>();
 }
 
-class _ListingScrollableState<T extends Thing> extends State<ListingScrollable<T>> {
-
-  ScrollController _controller;
+class _ListingScrollableState<T extends Thing> extends State<ListingScrollable<T>>
+    with ScrollOffsetMixin {
 
   @override
-  void dispose() {
-    _controller.dispose();
-    _controller = null;
-    super.dispose();
-  }
+  ScrollOffset get offset => widget.listing.offset;
 
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       final Listing listing = widget.listing;
-      _controller ??= ScrollController(
-        initialScrollOffset: listing.state.scrollOffset
-      );
-
       return CustomScrollView(
-        controller: _controller,
+        controller: controller,
         slivers: <Widget>[
           if (widget.topPadding > 0)
             SliverToBoxAdapter(

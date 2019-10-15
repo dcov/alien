@@ -1,8 +1,8 @@
 part of 'app.dart';
 
-class InitApp extends Event {
+class AppInit extends Event {
 
-  const InitApp();
+  const AppInit();
 
   @override
   Set<Message> update(AppState state) {

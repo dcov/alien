@@ -1,8 +1,16 @@
 part of 'app.dart';
 
-class AlienApp extends StatelessWidget {
+class App extends StatefulWidget {
 
-  AlienApp({ Key key }) : super(key: key);
+  App({ Key key }) : super(key: key);
+
+  @override
+  _AppState createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+
+  bool _coordinatorInitialized = false;
 
   @override
   Widget build(_) => Connector(
@@ -16,7 +24,18 @@ class AlienApp extends StatelessWidget {
             child: child,
           );
         },
-        home: state.initialized ? _Scaffolding() : _SplashScreen()
+        home: state.initialized
+          ? Stack(
+              children: <Widget>[
+                Offstage(
+                  offstage: !_coordinatorInitialized,
+                  child: _Scaffolding(),
+                ),
+                if (!_coordinatorInitialized)
+                  _SplashScreen()
+              ]
+            )
+          : _SplashScreen()
       );
     },
   );
@@ -24,7 +43,7 @@ class AlienApp extends StatelessWidget {
 
 class _SplashScreen extends StatelessWidget {
 
-  _SplashScreen({ Key key }) : super(key: key);
+  const _SplashScreen({ Key key }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

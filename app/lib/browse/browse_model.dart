@@ -1,12 +1,13 @@
 part of 'browse.dart';
 
-abstract class Browse implements RoutingTarget {
+abstract class Browse extends RoutingTarget {
 
-  factory Browse() => _$Browse(
-    defaults: Defaults(),
-  );
+  factory Browse() {
+    return _$Browse(
+      subscriptions: Subscriptions(),
+      depth: 0,
+    );
+  }
 
-  Defaults defaults;
-
-  Subscriptions subscriptions;
+  Subscriptions get subscriptions;
 }

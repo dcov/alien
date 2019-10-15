@@ -5,9 +5,12 @@ import 'package:flutter/widgets.dart';
 class PushNotification extends Notification {
 
   const PushNotification();
+}
 
-  static void notify(BuildContext context, Event event) {
-    LoopScope.dispatch(context, event);
-    const PushNotification().dispatch(context);
+extension PushExtension on BuildContext {
+
+  void dispatch(Event event) {
+    LoopScope.dispatch(this, event);
+    const PushNotification().dispatch(this);
   }
 }

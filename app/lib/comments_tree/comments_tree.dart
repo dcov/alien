@@ -5,7 +5,6 @@ import 'package:reddit/reddit.dart';
 
 import '../app/app.dart';
 import '../comment/comment.dart';
-import '../common/common.dart';
 import '../more/more.dart';
 import '../thing/thing.dart';
 

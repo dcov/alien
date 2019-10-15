@@ -76,7 +76,7 @@ class SubredditTile extends StatelessWidget {
   Widget build(BuildContext context) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       return CustomTile(
-        onTap: () => PushNotification.notify(context, PushSubreddit(subreddit: subreddit)),
+        onTap: () => context.dispatch(PushSubreddit(subreddit: subreddit)),
         padding: EdgeInsets.only(
           left: 16.0 * (1 + (includeDepth ? subreddit.depth : 0)),
           top: 16.0,

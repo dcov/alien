@@ -2,7 +2,7 @@ part of 'theming.dart';
 
 class UpdateTheme extends Event {
 
-  UpdateTheme({
+  const UpdateTheme({
     @required this.theming,
     this.type = ThemeType.light,
   });

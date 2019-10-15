@@ -19,12 +19,12 @@ part 'app.g.dart';
 
 void run() {
   runLoop(
-    container: AppContainer(_Credentials.clientId),
+    container: AppContainer(_AppCredentials.clientId),
     state: AppState(
-      clientId: _Credentials.clientId,
-      redirectUri: _Credentials.redirectUri,
+      clientId: _AppCredentials.clientId,
+      redirectUri: _AppCredentials.redirectUri,
     ),
-    init: InitApp(),
-    app: AlienApp()
+    init: AppInit(),
+    app: App(),
   );
 }

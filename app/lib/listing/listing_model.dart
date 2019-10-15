@@ -12,11 +12,6 @@ enum ListingStatus {
   loadingPrevious
 }
 
-class ListingState { 
-
-  double scrollOffset = 0;
-}
-
 @abs
 abstract class Listing implements Model {
 
@@ -28,5 +23,5 @@ abstract class Listing implements Model {
 
   Pagination pagination;
 
-  ListingState get state;
+  ScrollOffset get offset;
 }

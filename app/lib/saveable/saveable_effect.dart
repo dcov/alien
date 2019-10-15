@@ -2,7 +2,7 @@ part of 'saveable.dart';
 
 class PostSaveable extends Effect {
 
-  PostSaveable({
+  const PostSaveable({
      @required this.saveable,
      @required this.user
   });

@@ -2,7 +2,7 @@ part of 'saveable.dart';
 
 class ToggleSaved extends Event {
 
-  ToggleSaved({
+  const ToggleSaved({
     @required this.saveable,
     this.user,
   });

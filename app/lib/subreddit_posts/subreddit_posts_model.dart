@@ -12,7 +12,7 @@ abstract class SubredditPosts implements Listing {
       mode: ListingMode.endless,
       status: ListingStatus.idle,
       things: const <Post>[],
-      state: ListingState()
+      offset: ScrollOffset()
     );
   }
 

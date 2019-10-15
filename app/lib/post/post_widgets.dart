@@ -74,7 +74,7 @@ class PostTile extends StatelessWidget {
           )
         ),
         child: InkWell(
-          onTap: () => PushNotification.notify(context, PushPost(post: post)),
+          onTap: () => context.dispatch(PushPost(post: post)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
