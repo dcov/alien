@@ -1,11 +1,16 @@
-part of 'authorization.dart';
+part of 'auth.dart';
 
-abstract class Authorization implements Model {
+@abs
+abstract class RootAuth implements Model {
+  Auth get auth;
+}
 
-  factory Authorization({
+abstract class Auth implements Model {
+
+  factory Auth({
     @required String clientId,
     @required String redirectUri
-  }) => _$Authorization(
+  }) => _$Auth(
     clientId: clientId,
     redirectUri: redirectUri,
     users: const <User>{}

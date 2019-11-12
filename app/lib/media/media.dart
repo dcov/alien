@@ -4,7 +4,7 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../app/app.dart';
+import '../base/base.dart';
 
 part 'media_effects.dart';
 part 'media_events.dart';

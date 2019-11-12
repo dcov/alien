@@ -1,35 +1,34 @@
 part of 'subreddit.dart';
 
-class PushSubreddit extends PushTarget {
+class InitSubreddit extends Event {
 
-  const PushSubreddit({ @required this.subreddit });
-
-  final Subreddit subreddit;
-
-  @override
-  Event update(AppState state) {
-    if (push(state.routing, subreddit)) {
-      subreddit.posts = SubredditPosts(
-        subredditName: subreddit.name,
-      );
-      return UpdateSubredditPosts(
-        subredditPosts: subreddit.posts,
-        status: ListingStatus.loadingFirst
-      );
-    }
-    return null;
-  }
-}
-
-class PopSubreddit extends PopTarget {
-
-  const PopSubreddit({ @required this.subreddit });
+  InitSubreddit({ @required this.subreddit })
+    : assert(subreddit != null);
 
   final Subreddit subreddit;
 
   @override
-  void update(AppState state) {
-    super.pop(state.routing, subreddit);
-    // subreddit.posts = null;
+  Event update(_) {
+    subreddit.posts = SubredditPosts(
+      subredditName: subreddit.name,
+    );
+    return UpdateSubredditPosts(
+      subredditPosts: subreddit.posts,
+      status: ListingStatus.loadingFirst
+    );
   }
 }
+
+class DisposeSubreddit extends Event {
+
+  DisposeSubreddit({ @required this.subreddit })
+    : assert(subreddit != null);
+
+  final Subreddit subreddit;
+
+  @override
+  void update(_) {
+    subreddit.posts = null;
+  }
+}
+

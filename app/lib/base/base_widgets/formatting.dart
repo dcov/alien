@@ -1,3 +1,4 @@
+part of '../base.dart';
 
 const _kSecondsInAMinute = 60;
 const _kSecondsInAnHour = _kSecondsInAMinute * 60;
@@ -30,3 +31,4 @@ String formatCount(int count) {
     return '$count';
   return (count / 1000).toStringAsPrecision(2) + 'k';
 }
+

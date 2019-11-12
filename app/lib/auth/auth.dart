@@ -3,5 +3,5 @@ import 'package:meta/meta.dart';
 
 import '../user/user.dart';
 
-part 'authorization_model.dart';
-part 'authorization.g.dart';
+part 'auth_model.dart';
+part 'auth.g.dart';

@@ -7,10 +7,10 @@ class ScrapeThumbnail extends Effect {
   final Media media;
 
   @override
-  Future<Event> perform(AppContainer container) async {
+  Future<Event> perform(Deps deps) async {
     String result;
     try {
-      result = await container.scraper.getThumbnail(media.source);
+      result = await deps.scraper.getThumbnail(media.source);
     } finally {
       // ignore: control_flow_in_finally
       return ThumbnailScraped(

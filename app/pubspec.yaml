@@ -8,7 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cached_network_image: ^1.1.1
+  cached_network_image: ^1.1.3
 
   elmer_flutter:
     git:
@@ -20,7 +20,7 @@ dependencies:
       url: git://github.com/dcov/flutter_markdown.git
       ref: alien
 
-  markdown: ^2.0.3
+  markdown: ^2.1.1
 
   reddit:
     path: ../reddit
@@ -33,6 +33,8 @@ dev_dependencies:
     sdk: flutter
 
   build_runner: ^1.6.7
+
+  mockito: ^4.1.1
 
   elmer_gen:
     git:

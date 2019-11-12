@@ -13,8 +13,8 @@ class PostVote extends Effect {
   final VoteDir oldVoteDir;
 
   @override
-  Future<Event> perform(AppContainer container) {
-    return container.client
+  Future<Event> perform(Deps deps) {
+    return deps.client
       .asUser(user.token)
       .postVote(makeFullId(votable), votable.voteDir)
       .catchError((e) {

@@ -3,10 +3,9 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
-import '../common/common.dart';
+import '../base/base.dart';
 import '../saveable/saveable.dart';
 import '../snudown/snudown.dart';
-import '../thing/thing.dart';
 import '../votable/votable.dart';
 
 part 'comment_effects.dart';

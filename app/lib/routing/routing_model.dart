@@ -1,6 +1,11 @@
 part of 'routing.dart';
 
 @abs
+abstract class RootRouting extends Model {
+  Routing get routing;
+}
+
+@abs
 abstract class RoutingTarget implements Model {
 
   bool active;
@@ -10,9 +15,9 @@ abstract class RoutingTarget implements Model {
 
 abstract class Routing implements Model {
 
-  factory Routing() => _$Routing(targets: const <RoutingTarget>[]);
+  factory Routing() => _$Routing(tree: const <RoutingTarget>[]);
 
-  RoutingTarget currentTarget;
+  RoutingTarget current;
 
-  List<RoutingTarget> get targets;
+  List<RoutingTarget> get tree;
 }

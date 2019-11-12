@@ -12,11 +12,11 @@ class ToggleSaved extends Event {
   final User user;
 
   @override
-  Effect update(AppState state) {
+  Effect update(RootAuth root) {
     saveable.isSaved = !saveable.isSaved;
     return PostSaveable(
       saveable: saveable,
-      user: user ?? state.auth.currentUser,
+      user: user ?? root.auth.currentUser,
     );
   }
 }

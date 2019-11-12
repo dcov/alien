@@ -1,5 +1,10 @@
 part of 'theming.dart';
 
+@abs
+abstract class RootTheming implements Model {
+  Theming get theming;
+}
+
 enum ThemeType {
   light,
   dark

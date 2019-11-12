@@ -1,14 +1,14 @@
 part of 'app.dart';
 
-class AppInit extends Event {
+class Init extends Event {
 
-  const AppInit();
+  const Init();
 
   @override
-  Set<Message> update(AppState state) {
-    state.initialized = false;
+  Set<Message> update(App app) {
+    app.initialized = false;
     return <Message>{
-      UpdateTheme(theming: state.theming),
+      UpdateTheme(theming: app.theming),
       const InitResources(),
     };
   }
@@ -18,7 +18,12 @@ class InitializedResources extends Event {
 
   const InitializedResources();
 
-  void update(AppState state) {
-    state.initialized = true;
+  @override
+  Set<Event> update(App app) {
+    app.initialized = true;
+    return <Event>{
+      const InitTargets()
+    };
   }
 }
+

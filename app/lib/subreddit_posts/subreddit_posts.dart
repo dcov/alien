@@ -3,8 +3,7 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
-import '../app/app.dart';
-import '../common/common.dart';
+import '../base/base.dart';
 import '../listing/listing.dart';
 import '../post/post.dart';
 import '../thing/thing.dart';

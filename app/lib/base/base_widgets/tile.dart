@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+part of '../base.dart';
 
 class CustomTile extends StatelessWidget {
 
@@ -38,3 +38,4 @@ class CustomTile extends StatelessWidget {
     );
   }
 }
+

@@ -15,8 +15,8 @@ class GetSubredditPosts extends Effect {
   final Page page;
   
   @override
-  Future<Event> perform(AppContainer container) {
-    return container.client
+  Future<Event> perform(Deps deps) {
+    return deps.client
       .asDevice()
       .getSubredditPosts(
         subredditPosts.subredditName, subredditPosts.sort, page)

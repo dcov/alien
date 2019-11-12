@@ -4,15 +4,12 @@ class RefreshSubscriptions extends Event {
 
   const RefreshSubscriptions({
     @required this.subscriptions,
-    this.user,
   });
 
   final Subscriptions subscriptions;
 
-  final User user;
-
   @override
-  Effect update(AppState state) {
+  Effect update(RootAuth root) {
     // We're already refreshing, so we don't need to do anything.
     if (subscriptions.refreshing)
       return null;
@@ -20,7 +17,7 @@ class RefreshSubscriptions extends Event {
     subscriptions.refreshing = true;
     return GetSubscriptions(
       subscriptions: this.subscriptions,
-      user: user ?? state.auth.currentUser
+      user: root.auth.currentUser
     );
   }
 }
@@ -45,3 +42,4 @@ class UpdateSubscriptions extends Event {
         this.subreddits.map((data) => Subreddit.fromData(data)));
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+part of '../base.dart';
 
 class SlidingLayout extends StatefulWidget {
 
@@ -86,7 +86,6 @@ class SlidingLayoutState extends State<SlidingLayout>
                   left: _draggableExtent * value,
                   right: -_draggableExtent * value,
                   child: Material(
-                    elevation: 4.0,
                     child: widget.child,
                   )
                 ),
@@ -108,3 +107,4 @@ class SlidingLayoutState extends State<SlidingLayout>
     );
   }
 }
+

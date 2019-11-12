@@ -1,35 +1,31 @@
 part of 'post.dart';
 
-class PushPost extends PushTarget {
+class InitPost extends Event {
 
-  const PushPost({ @required this.post });
+  InitPost({ @required this.post });
 
   final Post post;
 
   @override
-  Event update(AppState state) {
-    if (super.push(state.routing, post)) {
-      post.comments = CommentsTree(
-        fullPostId: makeFullId(post),
-        permalink: post.permalink,
-      );
-      return RefreshCommentsTree(
-        commentsTree: post.comments
-      );
-    }
-    return null;
+  Event update(_) {
+    post.comments = CommentsTree(
+      fullPostId: makeFullId(post),
+      permalink: post.permalink,
+    );
+    return RefreshCommentsTree(
+      commentsTree: post.comments
+    );
   }
 }
 
-class PopPost extends PopTarget {
+class DisposePost extends Event {
 
-  const PopPost({ @required this.post });
+  const DisposePost({ @required this.post });
 
   final Post post;
 
   @override
-  void update(AppState state) {
-    super.pop(state.routing, post);
-    // post.comments = null;
+  void update(_) {
+    post.comments = null;
   }
 }

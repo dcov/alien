@@ -1,35 +1,32 @@
 part of 'listing.dart';
 
-typedef ThingWidgetBuilder<T extends Thing> = Widget Function(
+typedef ThingWidgetBuilder = Widget Function(
   BuildContext context,
-  T thing,
+  dynamic thing,
 );
 
 typedef UpdateCallback = void Function(ListingStatus status);
 
-class ListingScrollable<T extends Thing> extends StatefulWidget {
+class ListingScrollable extends StatefulWidget {
 
   ListingScrollable({
     Key key,
     @required this.listing,
     @required this.builder,
     @required this.onUpdateListing,
-    this.topPadding = 0,
   }) : super(key: key);
 
   final Listing listing;
 
-  final ThingWidgetBuilder<T> builder;
+  final ThingWidgetBuilder builder;
 
   final UpdateCallback onUpdateListing;
 
-  final double topPadding;
-
   @override
-  _ListingScrollableState<T> createState() => _ListingScrollableState<T>();
+  _ListingScrollableState createState() => _ListingScrollableState();
 }
 
-class _ListingScrollableState<T extends Thing> extends State<ListingScrollable<T>>
+class _ListingScrollableState extends State<ListingScrollable>
     with ScrollOffsetMixin {
 
   @override
@@ -42,10 +39,6 @@ class _ListingScrollableState<T extends Thing> extends State<ListingScrollable<T
       return CustomScrollView(
         controller: controller,
         slivers: <Widget>[
-          if (widget.topPadding > 0)
-            SliverToBoxAdapter(
-              child: SizedBox(height: widget.topPadding),
-            ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
@@ -59,3 +52,4 @@ class _ListingScrollableState<T extends Thing> extends State<ListingScrollable<T
     },
   );
 }
+

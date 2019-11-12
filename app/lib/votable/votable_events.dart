@@ -12,7 +12,7 @@ class Upvote extends Event {
   final User user;
 
   @override
-  Effect update(AppState state) {
+  Effect update(RootAuth root) {
     final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.up) {
@@ -26,7 +26,7 @@ class Upvote extends Event {
     return PostVote(
       votable: votable,
       oldVoteDir: oldVoteDir,
-      user: user ?? state.auth.currentUser,
+      user: user ?? root.auth.currentUser,
     );
   }
 }

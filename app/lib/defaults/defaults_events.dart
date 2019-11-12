@@ -1,5 +1,32 @@
 part of 'defaults.dart';
 
+class InitDefaults extends Event {
+
+  const InitDefaults({ @required this.defaults });
+
+  final Defaults defaults;
+
+  @override
+  Event update(_) {
+    defaults.refreshing = false;
+    return LoadDefaults(defaults: defaults);
+  }
+}
+
+class DisposeDefaults extends PopTarget {
+
+  const DisposeDefaults({ @required this.defaults });
+
+  final Defaults defaults;
+
+  @override
+  void update(_) {
+    defaults..subreddits.clear()
+            ..refreshing = false
+            ..offset.value = 0.0;
+  }
+}
+
 class LoadDefaults extends Event {
 
   const LoadDefaults({ @required this.defaults });
@@ -13,6 +40,7 @@ class LoadDefaults extends Event {
     
     defaults..refreshing = true
             ..subreddits.clear();
+
     return GetDefaults(defaults: defaults);
   }
 }
@@ -30,6 +58,10 @@ class DefaultsLoaded extends Event {
 
   @override
   void update(_) {
+    // Ensure we're still expecting this.
+    if (!defaults.refreshing)
+      return;
+
     defaults
       ..refreshing = false
       ..subreddits.addAll(
@@ -37,3 +69,4 @@ class DefaultsLoaded extends Event {
       ..subreddits.sort(compareSubreddits);
   }
 }
+

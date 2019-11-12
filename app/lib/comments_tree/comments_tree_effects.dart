@@ -7,8 +7,8 @@ class GetPostComments extends Effect {
   final CommentsTree commentsTree;
 
   @override
-  Future<Event> perform(AppContainer container) {
-    return container.client
+  Future<Event> perform(Deps deps) {
+    return deps.client
         .asDevice()
         .getPostComments(
           commentsTree.permalink,
@@ -38,8 +38,8 @@ class GetMoreComments extends Effect {
   final More more;
 
   @override
-  Future<Event> perform(AppContainer container) {
-    return container.client
+  Future<Event> perform(Deps deps) {
+    return deps.client
         .asDevice()
         .getMoreComments(
           commentsTree.fullPostId,

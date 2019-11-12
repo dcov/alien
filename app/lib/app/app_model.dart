@@ -1,14 +1,14 @@
 part of 'app.dart';
 
-abstract class AppState extends Model {
+abstract class App implements Model, RootAuth, RootRouting, RootTheming {
 
-  factory AppState({
+  factory App({
     @required String clientId,
     @required String redirectUri,
   }) {
-    return _$AppState(
+    return _$App(
       initialized: false,
-      auth: Authorization(
+      auth: Auth(
         clientId: clientId,
         redirectUri: redirectUri
       ),
@@ -18,10 +18,5 @@ abstract class AppState extends Model {
   }
 
   bool initialized;
-
-  final Authorization auth;
-
-  final Routing routing;
-
-  final Theming theming;
 }
+

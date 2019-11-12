@@ -1,15 +1,17 @@
 part of 'defaults.dart';
 
-abstract class Defaults implements Model {
+abstract class Defaults implements RoutingTarget {
 
   factory Defaults() {
     return _$Defaults(
-      refreshing: false,
-      subreddits: const <Subreddit>[]
+      subreddits: const <Subreddit>[],
+      offset: ScrollOffset(),
     );
   }
 
   bool refreshing;
 
   List<Subreddit> get subreddits;
+
+  ScrollOffset get offset;
 }

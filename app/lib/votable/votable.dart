@@ -2,8 +2,8 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import '../app/app.dart';
-import '../common/common.dart';
+import '../auth/auth.dart';
+import '../base/base.dart';
 import '../thing/thing.dart';
 import '../user/user.dart';
 

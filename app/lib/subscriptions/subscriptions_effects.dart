@@ -12,8 +12,8 @@ class GetSubscriptions extends Effect {
   final User user;
 
   @override
-  Future<Event> perform(AppContainer container) async {
-    final RedditInteractor reddit = container.client.asUser(user.token);
+  Future<Event> perform(Deps deps) async {
+    final RedditInteractor reddit = deps.client.asUser(user.token);
 
     try {
       final List<SubredditData> subreddits = List<SubredditData>();
@@ -26,7 +26,7 @@ class GetSubscriptions extends Effect {
           false
         );
         subreddits.addAll(listing.things);
-        pagination.forward(listing);
+        pagination = pagination.forward(listing);
       } while(pagination.nextPageExists);
 
       return UpdateSubscriptions(
@@ -38,3 +38,4 @@ class GetSubscriptions extends Effect {
     }
   }
 }
+
