@@ -141,7 +141,6 @@ class CustomScaffoldState extends State<CustomScaffold>
     final ScaffoldEntry primary = _entries.last;
     final ScaffoldEntry secondary = _entries.length > 1 ? _entries[_entries.length - 2] : null;
     final ScaffoldEntry ternary = _entries.length > 2 ? _entries[_entries.length - 3] : null;
-    final Animation<double> animation = (_transition == _Transition.pop)? ReverseAnimation(_controller) : _controller;
 
     return Stack(
       children: <Widget>[
@@ -149,7 +148,7 @@ class CustomScaffoldState extends State<CustomScaffold>
           children: <Widget>[
             _TopBar(
               onPop: widget.onPop,
-              animation: animation,
+              animation: _controller,
               transition: _transition,
               height: config.barHeight,
               elevation: config.barElevation,
@@ -159,14 +158,14 @@ class CustomScaffoldState extends State<CustomScaffold>
             ),
             Expanded(
               child: _Body(
-                animation: animation,
+                animation: _controller,
                 transition: _transition,
                 primary: primary,
                 secondary: secondary,
               )
             ),
             _BottomBar(
-              animation: animation,
+              animation: _controller,
               transition: _transition,
               height: config.barHeight,
               elevation: config.barElevation,
