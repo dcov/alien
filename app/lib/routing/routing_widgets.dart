@@ -49,6 +49,11 @@ class RouterKey extends InheritedWidget {
   }
 }
 
+typedef RouterEventDispatch = void Function(
+  BuildContext context,
+  Event event,
+);
+
 class Router extends StatefulWidget {
 
   Router({
@@ -57,6 +62,7 @@ class Router extends StatefulWidget {
     @required this.onGenerateEntry,
     @required this.onGeneratePush,
     @required this.onGeneratePop,
+    this.dispatch = LoopScope.dispatch,
   }) : super(key: key);
 
   final Routing routing;
@@ -67,6 +73,8 @@ class Router extends StatefulWidget {
 
   final EventFactory onGeneratePop;
 
+  final RouterEventDispatch dispatch;
+
   @override
   RouterState createState() => RouterState();
 }
@@ -75,7 +83,7 @@ class RouterState extends State<Router> {
 
   CustomScaffoldState get _scaffold => _scaffoldKey.currentState;
 
-  void push(RoutingTarget target) {
+  void push(RoutingTarget target) async {
     assert(target != null);
     final UnmodifiableListView<RouterEntry> entries = _scaffold.entries.cast<RouterEntry>();
     if (target == entries.last.target)
@@ -84,31 +92,31 @@ class RouterState extends State<Router> {
     // Check if [target] is already in [Routing.tree], if it's not we'll
     // push onto the scaffold stack, otherwise we'll do a replace.
     if (!widget.routing.tree.contains(target)) {
-      LoopScope.dispatch(context, widget.onGeneratePush(target));
+      widget.dispatch(context, widget.onGeneratePush(target));
       final RouterEntry entry = widget.onGenerateEntry(target);
-      _scaffold.push(entry).then((_) {
-        // Unblock the transactions
-      });
+      await _scaffold.push(entry);
     } else {
-      _replaceStack(from: target, includeFrom: true);
+      await _replaceStack(
+        from: target,
+        includeFrom: true
+      );
     }
   }
 
-  void pop([RoutingTarget target]) {
+  void pop([RoutingTarget target]) async {
     target ??= widget.routing.current;
-
-    void dispatchPop() => LoopScope.dispatch(context, widget.onGeneratePop(target));
-
     final UnmodifiableListView<RouterEntry> entries = _scaffold.entries.cast<RouterEntry>();
-    if (target == entries.last.target) {
-      _scaffold.pop()
-          .then((_) => dispatchPop());
-    } else if (entries.map((entry) => entry.target).contains(target)) {
-      _replaceStack(from: target, includeFrom: false)
-          .then((_) => dispatchPop());
-    } else {
-      dispatchPop();
+
+    if (target == entries.last.target && target.depth > 0) {
+      await _scaffold.pop();
+    } else if (entries.any((entry) => entry.target == target)) {
+      await _replaceStack(
+        from: target,
+        includeFrom: target.depth > 0 ? false : true
+      );
     }
+
+    widget.dispatch(context, widget.onGeneratePop(target));
   }
 
   Future<void> _replaceStack({
@@ -125,15 +133,14 @@ class RouterState extends State<Router> {
     int depth = from.depth;
     while (index >= 0 && depth > 0) {
       final RoutingTarget other = widget.routing.tree[index];
-      if (other.depth > depth) {
+      if (other.depth < depth) {
         stack.insert(0, widget.onGenerateEntry(other));
         depth = other.depth;
       }
       index--;
     }
 
-    return _scaffold.replace(stack).then((_) {
-    });
+    return _scaffold.replace(stack).then((_) {});
   }
 
   GlobalKey<CustomScaffoldState> _scaffoldKey;
