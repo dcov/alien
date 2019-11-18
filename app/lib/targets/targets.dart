@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 
 import '../auth/auth.dart';
 import '../defaults/defaults.dart';
+import '../post/post.dart';
 import '../routing/routing.dart';
 import '../subreddit/subreddit.dart';
 import '../subscriptions/subscriptions.dart';
@@ -31,9 +32,9 @@ enum MapTarget {
 /// on the value of [map].
 ///
 /// Apart from its functionality, it also serves as a listing of all of the
-/// [RoutingTarget]s in the app.
+/// [Target]s in the app.
 @visibleForTesting
-dynamic mapTarget(RoutingTarget target, MapTarget map) {
+dynamic mapTarget(Target target, MapTarget map) {
   assert(target != null);
   assert(map != null);
 
@@ -42,6 +43,11 @@ dynamic mapTarget(RoutingTarget target, MapTarget map) {
            map == MapTarget.entry ? DefaultsEntry(defaults: target) :
            map == MapTarget.init ? InitDefaults(defaults: target) :
                                    DisposeDefaults(defaults: target) :
+         target is Post ?
+           map == MapTarget.tile ? PostTile(post: target, layout: PostTileLayout.depth) :
+           map == MapTarget.entry ? PostEntry(post: target) :
+           map == MapTarget.init ? InitPost(post: target) :
+                                   DisposePost(post: target) :
          target is Subreddit ?
            map == MapTarget.tile ? SubredditTile(subreddit: target) :
            map == MapTarget.entry ? SubredditEntry(subreddit: target) :

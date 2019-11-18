@@ -80,4 +80,4 @@ build/
 *.g.dart
 
 # App module specific
-app/lib/app/app_credentials.dart
+app/lib/app/app_config.dart

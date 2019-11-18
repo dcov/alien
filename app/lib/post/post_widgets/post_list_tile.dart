@@ -1,8 +1,8 @@
-part of 'post.dart';
+part of '../post.dart';
 
-class PostTile extends StatelessWidget {
+class PostListTile extends StatelessWidget {
 
-  PostTile({
+  PostListTile({
     Key key,
     @required this.post,
     this.includeSubredditName = true,
@@ -16,7 +16,7 @@ class PostTile extends StatelessWidget {
   Widget build(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       return Pressable(
-        onPress: () {},
+        onPress: () => RouterKey.push(context, post),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -84,23 +84,5 @@ class PostTile extends StatelessWidget {
       );
     },
   );
-}
-
-class PostEntry extends RouterEntry {
-
-  PostEntry({ @required this.post });
-
-  final Post post;
-
-  @override
-  RoutingTarget get target => post;
-
-  @override
-  String get title => post.title;
-
-  @override
-  Widget buildBody(BuildContext context) {
-    return CommentsTreeScrollable(commentsTree: post.comments);
-  }
 }
 

@@ -28,3 +28,4 @@ abstract class Media implements Model {
 
   String thumbnail;
 }
+

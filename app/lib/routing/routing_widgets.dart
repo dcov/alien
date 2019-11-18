@@ -1,11 +1,16 @@
 part of 'routing.dart';
 
-typedef EntryFactory = ScaffoldEntry Function(RoutingTarget target);
+typedef EntryFactory = ShellEntry Function(Target target);
 
-typedef EventFactory = Event Function(RoutingTarget target);
+typedef EventFactory = Event Function(Target target);
 
-abstract class RouterEntry extends ScaffoldEntry {
-  RoutingTarget get target;
+typedef RouterEventDispatch = void Function(
+  BuildContext context,
+  Event event,
+);
+
+abstract class RouterEntry extends ShellEntry {
+  Target get target;
 }
 
 class RouterKey extends InheritedWidget {
@@ -22,17 +27,17 @@ class RouterKey extends InheritedWidget {
 
   final VoidCallback onPush;
 
-  static void push(BuildContext context, RoutingTarget target) {
-    final RouterKey controller = RouterKey.of(context);
-    final RouterState router = controller.routerKey.currentState;
+  static void push(BuildContext context, Target target) {
+    final RouterKey key = RouterKey.of(context);
+    final RouterState router = key.routerKey.currentState;
     assert(router != null);
     router.push(target);
-    controller.onPush();
+    key.onPush();
   }
 
-  static void pop(BuildContext context, [RoutingTarget target]) {
-    final RouterKey controller = RouterKey.of(context);
-    final RouterState router = controller.routerKey.currentState;
+  static void pop(BuildContext context, [Target target]) {
+    final RouterKey key = RouterKey.of(context);
+    final RouterState router = key.routerKey.currentState;
     assert(router != null);
     router.pop(target);
   }
@@ -48,11 +53,6 @@ class RouterKey extends InheritedWidget {
     return routerKey != oldWidget.routerKey;
   }
 }
-
-typedef RouterEventDispatch = void Function(
-  BuildContext context,
-  Event event,
-);
 
 class Router extends StatefulWidget {
 
@@ -81,46 +81,43 @@ class Router extends StatefulWidget {
 
 class RouterState extends State<Router> {
 
-  CustomScaffoldState get _scaffold => _scaffoldKey.currentState;
+  GlobalKey<ShellState> _shellKey;
+  Completer<void> _currentAction;
+  bool _actionIsPending = false;
 
-  void push(RoutingTarget target) async {
-    assert(target != null);
-    final UnmodifiableListView<RouterEntry> entries = _scaffold.entries.cast<RouterEntry>();
-    if (target == entries.last.target)
-      return;
+  ShellState get _shell => _shellKey.currentState;
 
-    // Check if [target] is already in [Routing.tree], if it's not we'll
-    // push onto the scaffold stack, otherwise we'll do a replace.
-    if (!widget.routing.tree.contains(target)) {
-      widget.dispatch(context, widget.onGeneratePush(target));
-      final RouterEntry entry = widget.onGenerateEntry(target);
-      await _scaffold.push(entry);
-    } else {
-      await _replaceStack(
-        from: target,
-        includeFrom: true
-      );
-    }
-  }
+  void _synchronize(Future<void> fn()) async {
+    // Check if an action is already in progress.
+    if (_currentAction != null) {
+      final Animation<double> animation = _shell.animation;
+      assert(animation.status != AnimationStatus.dismissed
+          && animation.status != AnimationStatus.completed);
 
-  void pop([RoutingTarget target]) async {
-    target ??= widget.routing.current;
-    final UnmodifiableListView<RouterEntry> entries = _scaffold.entries.cast<RouterEntry>();
+      // An action is already in progress. If it's not at least halfway done, or
+      // another action is already pending, we won't start this action.
+      if ((animation.status == AnimationStatus.forward
+              && animation.value < 0.5)
+          || animation.value > 0.5
+          || _actionIsPending) {
+        return;
+      }
 
-    if (target == entries.last.target && target.depth > 0) {
-      await _scaffold.pop();
-    } else if (entries.any((entry) => entry.target == target)) {
-      await _replaceStack(
-        from: target,
-        includeFrom: target.depth > 0 ? false : true
-      );
+      _actionIsPending = true;
+      await _currentAction.future;
+      _actionIsPending = false;
     }
 
-    widget.dispatch(context, widget.onGeneratePop(target));
+    assert(_currentAction == null);
+    final Completer<void> action = Completer<void>();
+    _currentAction = action;
+    await fn();
+    _currentAction = null;
+    action.complete();
   }
 
   Future<void> _replaceStack({
-      @required RoutingTarget from,
+      @required Target from,
       @required bool includeFrom
     }) {
     final List<RouterEntry> stack = <RouterEntry>[];
@@ -132,7 +129,7 @@ class RouterState extends State<Router> {
     int index = widget.routing.tree.indexOf(from) - 1;
     int depth = from.depth;
     while (index >= 0 && depth > 0) {
-      final RoutingTarget other = widget.routing.tree[index];
+      final Target other = widget.routing.tree[index];
       if (other.depth < depth) {
         stack.insert(0, widget.onGenerateEntry(other));
         depth = other.depth;
@@ -140,33 +137,74 @@ class RouterState extends State<Router> {
       index--;
     }
 
-    return _scaffold.replace(stack).then((_) {});
+    return _shell.replace(stack).then((_) {});
   }
 
-  GlobalKey<CustomScaffoldState> _scaffoldKey;
+  void push(Target target) {
+    assert(target != null);
+    _synchronize(() async {
+      final UnmodifiableListView<RouterEntry> entries = _shell.entries.cast<RouterEntry>();
+      if (target == entries.last.target)
+        return;
 
-  // We cache the [CustomScaffold] so that it only rebuilds when it's internal
-  // state changes i.e. when we mutate [CustomScaffoldState] directly.
+      final bool wasInTree = widget.routing.tree.contains(target);
+      widget.dispatch(context, widget.onGeneratePush(target));
+
+      // Check if [target] is already in [Routing.tree], if it's not we'll
+      // push onto the [_shell] stack, otherwise we'll do a replace.
+      if (!wasInTree) {
+        final RouterEntry entry = widget.onGenerateEntry(target);
+        await _shell.push(entry);
+      } else {
+        await _replaceStack(
+          from: target,
+          includeFrom: true
+        );
+      }
+    });
+  }
+
+  void pop([Target target]) {
+    _synchronize(() async {
+      target ??= widget.routing.current;
+      final UnmodifiableListView<RouterEntry> entries = _shell.entries.cast<RouterEntry>();
+
+      if (target == entries.last.target && target.depth > 0) {
+        await _shell.pop();
+      } else if (entries.any((entry) => entry.target == target)) {
+        await _replaceStack(
+          from: target,
+          includeFrom: target.depth > 0 ? false : true
+        );
+      }
+
+      widget.dispatch(context, widget.onGeneratePop(target));
+    });
+  }
+
+  // We cache the [TargetScaffold] so that it only rebuilds when it's internal
+  // state changes i.e. when we mutate [TargetScaffoldState] directly.
   Widget _child;
 
   @override
   void initState() {
     super.initState();
-    _scaffoldKey = GlobalKey<CustomScaffoldState>();
+    _shellKey = GlobalKey<ShellState>();
   }
 
   @override
   void reassemble() {
     super.reassemble();
-    _scaffoldKey = GlobalKey<CustomScaffoldState>();
+    // Rebuild [TargetScaffold] after a hot reload.
+    _shellKey = GlobalKey<ShellState>();
     _child = null;
   }
 
   @override
   Widget build(BuildContext context) {
     if (_child == null) {
-      _child = CustomScaffold(
-        key: _scaffoldKey,
+      _child = Shell(
+        key: _shellKey,
         onPop: pop
       );
       SchedulerBinding.instance.addPostFrameCallback((_) {

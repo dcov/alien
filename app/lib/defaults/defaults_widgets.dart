@@ -25,14 +25,18 @@ class DefaultsEntry extends RouterEntry {
   final Defaults defaults;
 
   @override
-  RoutingTarget get target => this.defaults;
+  Target get target => this.defaults;
 
   @override
   String get title => 'Defaults';
 
   @override
+  List<Widget> buildTopActions(BuildContext context) => <Widget>[
+  ];
+
+  @override
   Widget buildBody(BuildContext context) => Connector(
-    builder: (BuildContext _, EventDispatch __) {
+    builder: (_, __) {
       final List<Subreddit> subreddits = defaults.subreddits;
       return TrackingScrollView(
         offset: defaults.offset,
@@ -45,5 +49,9 @@ class DefaultsEntry extends RouterEntry {
       );
     }
   );
+
+  @override
+  List<Widget> buildBottomActions(BuildContext context) => <Widget>[
+  ];
 }
 

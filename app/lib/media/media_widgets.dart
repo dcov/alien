@@ -12,6 +12,7 @@ class MediaThumbnail extends StatelessWidget {
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
+      Widget result;
       switch (media.thumbnailStatus) {
         case ThumbnailStatus.notLoaded:
           SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -20,13 +21,24 @@ class MediaThumbnail extends StatelessWidget {
           continue loading;
         loading:
         case ThumbnailStatus.loading:
-          return Center(child: CircularProgressIndicator());
+          result = Center(child: CircularProgressIndicator());
+          break;
         case ThumbnailStatus.notFound:
-          return Icon(Icons.broken_image);
+          result = Icon(Icons.broken_image);
+          break;
         case ThumbnailStatus.loaded:
-          return Image(image: CachedNetworkImageProvider(media.thumbnail));
+          result = Image(image: CachedNetworkImageProvider(media.thumbnail));
+          break;
       }
-      return Container();
+
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: KeyedSubtree(
+          key: ValueKey(media.thumbnailStatus),
+          child: result
+        )
+      );
     }
   );
 }
+

@@ -9,15 +9,15 @@ class TargetsRouter extends StatelessWidget {
 
   final Routing routing;
 
-  static RouterEntry _generateEntry(RoutingTarget target) {
+  static RouterEntry _generateEntry(Target target) {
     return mapTarget(target, MapTarget.entry);
   }
 
-  static Event _generatePush(RoutingTarget target) {
+  static Event _generatePush(Target target) {
     return TargetsPush(target: target);
   }
 
-  static Event _generatePop(RoutingTarget target) {
+  static Event _generatePop(Target target) {
     return TargetsPop(target: target);
   }
 
@@ -40,7 +40,7 @@ class TargetsTile extends StatelessWidget {
     @required this.target,
   }) : super(key: key);
 
-  final RoutingTarget target;
+  final Target target;
 
   @override
   Widget build(BuildContext context) {

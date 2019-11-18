@@ -6,7 +6,7 @@ abstract class RootRouting extends Model {
 }
 
 @abs
-abstract class RoutingTarget implements Model {
+abstract class Target implements Model {
 
   bool active;
 
@@ -15,9 +15,9 @@ abstract class RoutingTarget implements Model {
 
 abstract class Routing implements Model {
 
-  factory Routing() => _$Routing(tree: const <RoutingTarget>[]);
+  factory Routing() => _$Routing(tree: const <Target>[]);
 
-  RoutingTarget current;
+  Target current;
 
-  List<RoutingTarget> get tree;
+  List<Target> get tree;
 }

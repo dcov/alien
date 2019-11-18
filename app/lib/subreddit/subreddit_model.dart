@@ -1,6 +1,6 @@
 part of 'subreddit.dart';
 
-abstract class Subreddit implements Thing, RoutingTarget {
+abstract class Subreddit implements Thing, Target {
 
   factory Subreddit.fromData(SubredditData data) {
     return _$Subreddit(

@@ -9,18 +9,20 @@ abstract class Auth implements Model {
 
   factory Auth({
     @required String clientId,
-    @required String redirectUri
+    @required String redirectUri,
   }) => _$Auth(
-    clientId: clientId,
-    redirectUri: redirectUri,
+    login: Login(
+      clientId: clientId,
+      redirectUri: redirectUri,
+      scopes: Scope.values
+    ),
     users: const <User>{}
   );
 
-  String get clientId;
-
-  String get redirectUri;
+  Login get login;
 
   User currentUser;
 
   Set<User> get users;
 }
+

@@ -1,6 +1,6 @@
 part of '../base.dart';
 
-const Duration _kPressDuration = Duration(milliseconds: 10);
+const Duration _kPressDuration = Duration(milliseconds: 100);
 
 class Pressable extends StatefulWidget {
 
@@ -79,11 +79,11 @@ class _PressableState extends State<Pressable>
 
   @override
   void dispose() {
-    super.dispose();
     if (widget.controller == null) {
       // Our current [_controller] is owner by us so let's dispose it.
       _controller.dispose();
     }
+    super.dispose();
   }
 
   void _handleTapDown(_) {
@@ -111,13 +111,14 @@ class _PressableState extends State<Pressable>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTapDown: _handleTapDown,
       onTapCancel: _handleTapCancel,
       onTapUp: _handleTapUp,
       onLongPress: widget.onLongPress != null ? _handleLongPress : null,
       onLongPressUp: widget.onLongPress != null ? _handleLongPressUp : null,
       child: ScaleTransition(
-        scale: _controller.drive(Tween(begin: 0.9, end: 1.0)),
+        scale: _controller.drive(Tween(begin: 0.98, end: 1.0)),
         alignment: widget.alignment,
         child: FadeTransition(
           opacity: _controller.drive(Tween(begin: 0.5, end: 1.0)),

@@ -14,20 +14,19 @@ class SubredditTile extends StatelessWidget {
 
   @override
   Widget build(_) => Connector(
-    builder: (BuildContext context, EventDispatch dispatch) {
+    builder: (BuildContext context, _) {
       return CustomTile(
         onTap: () => RouterKey.push(context, subreddit),
-        padding: EdgeInsets.only(
-          left: 12.0 * (1 + (includeDepth ? subreddit.depth : 0)),
-          top: 12.0,
-          right: 12.0,
-          bottom: 12.0
-        ),
+        depth: subreddit.depth,
         icon: Icon(
           CustomIcons.subreddit,
           color: Colors.blueGrey,
         ),
-        title: Text(subreddit.name),
+        title: Text(
+          subreddit.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       );
     },
   );
@@ -40,14 +39,22 @@ class SubredditEntry extends RouterEntry {
   final Subreddit subreddit;
 
   @override
-  RoutingTarget get target => subreddit;
+  Target get target => subreddit;
 
   @override
   String get title => subreddit.name;
 
   @override
+  List<Widget> buildTopActions(BuildContext context) => <Widget>[
+  ];
+
+  @override
   Widget buildBody(BuildContext context) {
     return SubredditPostsScrollable(subredditPosts: subreddit.posts);
   }
+
+  @override
+  List<Widget> buildBottomActions(BuildContext context) => <Widget>[
+  ];
 }
 

@@ -6,7 +6,7 @@ class InitRouting extends Event {
     : assert(rootTargets != null),
       assert(rootTargets.isNotEmpty);
 
-  final List<RoutingTarget> rootTargets;
+  final List<Target> rootTargets;
 
   @override
   void update(RootRouting root) {
@@ -14,7 +14,7 @@ class InitRouting extends Event {
     routing.tree
         ..clear()
         ..addAll(rootTargets)
-        ..forEach((RoutingTarget target) {
+        ..forEach((Target target) {
           target.depth = 0;
         });
   }
@@ -25,7 +25,7 @@ abstract class PushTarget extends Event {
   const PushTarget();
 
   @protected
-  bool push(Routing routing, RoutingTarget target) {
+  bool push(Routing routing, Target target) {
     if (!routing.tree.contains(target)) {
       final int currentDepth = routing.current.depth;
       assert(currentDepth != null);
@@ -51,16 +51,16 @@ abstract class PopTarget extends Event {
   const PopTarget();
 
   @protected
-  Set<RoutingTarget> pop(Routing routing, RoutingTarget target) {
+  Set<Target> pop(Routing routing, Target target) {
     assert(target != null);
     assert(routing.tree.contains(target));
 
-    final Set<RoutingTarget> removed = <RoutingTarget>{};
+    final Set<Target> removed = <Target>{};
 
     final int index = routing.tree.indexOf(target);
     final int childIndex = index + 1;
     while (childIndex < routing.tree.length) {
-      final RoutingTarget other = routing.tree[childIndex];
+      final Target other = routing.tree[childIndex];
       if (other.depth <= target.depth)
         break;
 

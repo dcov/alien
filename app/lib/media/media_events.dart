@@ -7,7 +7,7 @@ class LoadThumbnail extends Event {
   final Media media;
 
   @override
-  Effect update(_) {
+  dynamic update(_) {
     assert(media.thumbnailStatus == ThumbnailStatus.notLoaded);
     media.thumbnailStatus = ThumbnailStatus.loading;
     return ScrapeThumbnail(media: this.media);
@@ -26,7 +26,7 @@ class ThumbnailScraped extends Event {
   final String result;
 
   @override
-  void update(_) {
+  dynamic update(_) {
     media
       ..thumbnailStatus = result != null
           ? ThumbnailStatus.loaded
@@ -34,3 +34,4 @@ class ThumbnailScraped extends Event {
       ..thumbnail = result;
   }
 }
+

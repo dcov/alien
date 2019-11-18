@@ -14,7 +14,13 @@ class SubredditPostsScrollable extends StatelessWidget {
     builder: (BuildContext _, EventDispatch dispatch) {
       return ListingScrollable(
         listing: this.subredditPosts,
-        builder: (_, post) => PostTile(post: post),
+        builder: (_, post) {
+          return PostTile(
+            post: post,
+            layout: PostTileLayout.list,
+            includeSubredditName: false
+          );
+        },
         onUpdateListing: (ListingStatus status) {
           dispatch(UpdateSubredditPosts(
             subredditPosts: this.subredditPosts,

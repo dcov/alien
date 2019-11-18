@@ -11,3 +11,4 @@ part 'media_events.dart';
 part 'media_model.dart';
 part 'media_widgets.dart';
 part 'media.g.dart';
+

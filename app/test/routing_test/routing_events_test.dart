@@ -9,7 +9,7 @@ class TestPush extends PushTarget {
 
   const TestPush({ @required this.target });
 
-  final RoutingTarget target;
+  final Target target;
 
   @override
   bool update(RootRouting root) {
@@ -25,10 +25,10 @@ class TestPop extends PopTarget {
 
   const TestPop({ @required this.target });
 
-  final RoutingTarget target;
+  final Target target;
 
   @override
-  Set<RoutingTarget> update(RootRouting root) {
+  Set<Target> update(RootRouting root) {
     return pop(root.routing, target);
   }
 }
@@ -38,11 +38,11 @@ void testRoutingEvents() {
     final MockRootRouting root = MockRootRouting();
     when(root.routing).thenReturn(MockRouting());
     final MockRouting routing = root.routing;
-    final List<MockRoutingTarget> targets = <MockRoutingTarget>[
-      MockRoutingTarget(),
-      MockRoutingTarget(),
-      MockRoutingTarget(),
-      MockRoutingTarget()
+    final List<MockTarget> targets = <MockTarget>[
+      MockTarget(),
+      MockTarget(),
+      MockTarget(),
+      MockTarget()
     ];
 
     test('InitRouting Test', () {

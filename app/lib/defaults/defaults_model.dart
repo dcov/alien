@@ -1,6 +1,6 @@
 part of 'defaults.dart';
 
-abstract class Defaults implements RoutingTarget {
+abstract class Defaults implements Target {
 
   factory Defaults() {
     return _$Defaults(

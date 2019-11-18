@@ -24,7 +24,7 @@ class SubscriptionsEntry extends RouterEntry {
   final Subscriptions subscriptions;
 
   @override
-  RoutingTarget get target => subscriptions;
+  Target get target => subscriptions;
 
   @override
   String get title => 'Subscriptions';

@@ -30,7 +30,7 @@ class Scope extends Parameter {
 
   const Scope._(String name) : super._(name);
 
-  static Iterable<Scope> get values => const <Scope>{
+  static const Set<Scope> values = const <Scope>{
     account, creddits, edit, flair, history, identity, liveManage, modConfig,
     modContributors, modFlair, modLog, modMail, modOthers, modPosts, modSelf,
     modWiki, mySubreddits, privateMessages, read, report, save, submit,

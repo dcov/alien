@@ -20,6 +20,8 @@ dependencies:
       url: git://github.com/dcov/flutter_markdown.git
       ref: alien
 
+  hive: ^1.1.1
+
   markdown: ^2.1.1
 
   reddit:
@@ -27,6 +29,8 @@ dependencies:
   
   scraper:
     path: ../scraper
+
+  webview_flutter: ^0.3.15
 
 dev_dependencies:
   flutter_test:

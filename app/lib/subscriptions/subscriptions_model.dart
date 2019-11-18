@@ -1,6 +1,6 @@
 part of 'subscriptions.dart';
 
-abstract class Subscriptions implements RoutingTarget {
+abstract class Subscriptions implements Target {
 
   factory Subscriptions() {
     return _$Subscriptions(

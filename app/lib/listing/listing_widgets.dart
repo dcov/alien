@@ -52,4 +52,3 @@ class _ListingScrollableState extends State<ListingScrollable>
     },
   );
 }
-

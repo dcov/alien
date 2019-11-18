@@ -10,7 +10,7 @@ class InitTargets extends Event {
     assert(root is RootAuth);
 
     final bool userIsSignedIn = (root as RootAuth).auth.currentUser != null;
-    final List<RoutingTarget> rootTargets = <RoutingTarget>[
+    final List<Target> rootTargets = <Target>[
       Defaults(),
       if (userIsSignedIn)
         Subscriptions(),
@@ -32,7 +32,7 @@ class TargetsPush extends PushTarget {
   TargetsPush({ @required this.target })
     : assert(target != null);
 
-  final RoutingTarget target;
+  final Target target;
 
   @override
   Event update(RootRouting root) {
@@ -50,15 +50,15 @@ class TargetsPop extends PopTarget {
   TargetsPop({ @required this.target })
     : assert(target != null);
 
-  final RoutingTarget target;
+  final Target target;
 
   @override
   Set<Event> update(RootRouting root) {
-    final Set<RoutingTarget> removed = pop(root.routing, target);
+    final Set<Target> removed = pop(root.routing, target);
     if (removed.isEmpty)
       return null;
 
-    return removed.map((RoutingTarget target) {
+    return removed.map((Target target) {
       return mapTarget(target, MapTarget.dispose) as Event;
     }).toSet();
   }

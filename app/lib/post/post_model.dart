@@ -1,6 +1,6 @@
 part of 'post.dart';
 
-abstract class Post implements Saveable, Votable, RoutingTarget {
+abstract class Post implements Saveable, Votable, Target {
   
   factory Post.fromData(PostData data) {
     Media media;
