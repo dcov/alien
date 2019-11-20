@@ -5,7 +5,7 @@ author: Diego Covarrubias <dcov@pm.me>
 homepage: https://github.com/dcov/alien
 
 environment:
-  sdk: '>=2.3.0 <3.0.0'
+  sdk: '>=2.6.0-dev <3.0.0'
 
 dependencies:
   isolate: ^2.0.2

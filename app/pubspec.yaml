@@ -4,6 +4,9 @@ version: 0.1.0
 author: Diego Covarrubias <dcov@pm.me>
 homepage: https://github.com/dcov/alien
 
+environment:
+  sdk: '>=2.6.0-dev <3.0.0'
+
 dependencies:
   flutter:
     sdk: flutter
