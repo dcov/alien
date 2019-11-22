@@ -13,7 +13,7 @@ class InitDefaults extends Event {
   }
 }
 
-class DisposeDefaults extends PopTarget {
+class DisposeDefaults extends Event {
 
   const DisposeDefaults({ @required this.defaults });
 

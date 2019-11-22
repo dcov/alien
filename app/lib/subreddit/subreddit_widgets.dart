@@ -16,8 +16,8 @@ class SubredditTile extends StatelessWidget {
   Widget build(_) => Connector(
     builder: (BuildContext context, _) {
       return CustomTile(
-        onTap: () => RouterKey.push(context, subreddit),
-        depth: subreddit.depth,
+        onTap: () => context.push(subreddit),
+        depth: includeDepth ? subreddit.depth : 0,
         icon: Icon(
           CustomIcons.subreddit,
           color: Colors.blueGrey,

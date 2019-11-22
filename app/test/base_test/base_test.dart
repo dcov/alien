@@ -7,12 +7,11 @@ import 'package:alien/base/base.dart';
 
 part 'base_deps_test.dart';
 part 'base_widgets_test.dart';
-
-part 'base_widgets_test/scaffold_test.dart';
+part 'base_widgets_test/shell_test.dart';
 
 void testBase() {
   group('Base Test', () {
-    testScaffold();
+    testBaseWidgets();
   });
 }
 

@@ -12,7 +12,7 @@ class PostDepthTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomTile(
-      onTap: () => RouterKey.push(context, post),
+      onTap: () => context.push(post),
       depth: post.depth,
       icon: Icon(Icons.comment),
       title: Text(

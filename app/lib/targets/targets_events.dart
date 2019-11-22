@@ -27,7 +27,7 @@ class InitTargets extends Event {
   }
 }
 
-class TargetsPush extends PushTarget {
+class TargetsPush extends Push {
 
   TargetsPush({ @required this.target })
     : assert(target != null);
@@ -45,7 +45,7 @@ class TargetsPush extends PushTarget {
   }
 }
 
-class TargetsPop extends PopTarget {
+class TargetsPop extends Pop {
 
   TargetsPop({ @required this.target })
     : assert(target != null);

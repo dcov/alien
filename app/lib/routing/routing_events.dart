@@ -20,9 +20,9 @@ class InitRouting extends Event {
   }
 }
 
-abstract class PushTarget extends Event {
+abstract class Push extends Event {
 
-  const PushTarget();
+  const Push();
 
   @protected
   bool push(Routing routing, Target target) {
@@ -46,9 +46,9 @@ abstract class PushTarget extends Event {
   }
 }
 
-abstract class PopTarget extends Event {
+abstract class Pop extends Event {
 
-  const PopTarget();
+  const Pop();
 
   @protected
   Set<Target> pop(Routing routing, Target target) {

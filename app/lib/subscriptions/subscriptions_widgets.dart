@@ -12,6 +12,7 @@ class SubscriptionsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomTile(
+      onTap: () => context.push(subscriptions),
       title: Text('Subscriptions')
     );
   }

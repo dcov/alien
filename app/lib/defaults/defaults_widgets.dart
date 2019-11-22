@@ -12,7 +12,7 @@ class DefaultsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomTile(
-      onTap: () => RouterKey.push(context, defaults),
+      onTap: () => context.push(defaults),
       title: Text('Defaults')
     );
   }

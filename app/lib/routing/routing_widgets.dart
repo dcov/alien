@@ -1,113 +1,164 @@
 part of 'routing.dart';
 
-typedef EntryFactory = ShellEntry Function(Target target);
-
-typedef EventFactory = Event Function(Target target);
-
-typedef RouterEventDispatch = void Function(
-  BuildContext context,
-  Event event,
-);
-
-abstract class RouterEntry extends ShellEntry {
+/// A [Router] specific [ShellAreaEntry]. 
+abstract class RouterEntry extends ShellAreaEntry {
   Target get target;
 }
 
-class RouterKey extends InheritedWidget {
+/// The coordinator between [Routing] and [ShellArea].
+/// 
+/// All [Target]-related events (push, pop) should be 'routed' through the
+/// [Router] so that the state within [Routing] and [ShellArea] are kept
+/// in-sync.
+abstract class Router {
 
-  RouterKey({
-    Key key,
-    @required this.routerKey,
-    @required this.onPush,
-    Widget child,
-  }) : assert(routerKey != null),
-       super(key: key, child: child);
+  /// Dispatches a [Push] event with [target], and then creates a
+  /// [target]-specific [RouterEntry] that is either 'pushed' onto [ShellArea],
+  /// or 'swapped' in.
+  ///
+  /// Note: The order of events is important because some [target]-specific
+  /// [RouterEntry]s may rely on state that needs to be initialized before it
+  /// can be used.
+  void push(Target target);
 
-  final GlobalKey<RouterState> routerKey;
+  /// 'pops', or 'swaps' out [target] from [ShellArea], depending on where
+  /// [target] is located in the stack, and then dispatches a [Pop] event
+  /// with [target].
+  ///
+  /// Note: The order of events is important because some [target]-specific
+  /// [RouterEntry]s may be displaying state that is disposed of when a
+  /// [Pop] event is dispatched. This way the state lives up until the
+  /// [RouterEntry] is no longer being rendered, in which case it can be
+  /// disposed of safely.
+  void pop(Target target);
+}
 
-  final VoidCallback onPush;
+/// The default implementation of [Router]. The owner of the [Shell] instance
+/// should mix this class into its [State].
+mixin RouterMixin<W extends StatefulWidget> on State<W> implements Router {
 
-  static void push(BuildContext context, Target target) {
-    final RouterKey key = RouterKey.of(context);
-    final RouterState router = key.routerKey.currentState;
-    assert(router != null);
-    router.push(target);
-    key.onPush();
-  }
+  @protected
+  Routing get routing;
 
-  static void pop(BuildContext context, [Target target]) {
-    final RouterKey key = RouterKey.of(context);
-    final RouterState router = key.routerKey.currentState;
-    assert(router != null);
-    router.pop(target);
-  }
+  @protected
+  ShellAreaState get body;
 
-  static RouterKey of(BuildContext context) {
-    final RouterKey controller = context.inheritFromWidgetOfExactType(RouterKey);
-    assert(controller != null);
-    return controller;
+  @protected
+  void didPush(Target target);
+
+  @protected
+  void didPop(Target target);
+
+  @protected
+  RouterEntry createEntry(Target target);
+
+  @override
+  void push(Target target) {
+    assert(target != null);
+    _synchronize(() async {
+      final UnmodifiableListView<RouterEntry> entries = body.entries.cast<RouterEntry>();
+      if (target == entries.last.target)
+        return;
+
+      /// Cache whether the [target] is already in the [routing.tree] before it
+      /// gets pushed, we'll need it later.
+      final bool wasInTree = routing.tree.contains(target);
+
+      /// Send the push event to update the [routing] state.
+      didPush(target);
+
+      /// If [target] wasn't in the [routing.tree] before we sent the push event
+      /// then we'll have [body] do a 'push' transition, otherwise we'll have it
+      /// do a 'replace' transition.
+      if (!wasInTree) {
+        await body.push(createEntry(target));
+      } else {
+        await body.replace(_getStack(
+          from: target,
+          includeFrom: true
+        ));
+      }
+    });
   }
 
   @override
-  bool updateShouldNotify(RouterKey oldWidget) {
-    return routerKey != oldWidget.routerKey;
+  void pop([Target target]) {
+    _synchronize(() async {
+      target ??= routing.current;
+      final UnmodifiableListView<RouterEntry> entries = body.entries.cast<RouterEntry>();
+
+      /// If [target] is what's currently being shown, and it's not a root
+      /// target i.e. has a depth of 0, then we'll have [body] do a 'pop'
+      /// transition, otherwise we'll have it do a 'replace' transition.
+      if (target == entries.last.target && target.depth > 0) {
+        await body.pop();
+      } else if (entries.any((entry) => entry.target == target)) {
+        await body.replace(_getStack(
+          from: target,
+          includeFrom: target.depth > 0 ? false : true
+        ));
+      }
+
+      /// [target] is no longer shown so it's safe to send a pop event.
+      didPop(target);
+    });
   }
-}
 
-class Router extends StatefulWidget {
+  List<RouterEntry> _getStack({
+    @required Target from,
+    @required bool includeFrom
+  }) {
+    final List<RouterEntry> stack = <RouterEntry>[];
+    
+    if (includeFrom) {
+      stack.add(createEntry(from));
+    }
 
-  Router({
-    Key key,
-    @required this.routing,
-    @required this.onGenerateEntry,
-    @required this.onGeneratePush,
-    @required this.onGeneratePop,
-    this.dispatch = LoopScope.dispatch,
-  }) : super(key: key);
+    int index = routing.tree.indexOf(from) - 1;
+    int depth = from.depth;
+    while (index >= 0 && depth > 0) {
+      final Target other = routing.tree[index];
+      if (other.depth < depth) {
+        stack.insert(0, createEntry(other));
+        depth = other.depth;
+      }
+      index--;
+    }
 
-  final Routing routing;
+    return stack;
+  }
 
-  final EntryFactory onGenerateEntry;
-
-  final EventFactory onGeneratePush;
-
-  final EventFactory onGeneratePop;
-
-  final RouterEventDispatch dispatch;
-
-  @override
-  RouterState createState() => RouterState();
-}
-
-class RouterState extends State<Router> {
-
-  GlobalKey<ShellState> _shellKey;
   Completer<void> _currentAction;
   bool _actionIsPending = false;
 
-  ShellState get _shell => _shellKey.currentState;
-
+  /// Helper function that synchronizes functions, [fn], that mutate [body]
+  /// so that mutations happen one afer another, instead of simultaneously.
+  /// This is necessary so that, for example, a call to [push] only kicks off
+  /// after a previous call to [pop] has finished animating, otherwise there'll
+  /// be a 'jump' in the UI which can be confusing for the user.
   void _synchronize(Future<void> fn()) async {
-    // Check if an action is already in progress.
+    /// Check if an action is already in progress.
     if (_currentAction != null) {
-      final Animation<double> animation = _shell.animation;
+      final Animation<double> animation = body.animation;
       assert(animation.status != AnimationStatus.dismissed
           && animation.status != AnimationStatus.completed);
 
-      // An action is already in progress. If it's not at least halfway done, or
-      // another action is already pending, we won't start this action.
+      /// An action is already in progress. If it's not at least halfway done, or
+      /// another action is already pending, we won't continue with this action.
       if ((animation.status == AnimationStatus.forward
-              && animation.value < 0.5)
-          || animation.value > 0.5
-          || _actionIsPending) {
+              && animation.value < 0.5) ||
+          animation.value > 0.5 ||
+          _actionIsPending) {
         return;
       }
 
+      /// Wait for the current action to complete, and mark that we're doing so.
       _actionIsPending = true;
       await _currentAction.future;
       _actionIsPending = false;
     }
 
+    /// Start the action and mark that an action is in progress.
     assert(_currentAction == null);
     final Completer<void> action = Completer<void>();
     _currentAction = action;
@@ -116,109 +167,52 @@ class RouterState extends State<Router> {
     action.complete();
   }
 
-  Future<void> _replaceStack({
-      @required Target from,
-      @required bool includeFrom
-    }) {
-    final List<RouterEntry> stack = <RouterEntry>[];
-    
-    if (includeFrom) {
-      stack.add(widget.onGenerateEntry(from));
-    }
-
-    int index = widget.routing.tree.indexOf(from) - 1;
-    int depth = from.depth;
-    while (index >= 0 && depth > 0) {
-      final Target other = widget.routing.tree[index];
-      if (other.depth < depth) {
-        stack.insert(0, widget.onGenerateEntry(other));
-        depth = other.depth;
-      }
-      index--;
-    }
-
-    return _shell.replace(stack).then((_) {});
-  }
-
-  void push(Target target) {
-    assert(target != null);
-    _synchronize(() async {
-      final UnmodifiableListView<RouterEntry> entries = _shell.entries.cast<RouterEntry>();
-      if (target == entries.last.target)
-        return;
-
-      final bool wasInTree = widget.routing.tree.contains(target);
-      widget.dispatch(context, widget.onGeneratePush(target));
-
-      // Check if [target] is already in [Routing.tree], if it's not we'll
-      // push onto the [_shell] stack, otherwise we'll do a replace.
-      if (!wasInTree) {
-        final RouterEntry entry = widget.onGenerateEntry(target);
-        await _shell.push(entry);
-      } else {
-        await _replaceStack(
-          from: target,
-          includeFrom: true
-        );
-      }
-    });
-  }
-
-  void pop([Target target]) {
-    _synchronize(() async {
-      target ??= widget.routing.current;
-      final UnmodifiableListView<RouterEntry> entries = _shell.entries.cast<RouterEntry>();
-
-      if (target == entries.last.target && target.depth > 0) {
-        await _shell.pop();
-      } else if (entries.any((entry) => entry.target == target)) {
-        await _replaceStack(
-          from: target,
-          includeFrom: target.depth > 0 ? false : true
-        );
-      }
-
-      widget.dispatch(context, widget.onGeneratePop(target));
-    });
-  }
-
-  // We cache the [TargetScaffold] so that it only rebuilds when it's internal
-  // state changes i.e. when we mutate [TargetScaffoldState] directly.
-  Widget _child;
-
-  @override
-  void initState() {
-    super.initState();
-    _shellKey = GlobalKey<ShellState>();
-  }
-
-  @override
-  void reassemble() {
-    super.reassemble();
-    // Rebuild [TargetScaffold] after a hot reload.
-    _shellKey = GlobalKey<ShellState>();
-    _child = null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_child == null) {
-      _child = Shell(
-        key: _shellKey,
-        onPop: pop
-      );
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        _replaceStack(from: widget.routing.current, includeFrom: true);
-      });
-    }
-
-    return WillPopScope(
-      onWillPop: () async {
-        // TODO: handle back presses correctly.
-        return false;
-      },
-      child: _child,
+  @protected
+  List<RouterEntry> get initialBodyEntries {
+    return _getStack(
+      from: routing.current,
+      includeFrom: true
     );
   }
+
+  @protected
+  void handleBodyPop() => pop(routing.current);
+
+  @protected
+  Widget buildRouter({ Widget child }) {
+    return _RouterScope(
+      router: this,
+      child: child
+    );
+  }
+}
+
+class _RouterScope extends InheritedWidget {
+
+  _RouterScope({
+    Key key,
+    @required this.router,
+    Widget child,
+  }) : super(key: key, child: child);
+
+  final Router router;
+
+  @override
+  bool updateShouldNotify(_RouterScope oldWidget) {
+    return oldWidget.router != this.router;
+  }
+}
+
+extension ScopedRouterExtensions on BuildContext {
+
+  Router get router {
+    final _RouterScope scope = this.inheritFromWidgetOfExactType(_RouterScope);
+    assert(scope != null);
+    return scope.router;
+  }
+
+  void push(Target target) => router.push(target);
+
+  void pop(Target target) => router.pop(target);
 }
 

@@ -1,36 +1,226 @@
 part of '../base.dart';
 
-/// Configuration that [Shell] depends on.
-///
-/// It's inherited instead of passed directly to [Shell] so that a
-/// non-parent [Widget] can configure it.
-class ShellConfiguration extends InheritedWidget {
+const double _kButtonSize = 48.0;
 
-  ShellConfiguration({
+const double _kIconSize = 24.0;
+
+const double _kBarHeight = 48.0;
+
+const double _kPeekWidth = 24.0;
+
+enum ShellSlot {
+  drawer,
+  body,
+  toggle,
+  handle,
+}
+
+class Shell extends StatefulWidget {
+
+  Shell({
     Key key,
-    @required this.barHeight,
-    @required this.barElevation,
-    @required this.bottomLeading,
-    Widget child,
-  }) : super(key: key, child: child);
+    this.initialDrawerEntries = const <ShellAreaEntry>[],
+    this.initialBodyEntries = const <ShellAreaEntry>[],
+    this.onDrawerClose,
+    this.onBodyPop,
+  }) : assert(initialDrawerEntries != null),
+       assert(initialBodyEntries != null),
+       super(key: key);
 
-  final double barHeight;
-  final double barElevation;
-  final Widget bottomLeading;
+  final List<ShellAreaEntry> initialDrawerEntries;
 
-  static ShellConfiguration of(BuildContext context) {
-    return context.inheritFromWidgetOfExactType(ShellConfiguration);
+  final List<ShellAreaEntry> initialBodyEntries;
+
+  final VoidCallback onDrawerClose;
+
+  final VoidCallback onBodyPop;
+
+  @override
+  ShellState createState() => ShellState();
+}
+
+class ShellState extends State<Shell> with SingleTickerProviderStateMixin {
+
+  final GlobalKey<ShellAreaState> _drawerKey = GlobalKey<ShellAreaState>();
+  final GlobalKey<ShellAreaState> _bodyKey = GlobalKey<ShellAreaState>();
+  AnimationController _controller;
+
+  ShellAreaState get drawer => _drawerKey.currentState;
+
+  ShellAreaState get body => _bodyKey.currentState;
+
+  double get _draggableExtent => context.size.width - 24.0;
+
+  void _handleDragUpdate(DragUpdateDetails details) {
+    _controller.value += details.primaryDelta / _draggableExtent;
+  }
+
+  void _handleDragEnd(DragEndDetails details) {
+    if (details.primaryVelocity.abs() > 700) {
+      _controller.fling(velocity: details.primaryVelocity / _draggableExtent);
+    } else if (_controller.value > 0.5) {
+      _controller.fling(velocity: 1.0);
+    } else {
+      _controller.fling(velocity: -1.0);
+    }
+  }
+
+  void _toggle() {
+    if (_controller.status == AnimationStatus.dismissed ||
+        _controller.status == AnimationStatus.reverse) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+
+  void openDrawer() => _controller.forward();
+
+  void closeDrawer() => _controller.reverse();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      value: 0.0,
+      vsync: this
+    )..addStatusListener((AnimationStatus status) {
+      if (status == AnimationStatus.dismissed && widget.onDrawerClose != null)
+        widget.onDrawerClose();
+    });
   }
 
   @override
-  bool updateShouldNotify(ShellConfiguration oldWidget) {
-    return oldWidget.barHeight != this.barHeight ||
-           oldWidget.barElevation != this.barElevation ||
-           oldWidget.bottomLeading != this.bottomLeading;
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorTween overlayColorTween = ColorTween(
+      begin: theme.canvasColor.withAlpha(0),
+      end: theme.canvasColor.withAlpha(200),
+    );
+    return Material(
+      child: CustomMultiChildLayout(
+        delegate: _ShellLayout(_controller),
+        children: <Widget>[
+          LayoutId(
+            id: ShellSlot.drawer,
+            child: _IgnoreWhenAnimating(
+              controller: _controller,
+              until: 1.0,
+              child: FadeTransition(
+                opacity: _controller.drive(Tween(begin: 0.5, end: 1.0)),
+                child: ShellArea(
+                  key: _drawerKey,
+                  initialEntries: widget.initialDrawerEntries,
+                )
+              )
+            )
+          ),
+          LayoutId(
+            id: ShellSlot.body,
+            child: _IgnoreWhenAnimating(
+              controller: _controller,
+              until: 0.0,
+              child: ValueListenableBuilder(
+                valueListenable: _controller,
+                builder: (_, double value, Widget child) {
+                  return DecoratedBox(
+                    position: DecorationPosition.foreground,
+                    decoration: BoxDecoration(
+                      color: overlayColorTween.transform(value),
+                    ),
+                    child: child
+                  );
+                },
+                child: ShellArea(
+                  key: _bodyKey,
+                  onPop: widget.onBodyPop,
+                  initialEntries: widget.initialBodyEntries,
+                ),
+              )
+            )
+          ),
+          LayoutId(
+            id: ShellSlot.toggle,
+            child: Center(
+              child: Pressable(
+                onPress: _toggle,
+                child: AnimatedIcon(
+                  progress: _controller,
+                  icon: AnimatedIcons.menu_close,
+                  size: _kIconSize,
+                ),
+              )
+            )
+          ),
+          LayoutId(
+            id: ShellSlot.handle,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragUpdate: _handleDragUpdate,
+              onHorizontalDragEnd: _handleDragEnd,
+            )
+          ),
+        ]
+      )
+    );
   }
 }
 
-abstract class ShellEntry {
+class _ShellLayout extends MultiChildLayoutDelegate {
+
+  _ShellLayout(this.animation) : super(relayout: animation);
+
+  final Animation<double> animation;
+
+  @override
+  void performLayout(Size size) {
+    assert(hasChild(ShellSlot.drawer));
+    assert(hasChild(ShellSlot.body));
+    assert(hasChild(ShellSlot.toggle));
+    assert(hasChild(ShellSlot.handle));
+
+    final double progress = animation.value;
+
+    void _placeChild(ShellSlot slot, double width, double offsetX) {
+      layoutChild(slot, BoxConstraints.tight(Size(width, size.height)));
+      positionChild(slot, Offset(offsetX, 0.0));
+    }
+
+    final double drawerWidth = size.width - _kPeekWidth;
+    final double offsetX = drawerWidth * progress;
+
+    _placeChild(ShellSlot.drawer, drawerWidth, offsetX - drawerWidth);
+    _placeChild(ShellSlot.body, size.width, offsetX);
+    _placeChild(ShellSlot.handle, _kPeekWidth, offsetX);
+
+    layoutChild(
+      ShellSlot.toggle,
+      BoxConstraints.tight(Size(_kButtonSize, _kButtonSize))
+    );
+
+    positionChild(
+      ShellSlot.toggle,
+      Offset(
+        ((drawerWidth - _kButtonSize) / 2) * progress,
+        size.height - _kButtonSize
+      ),
+    );
+  }
+
+  @override
+  bool shouldRelayout(_ShellLayout oldDelegate) {
+    return oldDelegate.animation != this.animation;
+  }
+}
+
+abstract class ShellAreaEntry {
 
   String get title;
 
@@ -41,29 +231,32 @@ abstract class ShellEntry {
   List<Widget> buildBottomActions(BuildContext context) => const <Widget>[];
 }
 
-class Shell extends StatefulWidget {
+class ShellArea extends StatefulWidget {
 
-  Shell({
+  ShellArea({
     Key key,
-    @required this.onPop,
+    this.onPop,
+    this.initialEntries = const <ShellAreaEntry>[],
   }) : super(key: key);
 
   final VoidCallback onPop;
 
+  final List<ShellAreaEntry> initialEntries;
+
   @override
-  ShellState createState() => ShellState();
+  ShellAreaState createState() => ShellAreaState();
 }
 
-class ShellState extends State<Shell>
+class ShellAreaState extends State<ShellArea>
     with TickerProviderStateMixin {
 
-  /// The current stack of [ShellEntry]s.
-  UnmodifiableListView<ShellEntry> get entries => UnmodifiableListView<ShellEntry>(_entries);
+  /// The current stack of [ShellAreaEntry]s.
+  UnmodifiableListView<ShellAreaEntry> get entries => UnmodifiableListView<ShellAreaEntry>(_entries);
 
   Animation<double> get animation => _controller;
 
-  final List<ShellEntry> _entries = <ShellEntry>[];
-  List<ShellEntry> _replacements;
+  List<ShellAreaEntry> _entries;
+  List<ShellAreaEntry> _replacements;
   AnimationController _controller;
 
   /// Resets the [_controller] to a new [AnimationController], and disposes
@@ -83,11 +276,11 @@ class ShellState extends State<Shell>
 
   /// Adds [entry] to the end of the [entries] list, and starts a 'push'
   /// animation that animates [entry] in, and the now second-to-last
-  /// [ShellEntry] out.
+  /// [ShellAreaEntry] out.
   ///
   /// It returns a [Future] that completes when the animation completes. It will
   /// never throw an error so it can be used safely with 'await'.
-  Future<void> push(ShellEntry entry) async {
+  Future<void> push(ShellAreaEntry entry) async {
     assert(_controller?.isAnimating != true);
     setState(() {
       _entries.add(entry);
@@ -101,9 +294,9 @@ class ShellState extends State<Shell>
     }
   }
 
-  /// Removes the last [ShellEntry] in [entries], which is the currently
-  /// visible [ShellEntry], and starts a 'pop' animation that animates the
-  /// last [ShellEntry] out, and the second to last [ShellEntry] in.
+  /// Removes the last [ShellAreaEntry] in [entries], which is the currently
+  /// visible [ShellAreaEntry], and starts a 'pop' animation that animates the
+  /// last [ShellAreaEntry] out, and the second to last [ShellAreaEntry] in.
   ///
   /// It returns a [Future] that completes when the animation completes. It will
   /// never throw an error so it can be used safely with 'await'.
@@ -123,15 +316,15 @@ class ShellState extends State<Shell>
     }
   }
 
-  /// Replaces the current list of [ShellEntry]s, [entries], with
+  /// Replaces the current list of [ShellAreaEntry]s, [entries], with
   /// [replacements], and starts a 'replace' animation that animates the last,
-  /// and second-to-last if it exists, [ShellEntry]s in [replacements] in,
-  /// and animates the last, and second-to-last if it exists, [ShellEntry]s
+  /// and second-to-last if it exists, [ShellAreaEntry]s in [replacements] in,
+  /// and animates the last, and second-to-last if it exists, [ShellAreaEntry]s
   /// in the old [entries] out.
   ///
   /// It returns a [Future] that completes when the animation completes. It will
   /// never throw an error so it can be used safely with 'await'.
-  Future<void> replace(List<ShellEntry> replacements) async {
+  Future<void> replace(List<ShellAreaEntry> replacements) async {
     assert(_controller?.isAnimating != true);
     assert(replacements.isNotEmpty);
     setState(() {
@@ -148,6 +341,14 @@ class ShellState extends State<Shell>
       });
     }
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _entries = List<ShellAreaEntry>();
+    _entries.addAll(widget.initialEntries);
+    _resetController(value: 1.0);
+  }
   
   @override
   void dispose() {
@@ -157,17 +358,15 @@ class ShellState extends State<Shell>
 
   @override
   Widget build(BuildContext context) {
-    if (_entries.isEmpty) {
-      return const SizedBox.expand();
-    }
+    if (_entries.isEmpty)
+      return const SizedBox();
 
-    final ShellConfiguration config = ShellConfiguration.of(context);
-    final ShellEntry primary = _entries.last;
-    final ShellEntry secondary = _entries.length > 1 ? _entries[_entries.length - 2] : null;
-    final ShellEntry ternary = _entries.length > 2 ? _entries[_entries.length - 3] : null;
+    final ShellAreaEntry primary = _entries.last;
+    final ShellAreaEntry secondary = _entries.length > 1 ? _entries[_entries.length - 2] : null;
+    final ShellAreaEntry ternary = _entries.length > 2 ? _entries[_entries.length - 3] : null;
 
-    ShellEntry replacementPrimary;
-    ShellEntry replacementSecondary;
+    ShellAreaEntry replacementPrimary;
+    ShellAreaEntry replacementSecondary;
     if (_replacements != null) {
       replacementPrimary = _replacements.last;
       replacementSecondary = _replacements.length > 1 ? _replacements[_replacements.length - 2] : null;
@@ -178,10 +377,8 @@ class ShellState extends State<Shell>
         Column(
           children: <Widget>[
             _TopBar(
-              onPop: widget.onPop,
+              onPop: widget.onPop ?? pop,
               animation: _controller,
-              height: config.barHeight,
-              elevation: config.barElevation,
               primary: primary,
               secondary: secondary,
               // If we're rendering replacements, don't include the ternary entry.
@@ -199,11 +396,12 @@ class ShellState extends State<Shell>
             ),
             _BottomBar(
               animation: _controller,
-              height: config.barHeight,
-              elevation: config.barElevation,
               primary: replacementPrimary ?? primary,
               secondary: replacementPrimary != null ? primary : secondary,
-              leading: config.bottomLeading,
+              leading: const SizedBox(
+                width: _kButtonSize,
+                height: _kButtonSize,
+              ),
             )
           ],
         ),
@@ -229,8 +427,6 @@ class _TopBar extends StatefulWidget {
   _TopBar({
     Key key,
     this.animation,
-    this.height,
-    this.elevation,
     this.primary,
     this.secondary,
     this.ternary,
@@ -240,13 +436,11 @@ class _TopBar extends StatefulWidget {
   }) : super(key: key);
 
   final Animation<double> animation;
-  final double height;
-  final double elevation;
-  final ShellEntry primary;
-  final ShellEntry secondary;
-  final ShellEntry ternary;
-  final ShellEntry replacementPrimary;
-  final ShellEntry replacementSecondary;
+  final ShellAreaEntry primary;
+  final ShellAreaEntry secondary;
+  final ShellAreaEntry ternary;
+  final ShellAreaEntry replacementPrimary;
+  final ShellAreaEntry replacementSecondary;
   final VoidCallback onPop;
 
   @override
@@ -281,11 +475,10 @@ class _TopBarState extends State<_TopBar> with TickerProviderStateMixin {
     final EdgeInsets mediaPadding = MediaQuery.of(context).padding;
     final bool hasReplacements = widget.replacementPrimary != null;
     return SizedBox(
-      height: widget.height + mediaPadding.top,
+      height: _kBarHeight + mediaPadding.top,
       child: Padding(
         padding: mediaPadding,
         child: Material(
-          elevation: widget.elevation,
           child: CustomMultiChildLayout(
             delegate: _TopBarTransition(
               hasReplacements ? kAlwaysCompleteAnimation : widget.animation
@@ -572,7 +765,7 @@ class _Leading extends StatelessWidget {
             child: Material(
               child: Icon(
                 Icons.keyboard_arrow_left,
-                size: 24.0
+                size: _kIconSize,
               )
             )
           ),
@@ -726,8 +919,8 @@ class _Body extends StatelessWidget {
 
   final Animation<double> animation;
   final bool isReplace;
-  final ShellEntry primary;
-  final ShellEntry secondary;
+  final ShellAreaEntry primary;
+  final ShellAreaEntry secondary;
 
   @override
   Widget build(BuildContext context) {
@@ -790,26 +983,21 @@ class _BottomBar extends StatelessWidget {
   _BottomBar({
     Key key,
     @required this.animation,
-    @required this.height,
-    @required this.elevation,
     @required this.leading,
     @required this.primary,
     @required this.secondary
   }) : super(key: key);
 
   final Animation<double> animation;
-  final double height;
-  final double elevation;
   final Widget leading;
-  final ShellEntry primary;
-  final ShellEntry secondary;
+  final ShellAreaEntry primary;
+  final ShellAreaEntry secondary;
   
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: height,
+      height: _kBarHeight,
       child: Material(
-        elevation: elevation,
         child: Row(
           children: <Widget>[
             leading,
@@ -867,8 +1055,14 @@ class _IgnoreWhenAnimating extends AnimatedWidget {
   _IgnoreWhenAnimating({
     Key key,
     @required AnimationController controller,
+    @required this.until,
     @required this.child
-  }) : super(key: key, listenable: _IsAnimatingNotifier(controller));
+  }) : super(
+    key: key,
+    listenable: _IsAnimatingNotifier(controller, until)
+  );
+
+  final double until;
 
   final Widget child;
 
@@ -886,24 +1080,26 @@ class _IgnoreWhenAnimating extends AnimatedWidget {
 
 class _IsAnimatingNotifier extends ValueNotifier<bool> {
 
-  _IsAnimatingNotifier(this._controller) : super(_controller.isAnimating);
+  _IsAnimatingNotifier(this.controller, this.until)
+    : super(controller.isAnimating);
 
-  final AnimationController _controller;
+  final AnimationController controller;
+  final double until;
 
   void _handleStatusChange(_) {
-    value = _controller.isAnimating;
+    value = controller.isAnimating || controller.value != until;
   }
 
   @override
   void addListener(VoidCallback listener) {
     super.addListener(listener);
-    _controller.addStatusListener(_handleStatusChange);
+    controller.addStatusListener(_handleStatusChange);
   }
 
   @override
   void removeListener(VoidCallback listener) {
     super.removeListener(listener);
-    _controller.removeStatusListener(_handleStatusChange);
+    controller.removeStatusListener(_handleStatusChange);
   }
 }
 

@@ -16,7 +16,7 @@ class PostListTile extends StatelessWidget {
   Widget build(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       return Pressable(
-        onPress: () => RouterKey.push(context, post),
+        onPress: () => context.push(post),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(

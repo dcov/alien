@@ -2,27 +2,31 @@ part of 'login.dart';
 
 const Duration _kSwitchDuration = Duration(milliseconds: 250);
 
-class LoginScreen extends StatelessWidget {
+class LoginEntry extends ShellAreaEntry {
 
-  LoginScreen({
-    Key key,
-    @required this.login,
-  }) : super(key: key);
+  LoginEntry({ @required this.login });
 
   final Login login;
 
-  static void show({ BuildContext context, Login login }) {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        opaque: false,
-        pageBuilder: (_, __, ___) => LoginScreen(login: login)
-      )
-    );
+  @override
+  String get title => 'Login to Reddit';
+
+  @override
+  List<Widget> buildTopActions(BuildContext context) {
+    return <Widget>[
+      Pressable(
+        onPress: () {},
+        child: SizedBox(
+          width: 48.0,
+          height: 48.0,
+          child: Icon(Icons.edit)
+        )
+      ),
+    ];
   }
 
   @override
-  Widget build(_) => Connector(
+  Widget buildBody(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       final LoginPermissionsStatus status = login.permissionsStatus;
       final ValueKey statusKey = ValueKey(login.permissionsStatus);

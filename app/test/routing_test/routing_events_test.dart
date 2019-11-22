@@ -1,11 +1,11 @@
 part of 'routing_test.dart';
 
-/// A test implementation of [PushTarget].
+/// A test implementation of [Push].
 ///
-/// [PushTarget]'s functionality is implemented in its [push] method so
+/// [Push]'s functionality is implemented in its [push] method so
 /// all this class does is return the result of calling it with the
 /// [routing], and [target] values.
-class TestPush extends PushTarget {
+class TestPush extends Push {
 
   const TestPush({ @required this.target });
 
@@ -17,11 +17,11 @@ class TestPush extends PushTarget {
   }
 }
 
-/// A Test implementation of [PopTarget].
+/// A Test implementation of [Pop].
 ///
-/// [PopTarget]'s functionality is implemented in its [pop] method so
+/// [Pop]'s functionality is implemented in its [pop] method so
 /// all this class does is call it with the [routing], and [target] values.
-class TestPop extends PopTarget {
+class TestPop extends Pop {
 
   const TestPop({ @required this.target });
 
