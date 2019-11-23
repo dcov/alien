@@ -18,7 +18,7 @@ class SubscriptionsTile extends StatelessWidget {
   }
 }
 
-class SubscriptionsEntry extends RouterEntry {
+class SubscriptionsEntry extends TargetEntry {
 
   SubscriptionsEntry({ @required this.subscriptions });
 

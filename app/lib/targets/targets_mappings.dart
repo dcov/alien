@@ -3,7 +3,7 @@ part of 'targets.dart';
 /// The different values that [mapTarget] can map to.
 ///
 /// [tile] maps to a [Widget] that can be used in a list.
-/// [entry] maps to a [RouterEntry].
+/// [entry] maps to a [TargetEntry].
 /// [init] maps to an initializing [Event].
 /// [dispose] maps to a disposing [Event].
 @visibleForTesting

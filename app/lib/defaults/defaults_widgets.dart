@@ -18,7 +18,7 @@ class DefaultsTile extends StatelessWidget {
   }
 }
 
-class DefaultsEntry extends RouterEntry {
+class DefaultsEntry extends TargetEntry {
 
   DefaultsEntry({ @required this.defaults });
 

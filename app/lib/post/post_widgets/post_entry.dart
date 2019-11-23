@@ -1,6 +1,6 @@
 part of '../post.dart';
 
-class PostEntry extends RouterEntry {
+class PostEntry extends TargetEntry {
 
   PostEntry({ @required this.post });
 

@@ -32,7 +32,7 @@ class SubredditTile extends StatelessWidget {
   );
 }
 
-class SubredditEntry extends RouterEntry {
+class SubredditEntry extends TargetEntry {
 
   SubredditEntry({ @required this.subreddit });
 
