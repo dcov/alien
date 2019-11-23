@@ -17,10 +17,7 @@ void testShell() => testWidgets(
     final GlobalKey<ShellAreaState> shellKey = GlobalKey<ShellAreaState>();
     await tester.pumpWidget(
       MaterialApp(
-        home: ShellArea(
-          key: shellKey,
-          onPop: () {}
-        )
+        home: ShellArea(key: shellKey)
       )
     );
 
