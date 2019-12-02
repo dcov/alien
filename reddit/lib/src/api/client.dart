@@ -21,7 +21,7 @@ const String _kAuthorizationHeaderKey = 'Authorization';
 
 class RedditClient {
 
-  RedditClient(String id)
+  RedditClient(String id, this._redirectUri)
     : this._deviceId = Uuid().v1().toString().substring(0, 30),
       this._basicHeader = {
         _kFormHeaderKey : _kFormHeaderValue,
@@ -29,6 +29,8 @@ class RedditClient {
       } {
     _interactors[_deviceId] = RedditInteractor(this, DeviceStore(this));
   }
+  
+  final String _redirectUri;
 
   final String _deviceId;
 
@@ -42,11 +44,24 @@ class RedditClient {
     _ioClient = value;
   }
 
-  Future<String> postCode(String code) {
-    return _ioClient.post(
-      _kAccessTokenUrl,
-      headers: _basicHeader
-    ).then((Response response) => response.body);
+  Future<RefreshTokenData> postCode(String code) {
+    return _ioClient
+      .post(
+        _kAccessTokenUrl,
+        headers: _basicHeader,
+        body: 'grant_type=authorization_code&code=$code&redirect_uri=$_redirectUri')
+      .then((Response response) {
+        final RefreshTokenData data = RefreshTokenData.fromJson(response.body);
+        RedditInteractor interactor = _interactors[data.refreshToken];
+
+        if (interactor != null) {
+          interactor._store.replaceData(data);
+        } else {
+          _interactors[data.refreshToken] = RedditInteractor(this, RefreshStore(data.refreshToken, this));
+        }
+
+        return data;
+      });
   }
 
   RedditInteractor asDevice() => _interactors[_deviceId];
@@ -58,3 +73,4 @@ class RedditClient {
     );
   }
 }
+

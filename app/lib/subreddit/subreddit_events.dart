@@ -8,7 +8,7 @@ class InitSubreddit extends Event {
   final Subreddit subreddit;
 
   @override
-  Event update(_) {
+  dynamic update(_) {
     subreddit.posts = SubredditPosts(
       subredditName: subreddit.name,
     );
@@ -27,8 +27,58 @@ class DisposeSubreddit extends Event {
   final Subreddit subreddit;
 
   @override
-  void update(_) {
+  dynamic update(_) {
     subreddit.posts = null;
+  }
+}
+
+class ToggleSubscribed extends Event {
+
+  ToggleSubscribed({ @required this.subreddit })
+    : assert(subreddit != null);
+
+  final Subreddit subreddit;
+
+  @override
+  dynamic update(RootAuth root) {
+    final User user = root.auth.currentUser;
+    assert(user != null);
+
+    subreddit.userIsSubscriber = !subreddit.userIsSubscriber;
+
+    return subreddit.userIsSubscriber
+        ? PostUnsubscribe(
+            subreddit: subreddit,
+            user: user
+          )
+        : PostSubscribe(
+            subreddit: subreddit,
+            user: user
+          );
+  }
+}
+
+class PostSubscribeFail extends Event {
+
+  PostSubscribeFail({ @required this.subreddit });
+
+  final Subreddit subreddit;
+
+  @override
+  dynamic update(_) {
+    subreddit.userIsSubscriber = false;
+  }
+}
+
+class PostUnsubscribeFail extends Event {
+
+  PostUnsubscribeFail({ @required this.subreddit });
+
+  final Subreddit subreddit;
+
+  @override
+  dynamic update(_) {
+    subreddit.userIsSubscriber = true;
   }
 }
 

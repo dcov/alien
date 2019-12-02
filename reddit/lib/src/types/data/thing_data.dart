@@ -102,7 +102,7 @@ mixin SaveableData {
 
 class AccountData with ThingData, CreatedData {
 
-  factory AccountData.fromJson(String json, [DataExtractor extractor]) {
+  factory AccountData.fromJson(String json, [DataExtractor extractor = _extractData]) {
     return AccountData(extractor(jsonDecode(json)));
   }
 

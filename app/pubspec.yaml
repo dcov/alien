@@ -35,6 +35,8 @@ dependencies:
 
   markdown: ^2.1.1
 
+  path_provider: ^1.4.5
+
   reddit:
     path: ../reddit
   

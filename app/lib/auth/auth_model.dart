@@ -1,8 +1,34 @@
 part of 'auth.dart';
 
-@abs
-abstract class RootAuth implements Model {
-  Auth get auth;
+abstract class Permission implements Model {
+
+  factory Permission({
+    @required String id,
+    @required String name,
+    @required String description,
+    @required bool enabled,
+  }) {
+    return _$Permission(
+      id: id,
+      name: name,
+      description: description,
+      enabled: enabled,
+    );
+  }
+
+  String get id;
+
+  String get name;
+
+  String get description;
+
+  bool enabled;
+}
+
+enum PermissionsStatus {
+  notLoaded,
+  loading,
+  available
 }
 
 abstract class Auth implements Model {
@@ -10,19 +36,36 @@ abstract class Auth implements Model {
   factory Auth({
     @required String clientId,
     @required String redirectUri,
-  }) => _$Auth(
-    login: Login(
+  }) {
+    return _$Auth(
       clientId: clientId,
       redirectUri: redirectUri,
-      scopes: Scope.values
-    ),
-    users: const <User>{}
-  );
+      users: const <User>[],
+      permissions: <Permission>[],
+      authenticating: false,
+      permissionsStatus: PermissionsStatus.notLoaded,
+    );
+  }
 
-  Login get login;
+  String get clientId;
+
+  String get redirectUri;
+
+  List<User> get users;
+
+  List<Permission> get permissions;
+
+  bool authenticating;
+
+  AuthSession session;
 
   User currentUser;
 
-  Set<User> get users;
+  PermissionsStatus permissionsStatus;
+}
+
+@abs
+abstract class RootAuth implements Model {
+  Auth get auth;
 }
 

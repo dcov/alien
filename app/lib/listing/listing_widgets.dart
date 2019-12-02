@@ -36,7 +36,7 @@ class _ListingScrollableState extends State<ListingScrollable>
   Widget build(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       final Listing listing = widget.listing;
-      return CustomScrollView(
+      return PaddedScrollView(
         controller: controller,
         slivers: <Widget>[
           SliverList(

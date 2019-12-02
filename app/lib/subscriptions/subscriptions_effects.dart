@@ -16,7 +16,7 @@ class GetSubscriptions extends Effect {
     final RedditInteractor reddit = deps.client.asUser(user.token);
 
     try {
-      final List<SubredditData> subreddits = List<SubredditData>();
+      final List<SubredditData> result = List<SubredditData>();
       Pagination pagination = Pagination.maxLimit();
 
       do {
@@ -25,16 +25,17 @@ class GetSubscriptions extends Effect {
           pagination.nextPage,
           false
         );
-        subreddits.addAll(listing.things);
+        result.addAll(listing.things);
         pagination = pagination.forward(listing);
       } while(pagination.nextPageExists);
 
-      return UpdateSubscriptions(
+      return GetSubscriptionsSuccess(
         subscriptions: this.subscriptions,
-        subreddits: subreddits
+        data: result
       );
     } catch (e) {
-      return null;
+      print(e);
+      return GetSubscriptionsFail();
     }
   }
 }

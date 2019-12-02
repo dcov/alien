@@ -6,22 +6,54 @@ class Init extends Event {
 
   @override
   dynamic update(App app) {
-    app.initialized = false;
-    return {
-      UpdateTheme(theming: app.theming),
-      const InitResources(),
-    };
+    return InitResources();
   }
 }
 
-class InitializedResources extends Event {
+class InitResourcesSuccess extends Event {
 
-  const InitializedResources();
+  const InitResourcesSuccess({
+    @required this.users,
+    @required this.signedInUser,
+  });
+
+  final Map<String, String> users;
+
+  final String signedInUser;
 
   @override
   dynamic update(App app) {
     app.initialized = true;
-    return const InitTargets();
+    return {
+      InitAuth(
+        users: users,
+        signedInUser: signedInUser,
+      ),
+      UpdateTheme(theming: app.theming),
+      ResetState()
+    };
+  }
+}
+
+class InitResourcesFail extends Event {
+
+  const InitResourcesFail();
+
+  /// TODO: Implement
+  @override
+  dynamic update(_) {
+  }
+}
+
+class ResetState extends Event {
+
+  const ResetState();
+
+  @override
+  dynamic update(App app) {
+    return {
+      InitTargets()
+    };
   }
 }
 

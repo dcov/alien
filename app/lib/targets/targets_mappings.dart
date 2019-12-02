@@ -41,6 +41,11 @@ dynamic mapTarget(Target target, MapTarget map) {
            map == MapTarget.entry ? SubredditEntry(subreddit: target) :
            map == MapTarget.init ? InitSubreddit(subreddit: target) :
                                    DisposeSubreddit(subreddit: target) :
+         target is Subscriptions ?
+           map == MapTarget.tile ? SubscriptionsTile(subscriptions: target) :
+           map == MapTarget.entry ? SubscriptionsEntry(subscriptions: target) :
+           map == MapTarget.init ? RefreshSubscriptions(subscriptions: target) :
+                                   null :
          throw UnimplementedError('');
 }
 

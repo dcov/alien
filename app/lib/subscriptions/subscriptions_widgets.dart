@@ -31,37 +31,19 @@ class SubscriptionsEntry extends TargetEntry {
   String get title => 'Subscriptions';
 
   @override
-  List<Widget> buildTopActions(BuildContext context) {
-    return <Widget>[
-      IconButton(
-        onPressed: () {},
-        icon: Icon(Icons.more_horiz),
-      )
-    ];
-  }
-
-  @override
-  Widget buildBody(BuildContext context) {
-    final List<Subreddit> subreddits = subscriptions.subreddits;
-    return TrackingScrollView(
-      offset: subscriptions.offset,
-      slivers: <Widget>[
-        SliverList(delegate: SliverChildBuilderDelegate(
-          (_, int index) => SubredditTile(subreddit: subreddits[index]),
-          childCount: subreddits.length
-        ))
-      ]
-    );
-  }
-
-  @override
-  List<Widget> buildBottomActions(BuildContext context) {
-    return <Widget>[
-      IconButton(
-        onPressed: () {},
-        icon: Icon(Icons.more_vert)
-      )
-    ];
-  }
+  Widget buildBody(_) => Connector(
+    builder: (_, __) {
+      final List<Subreddit> subreddits = subscriptions.subreddits;
+      return TrackingScrollView(
+        offset: subscriptions.offset,
+        slivers: <Widget>[
+          SliverList(delegate: SliverChildBuilderDelegate(
+            (_, int index) => SubredditTile(subreddit: subreddits[index]),
+            childCount: subreddits.length
+          ))
+        ]
+      );
+    }
+  );
 }
 

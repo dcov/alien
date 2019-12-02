@@ -2,6 +2,11 @@ part of '../endpoints.dart';
 
 mixin ReadEndpoints on EndpointInteractor {
 
+  Future<AccountData> getAccount(String username) {
+    return get('${_kOAuthUrl}/user/$username/about')
+        .then((String json) => AccountData.fromJson(json));
+  }
+
   Future<ListingData<PostData>> getHomePosts(HomeSort sort, Page page) {
     return get('${_kOAuthUrl}/${sort}/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));

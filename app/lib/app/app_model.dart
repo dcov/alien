@@ -1,6 +1,6 @@
 part of 'app.dart';
 
-abstract class App implements Model, RootAuth, RootRouting, RootTheming {
+abstract class App implements RootAuth, RootRouting, RootTheming {
 
   factory App({
     @required String clientId,

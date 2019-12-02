@@ -34,13 +34,10 @@ class TrackingScrollView extends StatefulWidget {
   TrackingScrollView({
     Key key,
     @required this.offset,
-    this.controller,
     this.slivers = const <Widget>[],
   }) : super(key: key);
 
   final ScrollOffset offset;
-
-  final ScrollController controller;
 
   final List<Widget> slivers;
 
@@ -55,8 +52,8 @@ class _TrackingScrollViewState extends State<TrackingScrollView> with ScrollOffs
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: widget.controller,
+    return PaddedScrollView(
+      controller: controller,
       slivers: widget.slivers
     );
   }

@@ -9,29 +9,29 @@ class RefreshSubscriptions extends Event {
   final Subscriptions subscriptions;
 
   @override
-  Effect update(RootAuth root) {
+  dynamic update(RootAuth root) {
     // We're already refreshing, so we don't need to do anything.
     if (subscriptions.refreshing)
-      return null;
+      return;
 
     subscriptions.refreshing = true;
     return GetSubscriptions(
-      subscriptions: this.subscriptions,
+      subscriptions: subscriptions,
       user: root.auth.currentUser
     );
   }
 }
 
-class UpdateSubscriptions extends Event {
+class GetSubscriptionsSuccess extends Event {
 
-  const UpdateSubscriptions({
+  const GetSubscriptionsSuccess({
     @required this.subscriptions,
-    @required this.subreddits,
+    @required this.data,
   });
 
   final Subscriptions subscriptions;
 
-  final List<SubredditData> subreddits;
+  final List<SubredditData> data;
 
   @override
   void update(_) {
@@ -39,7 +39,17 @@ class UpdateSubscriptions extends Event {
       ..refreshing = false
       ..subreddits.clear()
       ..subreddits.addAll(
-        this.subreddits.map((data) => Subreddit.fromData(data)));
+          data.map((SubredditData sd) => Subreddit.fromData(sd)))
+      ..subreddits.sort(compareSubreddits);
   }
+}
+
+class GetSubscriptionsFail extends Event {
+
+  const GetSubscriptionsFail();
+
+  /// TODO: Implement
+  @override
+  void update(_) { }
 }
 

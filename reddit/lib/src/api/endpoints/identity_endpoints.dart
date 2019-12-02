@@ -4,6 +4,8 @@ mixin IdentityEndpoints on EndpointInteractor {
 
   Future<AccountData> getUserAccount() {
     return get('${_kOAuthUrl}/api/v1/me')
-        .then((String json) => AccountData.fromJson(json));
+        .then((String json) {
+          return AccountData.fromJson(json);
+        });
   }
 }

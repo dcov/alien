@@ -5,7 +5,7 @@ class InitTargets extends Event {
   const InitTargets();
 
   @override
-  Set<Event> update(Model root) {
+  dynamic update(Model root) {
     assert(root is RootRouting);
     assert(root is RootAuth);
 
@@ -35,7 +35,7 @@ class TargetsPush extends Push {
   final Target target;
 
   @override
-  Event update(RootRouting root) {
+  dynamic update(RootRouting root) {
     // If the [target] is activated, return an event that initializes the [target].
     if (push(root.routing, target)) {
       return mapTarget(target, MapTarget.init);
@@ -53,14 +53,19 @@ class TargetsPop extends Pop {
   final Target target;
 
   @override
-  Set<Event> update(RootRouting root) {
+  dynamic update(RootRouting root) {
     final Set<Target> removed = pop(root.routing, target);
     if (removed.isEmpty)
       return null;
 
-    return removed.map((Target target) {
-      return mapTarget(target, MapTarget.dispose) as Event;
-    }).toSet();
+    final Set<Event> disposeEvents = <Event>{};
+    for (final Target target in removed) {
+      final Event result = mapTarget(target, MapTarget.dispose);
+      if (result != null)
+        disposeEvents.add(result);
+    }
+
+    return disposeEvents;
   }
 }
 

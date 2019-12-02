@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:reddit/reddit.dart';
 import 'package:scraper/scraper.dart';
 
@@ -21,8 +26,8 @@ part 'app.g.dart';
 
 void run() => runLoop(
   container: Deps(
-    client: RedditClient(Config.kRedditId),
-    hive: Hive..init(Config.kHivePath),
+    client: RedditClient(Config.kRedditId, Config.kRedditRedirect),
+    hive: Hive,
     scraper: Scraper()
   ),
   state: App(

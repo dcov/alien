@@ -33,35 +33,29 @@ class RoutingController implements ShellAreaController {
 
   final TargetEventDispatch onDispatchPop;
 
-  List<TargetEntry> get initialBodyEntries {
+  List<TargetEntry> get initialEntries {
     return _getStack(
       from: routing.current,
       includeFrom: true
     );
   }
 
-  List<TargetEntry> _getStack({
-    @required Target from,
-    @required bool includeFrom
-  }) {
-    final List<TargetEntry> stack = <TargetEntry>[];
-    
-    if (includeFrom) {
-      stack.add(onGenerateEntry(from));
-    }
-
-    int index = routing.tree.indexOf(from) - 1;
-    int depth = from.depth;
-    while (index >= 0 && depth > 0) {
-      final Target other = routing.tree[index];
-      if (other.depth < depth) {
-        stack.insert(0, onGenerateEntry(other));
-        depth = other.depth;
-      }
-      index--;
-    }
-
-    return stack;
+  /// Resynchronizes the [ShellAreaState] with the [Routing] state.
+  /// 
+  /// This should be called whenever [Routing] is mutated outside of [push], or
+  /// [pop]. Otherwise the [ShellAreaState] will not display the up-to-date
+  /// [Routing] state.
+  ///
+  /// NOTE: This can potentially fail if there are already more than two
+  /// operations in progress, so the caller should minimize calls to [push],
+  /// or [pop] before calling this.
+  ///
+  /// TODO: Improve the synchronization between operations so that this
+  /// operation can never fail.
+  void resync() {
+    _synchronize((ShellAreaState area) async {
+        await area.replace(initialEntries);
+    });
   }
 
   @override
@@ -114,6 +108,30 @@ class RoutingController implements ShellAreaController {
       /// [target] is no longer shown so it's safe to send a pop event.
       onDispatchPop(target);
     });
+  }
+
+  List<TargetEntry> _getStack({
+    @required Target from,
+    @required bool includeFrom
+  }) {
+    final List<TargetEntry> stack = <TargetEntry>[];
+    
+    if (includeFrom) {
+      stack.add(onGenerateEntry(from));
+    }
+
+    int index = routing.tree.indexOf(from) - 1;
+    int depth = from.depth;
+    while (index >= 0 && depth > 0) {
+      final Target other = routing.tree[index];
+      if (other.depth < depth) {
+        stack.insert(0, onGenerateEntry(other));
+        depth = other.depth;
+      }
+      index--;
+    }
+
+    return stack;
   }
 
   Completer<void> _currentAction;

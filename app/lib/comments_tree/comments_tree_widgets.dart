@@ -27,23 +27,24 @@ class _CommentsTreeScrollableState extends State<CommentsTreeScrollable> {
   Widget build(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       final CommentsTree commentsTree = widget.commentsTree;
-      return CustomScrollView(
+      return PaddedScrollView(
         controller: _controller,
         slivers: <Widget>[
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (_, int index) {
                 final Thing thing = commentsTree.things[index];
-                if (thing is Comment)
+                if (thing is Comment) {
                   return CommentTile(
                     comment: thing,
                     includeDepthPadding: true,
                   );
-                else if (thing is More)
+                } else if (thing is More) {
                   return MoreTile(
                     commentsTree: commentsTree,
                     more: thing,
                   );
+                }
                 
                 return const SizedBox();
               },
