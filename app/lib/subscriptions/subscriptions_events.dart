@@ -53,3 +53,22 @@ class GetSubscriptionsFail extends Event {
   void update(_) { }
 }
 
+class AddSubscriptionUpdate extends ProxyUpdate<AddSubscription> {
+
+  AddSubscriptionUpdate();
+
+  @override
+  dynamic update(RootRouting root, AddSubscription event) {
+    final Subscriptions subscriptions = root.routing.tree.singleWhere((t) => t is Subscriptions);
+    subscriptions.subreddits.add(event.subreddit);
+  }
+}
+
+class RemoveSubscriptionUpdate extends ProxyUpdate<RemoveSubscription> {
+
+  RemoveSubscriptionUpdate();
+
+  @override
+  dynamic update(RootRouting root, RemoveSubscription event) {}
+}
+

@@ -46,16 +46,37 @@ class ToggleSubscribed extends Event {
 
     subreddit.userIsSubscriber = !subreddit.userIsSubscriber;
 
-    return subreddit.userIsSubscriber
-        ? PostUnsubscribe(
-            subreddit: subreddit,
-            user: user
-          )
-        : PostSubscribe(
-            subreddit: subreddit,
-            user: user
-          );
+    if (subreddit.userIsSubscriber)
+      return <Message>{
+        RemoveSubscription(subreddit: subreddit),
+        PostUnsubscribe(
+          subreddit: subreddit,
+          user: user
+        )
+      };
+
+    return <Message>{
+      AddSubscription(subreddit: subreddit),
+      PostSubscribe(
+        subreddit: subreddit,
+        user: user
+      )
+    };
   }
+}
+
+class AddSubscription extends ProxyEvent {
+
+  AddSubscription({ @required this.subreddit });
+
+  final Subreddit subreddit;
+}
+
+class RemoveSubscription extends ProxyEvent {
+
+  RemoveSubscription({ @required this.subreddit });
+
+  final Subreddit subreddit;
 }
 
 class PostSubscribeFail extends Event {

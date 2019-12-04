@@ -12,8 +12,8 @@ class GetSubscriptions extends Effect {
   final User user;
 
   @override
-  Future<Event> perform(Deps deps) async {
-    final RedditInteractor reddit = deps.client.asUser(user.token);
+  Future<Event> perform(EffectContext context) async {
+    final RedditInteractor reddit = context.client.asUser(user.token);
 
     try {
       final List<SubredditData> result = List<SubredditData>();

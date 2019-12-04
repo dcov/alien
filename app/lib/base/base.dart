@@ -10,8 +10,9 @@ import 'package:hive/hive.dart';
 import 'package:reddit/reddit.dart';
 import 'package:scraper/scraper.dart';
 
-part 'base_deps.dart';
+part 'base_effects.dart';
 part 'base_utils.dart';
+part 'base_widgets/effect_renderer.dart';
 part 'base_widgets/formatting.dart';
 part 'base_widgets/icons.dart';
 part 'base_widgets/insets.dart';

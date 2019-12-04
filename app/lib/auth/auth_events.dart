@@ -40,7 +40,7 @@ class LoginStart extends Event {
       return GetPermissions();
     }
 
-    return {
+    return <Message>{
       ResetPermissions(),
       ResetAuthSession(),
     };
@@ -66,7 +66,7 @@ class GetPermissionsSuccess extends Event {
         enabled: true,
       ));
     }
-    return {
+    return <Message>{
       ResetPermissions(),
       ResetAuthSession(),
     };
@@ -192,6 +192,7 @@ class PostCodeSuccess extends Event {
   dynamic update(RootAuth root) {
     final Auth auth = root.auth;
 
+    final User oldCurrentUser = auth.currentUser;
     bool isNewUser = false;
     auth..authenticating = false
         ..currentUser = auth.users.singleWhere(
@@ -207,9 +208,11 @@ class PostCodeSuccess extends Event {
             }
           );
 
-    return {
+    return <Message>{
       if (isNewUser)
         StoreUser(user: auth.currentUser),
+      if (oldCurrentUser != auth.currentUser)
+        UserChanged(),
       StoreSignedInUser(user: auth.currentUser),
     };
   }
@@ -259,9 +262,12 @@ class LogOutUser extends Event {
     if (wasSignedIn)
       auth.currentUser = null;
 
-    return {
+    return <Message>{
       if (wasSignedIn)
-        StoreSignedInUser(),
+        ...{
+          UserChanged(),
+          StoreSignedInUser(),
+        },
       RemoveStoredUser(user: user)
     };
   }
@@ -284,7 +290,14 @@ class LogInUser extends Event {
   dynamic update(RootAuth root) {
     final Auth auth = root.auth;
     assert(auth.users.contains(user));
+    final bool changedUser = (auth.currentUser != user);
     auth.currentUser = user;
+    if (changedUser)
+      return UserChanged();
   }
+}
+
+class UserChanged extends ProxyEvent {
+  const UserChanged();
 }
 

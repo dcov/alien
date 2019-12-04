@@ -5,9 +5,7 @@ class Init extends Event {
   const Init();
 
   @override
-  dynamic update(App app) {
-    return InitResources();
-  }
+  dynamic update(_) => InitResources();
 }
 
 class InitResourcesSuccess extends Event {
@@ -53,6 +51,19 @@ class ResetState extends Event {
   dynamic update(App app) {
     return {
       InitTargets()
+    };
+  }
+}
+
+class UserChangedUpdate extends ProxyUpdate<UserChanged> {
+
+  const UserChangedUpdate();
+
+  @override
+  dynamic update(App app, UserChanged _) {
+    return <Message>{
+      ResetState(),
+      RenderUserChange(app: app),
     };
   }
 }

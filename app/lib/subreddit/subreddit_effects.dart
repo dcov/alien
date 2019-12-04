@@ -12,9 +12,9 @@ class PostSubscribe extends Effect {
   final User user;
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      await deps.client
+      await context.client
           .asUser(user.token)
           .postSubscribe(makeFullId(subreddit));
     } catch (_) {
@@ -35,9 +35,9 @@ class PostUnsubscribe extends Effect {
   final User user;
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      await deps.client
+      await context.client
           .asUser(user.token)
           .postUnsubscribe(makeFullId(subreddit));
     } catch (_) {

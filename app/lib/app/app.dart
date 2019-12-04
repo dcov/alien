@@ -14,6 +14,7 @@ import 'package:scraper/scraper.dart';
 import '../auth/auth.dart';
 import '../base/base.dart';
 import '../routing/routing.dart';
+import '../subscriptions/subscriptions.dart';
 import '../targets/targets.dart';
 import '../theming/theming.dart';
 
@@ -25,16 +26,19 @@ part 'app_widgets.dart';
 part 'app.g.dart';
 
 void run() => runLoop(
-  container: Deps(
-    client: RedditClient(Config.kRedditId, Config.kRedditRedirect),
-    hive: Hive,
-    scraper: Scraper()
+  proxies: <ProxyUpdate> {
+    ...subscriptionsProxies,
+    UserChangedUpdate(),
+  },
+  container: EffectContext(
+    redditId: Config.kRedditId,
+    redditRedirect: Config.kRedditRedirect,
   ),
   state: App(
     clientId: Config.kRedditId,
     redirectUri: Config.kRedditRedirect,
   ),
   init: Init(),
-  app: Runner(),
+  app: EffectRenderer(child: Runner()),
 );
 

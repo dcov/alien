@@ -6,5 +6,5 @@ class MockRedditInteractor extends Mock implements RedditInteractor { }
 
 class MockScraper extends Mock implements Scraper { }
 
-class MockDeps extends Mock implements Deps { }
+class MockContext extends Mock implements EffectContext { }
 

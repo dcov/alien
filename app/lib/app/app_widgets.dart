@@ -1,5 +1,12 @@
 part of 'app.dart';
 
+/// Renders changes to the [App] state.
+abstract class AppRenderer {
+
+  /// Renders a change in the logged-in user.
+  void renderUserChange();
+}
+
 /// The root widget in the tree.
 ///
 /// It handles the one-off configuration of the application, and the initial
@@ -56,6 +63,8 @@ class _Splash extends StatelessWidget {
   }
 }
 
+/// The main [Widget] in the tree which essentially wires up all of the 
+/// top-level components of the app.
 class _Main extends StatefulWidget {
 
   _Main({
@@ -69,13 +78,32 @@ class _Main extends StatefulWidget {
   _MainState createState() => _MainState();
 }
 
-class _MainState extends State<_Main> with ConnectionStateMixin<App, _Main>, AuthMixin, TargetsMixin {
+class _MainState extends State<_Main> with EffectRendererMixin, TargetsMixin implements AppRenderer {
 
   final GlobalKey<ShellState> _shellKey = GlobalKey<ShellState>();
   _MenuController _menuController;
   RoutingController _routingController;
 
   ShellState get _shell => _shellKey.currentState;
+
+  /// Our [rendererId] is the [App] instance because there's only one instance.
+  @override
+  Object get rendererId => widget.app;
+
+  @override
+  void renderUserChange() {
+    /// Resync the [App.routing] state with the body of the [Shell].
+    ///
+    /// This is safe to call, i.e. it will never fail, because while changing
+    /// user accounts, calls to [RoutingController.push], or
+    /// [RoutingController.pop] are not possible.
+    ///
+    /// See [RoutingController.resync] for why this is important.
+    _routingController.resync();
+
+    /// Pop the [Shell] drawer to the main menu.
+    _menuController.popToRoot();
+  }
 
   @override
   void initState() {
@@ -102,28 +130,7 @@ class _MainState extends State<_Main> with ConnectionStateMixin<App, _Main>, Aut
   }
 
   @override
-  void didChangeUser() {
-    /// Schedule our response for after this frame because we'll be
-    /// dispatching an [Event].
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      /// Reset the [App] state.
-      dispatch(ResetState());
-
-      /// This is safe to call, i.e. it will never fail, because while changing
-      /// user accounts, calls to [RoutingController.push], or
-      /// [RoutingController.pop] are not possible.
-      ///
-      /// See [RoutingController.resync] for why this is important.
-      _routingController.resync();
-
-      /// Pop to the main menu.
-      _menuController.popToRoot();
-    });
-  }
-
-  @override
   Widget build(_) {
-    super.build(_);
     return Shell(
       key: _shellKey,
       drawerController: _menuController,

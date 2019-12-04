@@ -1,40 +1,5 @@
 part of 'auth.dart';
 
-/// Notifies the owner of [RootAuth] whenever the [Auth.currentUser] value has
-/// changed so that it can dispatch an appropriate event.
-/// 
-/// This is done at the [Widget]s layer instead of the [Event] layer because
-/// the 'auth' module is not responsible for handling user changes, and isn't
-/// 'aware' of which [Event] handles it, so it can't dispatch it. This is a
-/// sub-optimal solution because ideally an [Event] that leads to another [Event]
-/// should know which [Event] it leads to, if even in an abstract sense such as
-/// an abstraction layer within the elmer framework.
-///
-/// TODO: Remove this once the abstraction layer is implemented within the elmer
-/// package, such that an abstract [Event] can be dispatched without knowing
-/// about its concrete implementation.
-mixin AuthMixin<T extends RootAuth, W extends StatefulWidget> on ConnectionStateMixin<T, W> {
-
-  User _user;
-
-  bool _firstCapture = true;
-
-  @override
-  void capture(_) {
-    final User user = state.auth.currentUser;
-    if (_firstCapture) {
-      _user = user;
-      _firstCapture = false;
-    } else if (user != _user) {
-      _user = user;
-      didChangeUser();
-    }
-  }
-
-  @protected
-  void didChangeUser();
-}
-
 class AuthButton extends StatelessWidget {
 
   AuthButton({

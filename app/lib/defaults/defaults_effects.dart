@@ -7,8 +7,8 @@ class GetDefaults extends Effect {
   final Defaults defaults;
 
   @override
-  Future<Event> perform(Deps deps) {
-    return deps.client
+  Future<Event> perform(EffectContext context) {
+    return context.client
         .asDevice()
         .getSubreddits(
             Subreddits.defaults,

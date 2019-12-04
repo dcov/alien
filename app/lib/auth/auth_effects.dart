@@ -5,9 +5,9 @@ class GetPermissions extends Effect {
   const GetPermissions();
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      final Iterable<ScopeData> data = await deps.client
+      final Iterable<ScopeData> data = await context.client
               .asDevice()
               .getScopeDescriptions();
       return GetPermissionsSuccess(data: data);
@@ -24,9 +24,9 @@ class PostCode extends Effect {
   final String code;
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      final RedditClient client = deps.client;
+      final RedditClient client = context.client;
       final RefreshTokenData tokenData = await client.postCode(code);
 
       final AccountData accountData = await client
@@ -50,9 +50,9 @@ class StoreUser extends Effect {
   final User user;
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      final Box box = await deps.hive.openBox('auth');
+      final Box box = await context.hive.openBox('auth');
       Map users = box.get('users') ?? Map();
       assert(!users.containsKey(user.name));
       users[user.name] = user.token;
@@ -70,9 +70,9 @@ class StoreSignedInUser extends Effect {
   final User user;
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      final Box box = await deps.hive.openBox('auth');
+      final Box box = await context.hive.openBox('auth');
       await box.put('currentUser', user?.name);
     } catch (_) {
       return StoreSignedInUserFail();
@@ -87,9 +87,9 @@ class RemoveStoredUser extends Effect {
   final User user;
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      final Box box = await deps.hive.openBox('auth');
+      final Box box = await context.hive.openBox('auth');
       final Map users = box.get('users');
       assert(users != null && users.containsKey(user.name));
       users.remove(user.name);
@@ -103,8 +103,8 @@ class RemoveStoredUser extends Effect {
 mixin RetrieveUsers on Effect {
 
   @protected
-  Future<Map<String, String>> retrieveUsers(Deps deps) async {
-    final Box box = await deps.hive.openBox('auth');
+  Future<Map<String, String>> retrieveUsers(EffectContext context) async {
+    final Box box = await context.hive.openBox('auth');
     Map users = box.get('users');
     return users?.cast<String, String>() ?? Map<String, String>();
   }
@@ -113,8 +113,8 @@ mixin RetrieveUsers on Effect {
 mixin RetrieveSignedInUser on Effect {
 
   @protected
-  Future<String> retrieveSignedInUser(Deps deps) async {
-    final Box box = await deps.hive.openBox('auth');
+  Future<String> retrieveSignedInUser(EffectContext context) async {
+    final Box box = await context.hive.openBox('auth');
     return box.get('currentUser');
   }
 }

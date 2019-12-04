@@ -5,20 +5,33 @@ class InitResources extends Effect with RetrieveUsers, RetrieveSignedInUser {
   const InitResources();
 
   @override
-  dynamic perform(Deps deps) async {
+  dynamic perform(EffectContext context) async {
     try {
-      await deps.scraper.init();
+      await context.scraper.init();
 
       final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
-      deps.hive.init(path.join(appDir.path, 'data'));
+      context.hive.init(path.join(appDir.path, 'data'));
 
       return InitResourcesSuccess(
-        users: await retrieveUsers(deps),
-        signedInUser: await retrieveSignedInUser(deps),
+        users: await retrieveUsers(context),
+        signedInUser: await retrieveSignedInUser(context),
       );
     } catch (_) {
       return InitResourcesFail();
     }
+  }
+}
+
+class RenderUserChange extends Effect {
+
+  const RenderUserChange({ @required this.app });
+
+  final App app;
+
+  @override
+  dynamic perform(EffectContext context) {
+    final AppRenderer renderer = context.renderer.withId(app);
+    renderer?.renderUserChange();
   }
 }
 

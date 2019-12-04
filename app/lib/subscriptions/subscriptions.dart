@@ -14,3 +14,9 @@ part 'subscriptions_events.dart';
 part 'subscriptions_model.dart';
 part 'subscriptions_widgets.dart';
 part 'subscriptions.g.dart';
+
+final Set<ProxyUpdate> subscriptionsProxies = <ProxyUpdate>{
+  AddSubscriptionUpdate(),
+  RemoveSubscriptionUpdate(),
+};
+
