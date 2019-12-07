@@ -12,7 +12,7 @@ class InitPost extends Event {
       fullPostId: makeFullId(post),
       permalink: post.permalink,
     );
-    return RefreshCommentsTree(
+    return LoadCommentsTree(
       commentsTree: post.comments
     );
   }

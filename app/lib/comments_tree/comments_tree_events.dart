@@ -1,8 +1,8 @@
 part of 'comments_tree.dart';
 
-class RefreshCommentsTree extends Event {
+class LoadCommentsTree extends Event {
 
-  const RefreshCommentsTree({ @required this.commentsTree });
+  const LoadCommentsTree({ @required this.commentsTree });
 
   final CommentsTree commentsTree;
 
@@ -19,9 +19,9 @@ class RefreshCommentsTree extends Event {
   }
 }
 
-class RefreshedCommentsTree extends Event {
+class GetPostCommentsSuccess extends Event {
 
-  const RefreshedCommentsTree({
+  const GetPostCommentsSuccess({
     @required this.commentsTree,
     @required this.data
   });
@@ -36,6 +36,14 @@ class RefreshedCommentsTree extends Event {
     commentsTree..isRefreshing = false
         ..things.addAll(_expandTree(data).map(_mapThing));
   }
+}
+
+class GetPostCommentsFail extends Event {
+
+  const GetPostCommentsFail();
+
+  @override
+  void update(_) { }
 }
 
 class LoadMoreComments extends Event {
@@ -65,9 +73,9 @@ class LoadMoreComments extends Event {
   }
 }
 
-class LoadedMoreComments extends Event {
+class GetMoreCommentsSuccess extends Event {
 
-  const LoadedMoreComments({
+  const GetMoreCommentsSuccess({
     @required this.commentsTree,
     @required this.more,
     @required this.data,
@@ -88,3 +96,12 @@ class LoadedMoreComments extends Event {
     commentsTree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
   }
 }
+
+class GetMoreCommentsFail extends Event {
+
+  GetMoreCommentsFail();
+
+  @override
+  dynamic update(_) { }
+}
+

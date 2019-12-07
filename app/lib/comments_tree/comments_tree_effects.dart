@@ -15,13 +15,13 @@ class GetPostComments extends Effect {
           commentsTree.sort)
         .then(
           (ListingData<ThingData> data) {
-            return RefreshedCommentsTree(
+            return GetPostCommentsSuccess(
               commentsTree: this.commentsTree,
               data: data.things
             );
           },
-          onError: (e) {
-            // TODO: error handling
+          onError: (_) {
+            return GetPostCommentsFail();
           });
   }
 }
@@ -47,14 +47,15 @@ class GetMoreComments extends Effect {
           more.thingIds)
         .then(
           (ListingData<ThingData> data) {
-            return LoadedMoreComments(
+            return GetMoreCommentsSuccess(
               commentsTree: this.commentsTree,
               more: this.more,
               data: data.things
             );
           },
           onError: (e) {
-            // TODO: Handle errors
+            return GetPostCommentsFail();
           });
   }
 }
+

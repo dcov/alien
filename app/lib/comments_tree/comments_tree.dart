@@ -5,7 +5,6 @@ import 'package:reddit/reddit.dart';
 
 import '../base/base.dart';
 import '../comment/comment.dart';
-import '../more/more.dart';
 import '../thing/thing.dart';
 
 part 'comments_tree_effects.dart';
