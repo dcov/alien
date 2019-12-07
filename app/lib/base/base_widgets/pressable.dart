@@ -80,7 +80,7 @@ class _PressableState extends State<Pressable>
   @override
   void dispose() {
     if (widget.controller == null) {
-      // Our current [_controller] is owner by us so let's dispose it.
+      // Our current [_controller] is owned by us so we can safely dispose it.
       _controller.dispose();
     }
     super.dispose();
@@ -125,6 +125,37 @@ class _PressableState extends State<Pressable>
           child: widget.child,
         ),
       )
+    );
+  }
+}
+
+class PressableIcon extends StatelessWidget {
+
+  PressableIcon({
+    Key key,
+    this.controller,
+    @required this.onPress,
+    this.onLongPress,
+    @required this.icon
+  }) : assert(onPress != null),
+       assert(icon != null),
+       super(key: key);
+
+  final AnimationController controller;
+  
+  final VoidCallback onPress;
+
+  final VoidCallback onLongPress;
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      controller: controller,
+      onPress: onPress,
+      onLongPress: onLongPress,
+      child: Icon(icon),
     );
   }
 }
