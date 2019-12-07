@@ -5,7 +5,7 @@ class GetSubredditPosts extends Effect {
   const GetSubredditPosts({
     @required this.subredditPosts,
     @required this.status,
-    @required this.page
+    @required this.page,
   });
 
   final SubredditPosts subredditPosts;
@@ -15,17 +15,22 @@ class GetSubredditPosts extends Effect {
   final Page page;
   
   @override
-  Future<Event> perform(EffectContext context) {
+  dynamic perform(EffectContext context) {
     return context.client
       .asDevice()
       .getSubredditPosts(
         subredditPosts.subredditName, subredditPosts.sort, page)
-      .then((ListingData<PostData> data) {
-          return FinishSubredditPostsUpdate(
-            subredditPosts: this.subredditPosts,
-            status: this.status,
+      .then(
+        (ListingData<PostData> data) {
+          return GetSubredditPostsSuccess(
+            subredditPosts: subredditPosts,
+            status: status,
             data: data
           );
+        },
+        onError: (_) {
+          return GetSubredditPostsFail();
         });
   }
 }
+

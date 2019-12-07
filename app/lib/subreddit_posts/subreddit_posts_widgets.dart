@@ -1,8 +1,8 @@
 part of 'subreddit_posts.dart';
 
-class SubredditPostsScrollable extends StatelessWidget {
+class SubredditPostsScrollView extends StatelessWidget {
 
-  SubredditPostsScrollable({
+  SubredditPostsScrollView({
     Key key,
     @required this.subredditPosts,
   }) : super(key: key);
@@ -12,8 +12,8 @@ class SubredditPostsScrollable extends StatelessWidget {
   @override
   Widget build(_) => Connector(
     builder: (BuildContext _, EventDispatch dispatch) {
-      return ListingScrollable(
-        listing: this.subredditPosts,
+      return ListingScrollView(
+        listing: subredditPosts,
         builder: (_, post) {
           return PostTile(
             post: post,
@@ -21,9 +21,9 @@ class SubredditPostsScrollable extends StatelessWidget {
             includeSubredditName: false
           );
         },
-        onUpdateListing: (ListingStatus status) {
-          dispatch(UpdateSubredditPosts(
-            subredditPosts: this.subredditPosts,
+        onLoadPage: (ListingStatus status) {
+          dispatch(LoadSubredditPosts(
+            subredditPosts: subredditPosts,
             status: status
           ));
         },

@@ -22,7 +22,7 @@ class InitResourcesSuccess extends Event {
   @override
   dynamic update(App app) {
     app.initialized = true;
-    return {
+    return <Message>{
       InitAuth(
         users: users,
         signedInUser: signedInUser,
@@ -49,7 +49,7 @@ class ResetState extends Event {
 
   @override
   dynamic update(App app) {
-    return {
+    return <Message>{
       InitTargets()
     };
   }

@@ -1,8 +1,8 @@
 part of 'subreddit_posts.dart';
 
-class UpdateSubredditPosts extends UpdateListing {
+class LoadSubredditPosts extends LoadPage {
 
-  const UpdateSubredditPosts({
+  const LoadSubredditPosts({
     @required this.subredditPosts,
     @required this.status
   });
@@ -12,23 +12,21 @@ class UpdateSubredditPosts extends UpdateListing {
   final ListingStatus status;
 
   @override
-  Effect update(_) {
-    return ifNotNull(
-      super.updateStatus(subredditPosts, this.status),
-      (Page page) {
-        return GetSubredditPosts(
-          subredditPosts: this.subredditPosts,
-          status: this.status,
-          page: page
-        );
-      }
-    );
+  dynamic update(_) {
+    final Page page = loadPage(subredditPosts, status);
+    if (page != null) {
+      return GetSubredditPosts(
+        subredditPosts: subredditPosts,
+        status: status,
+        page: page
+      );
+    }
   }
 }
 
-class FinishSubredditPostsUpdate extends FinishListingUpdate {
+class GetSubredditPostsSuccess extends LoadPageSuccess {
 
-  FinishSubredditPostsUpdate({
+  GetSubredditPostsSuccess({
     @required this.subredditPosts,
     @required this.status,
     @required this.data,
@@ -39,8 +37,8 @@ class FinishSubredditPostsUpdate extends FinishListingUpdate {
   final ListingData data;
 
   @override
-  void update(_) {
-    super.endUpdate(
+  dynamic update(_) {
+    loadPageSuccess(
       subredditPosts,
       status,
       data,
@@ -48,3 +46,12 @@ class FinishSubredditPostsUpdate extends FinishListingUpdate {
     );
   }
 }
+
+class GetSubredditPostsFail extends Event {
+
+  const GetSubredditPostsFail();
+
+  @override
+  dynamic update(_) { }
+}
+

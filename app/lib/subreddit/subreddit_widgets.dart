@@ -45,16 +45,10 @@ class SubredditEntry extends TargetEntry {
   String get title => subreddit.name;
 
   @override
-  List<Widget> buildTopActions(BuildContext context) => <Widget>[
-  ];
-
-  @override
   Widget buildBody(BuildContext context) {
-    return SubredditPostsScrollable(subredditPosts: subreddit.posts);
+    return SubredditPostsScrollView(
+      subredditPosts: subreddit.posts
+    );
   }
-
-  @override
-  List<Widget> buildBottomActions(BuildContext context) => <Widget>[
-  ];
 }
 

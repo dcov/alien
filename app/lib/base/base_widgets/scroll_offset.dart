@@ -12,14 +12,17 @@ mixin ScrollOffsetMixin<W extends StatefulWidget> on State<W> {
   @protected
   ScrollOffset get offset;
 
+  @protected
+  @mustCallSuper
+  void didChangeOffset() {
+    offset.value = controller.offset;
+  }
+
   @override
   void initState() {
     super.initState();
-    controller = ScrollController(
-      initialScrollOffset: offset.value
-    )..addListener(() {
-      offset.value = controller.offset;
-    });
+    controller = ScrollController(initialScrollOffset: offset.value);
+    controller.addListener(didChangeOffset);
   }
 
   @override

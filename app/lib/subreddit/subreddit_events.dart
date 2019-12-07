@@ -12,7 +12,7 @@ class InitSubreddit extends Event {
     subreddit.posts = SubredditPosts(
       subredditName: subreddit.name,
     );
-    return UpdateSubredditPosts(
+    return LoadSubredditPosts(
       subredditPosts: subreddit.posts,
       status: ListingStatus.loadingFirst
     );

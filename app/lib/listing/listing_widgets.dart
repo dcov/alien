@@ -1,54 +1,115 @@
 part of 'listing.dart';
 
-typedef ThingWidgetBuilder = Widget Function(
-  BuildContext context,
-  dynamic thing,
-);
+typedef ThingWidgetBuilder = Widget Function(BuildContext context, dynamic thing);
 
-typedef UpdateCallback = void Function(ListingStatus status);
+typedef LoadPageCallback = void Function(ListingStatus status);
 
-class ListingScrollable extends StatefulWidget {
+class ListingScrollView extends StatelessWidget {
 
-  ListingScrollable({
+  ListingScrollView({
     Key key,
     @required this.listing,
     @required this.builder,
-    @required this.onUpdateListing,
+    @required this.onLoadPage,
   }) : super(key: key);
 
   final Listing listing;
 
   final ThingWidgetBuilder builder;
 
-  final UpdateCallback onUpdateListing;
+  final LoadPageCallback onLoadPage;
 
   @override
-  _ListingScrollableState createState() => _ListingScrollableState();
+  Widget build(_) => Connector(
+    builder: (_, __) {
+      switch (listing.mode) {
+        case ListingMode.endless:
+          return _EndlessListingScrollView(
+            listing: listing,
+            builder: builder,
+            onLoadPage: onLoadPage,
+          );
+        case ListingMode.single:
+        default:
+          return const SizedBox();
+      }
+    }
+  );
 }
 
-class _ListingScrollableState extends State<ListingScrollable>
-    with ScrollOffsetMixin {
+class _EndlessListingScrollView extends StatefulWidget {
+
+  _EndlessListingScrollView({
+    Key key,
+    @required this.listing,
+    @required this.builder,
+    @required this.onLoadPage
+  }) : super(key: key);
+
+  final Listing listing;
+
+  final ThingWidgetBuilder builder;
+
+  final LoadPageCallback onLoadPage;
+
+  @override
+  _EndlessListingScrollViewState createState() => _EndlessListingScrollViewState();
+}
+
+class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
+    with ConnectionStateMixin, ScrollOffsetMixin {
 
   @override
   ScrollOffset get offset => widget.listing.offset;
 
+  bool _trackOffset = false;
+
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, EventDispatch dispatch) {
-      final Listing listing = widget.listing;
-      return PaddedScrollView(
-        controller: controller,
-        slivers: <Widget>[
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return widget.builder(context, listing.things[index]);
-              },
-              childCount: listing.things.length
+  void didChangeOffset() {
+    super.didChangeOffset();
+    if (!_trackOffset)
+      return;
+
+    final ScrollMetrics metrics = controller.position;
+    if (metrics.pixels > (metrics.maxScrollExtent - 100)) {
+      widget.onLoadPage(ListingStatus.loadingNext);
+    }
+  }
+
+  @override
+  void capture(_) {
+    final Listing listing = widget.listing;
+    _trackOffset = listing.status == ListingStatus.idle && 
+                   listing.pagination?.nextPageExists == true;
+  }
+
+  @override
+  Widget build(_) {
+    super.build(_);
+    return Connector(
+      builder: (BuildContext context, EventDispatch dispatch) {
+        final Listing listing = widget.listing;
+        return PaddedScrollView(
+          controller: controller,
+          slivers: <Widget>[
+            if (listing.status == ListingStatus.loadingFirst)
+              SliverToBoxAdapter(child: CircularProgressIndicator()),
+
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return widget.builder(context, listing.things[index]);
+                },
+                childCount: listing.things.length
+              ),
             ),
-          )
-        ],
-      );
-    },
-  );
+
+            if (listing.status == ListingStatus.loadingNext)
+              SliverToBoxAdapter(child: CircularProgressIndicator()),
+          ],
+        );
+      },
+    );
+  }
 }
+
