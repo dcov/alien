@@ -1,4 +1,12 @@
 import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart' show VoteDir;
+
+import '../auth/auth_model.dart';
+import '../user/user_model.dart';
+
+import 'votable_effects.dart';
+import 'votable_model.dart';
 
 class Upvote extends Event {
 

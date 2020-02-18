@@ -1,4 +1,12 @@
-part of 'votable.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart' show VoteDir;
+
+import '../effects/effect_context.dart';
+import '../thing/thing_utils.dart' as utils;
+import '../user/user_model.dart';
+
+import 'votable_model.dart';
 
 class PostVote extends Effect {
 
@@ -16,7 +24,7 @@ class PostVote extends Effect {
   Future<Event> perform(EffectContext context) {
     return context.client
       .asUser(user.token)
-      .postVote(makeFullId(votable), votable.voteDir)
+      .postVote(utils.makeFullId(votable), votable.voteDir)
       .catchError((e) {
       });
   }
