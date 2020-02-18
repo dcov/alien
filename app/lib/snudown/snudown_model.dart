@@ -1,4 +1,9 @@
-part of 'snudown.dart';
+import 'package:elmer/elmer.dart';
+import 'package:markdown/markdown.dart';
+
+import 'snudown_parser.dart' as parser;
+
+part 'snudown_model.g.dart';
 
 abstract class Snudown implements Model {
 
@@ -7,7 +12,7 @@ abstract class Snudown implements Model {
       nodes: const <Node>[],
       models: const <String, Model>{}
     );
-    parseSnudown(result, data);
+    parser.parseRawInto(data, result);
     return result;
   }
 
