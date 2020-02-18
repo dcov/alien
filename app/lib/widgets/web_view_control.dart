@@ -1,4 +1,5 @@
-part of '../base.dart';
+import 'package:flutter/widgets.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewControl extends StatefulWidget {
 

@@ -1,4 +1,4 @@
-part of '../base.dart';
+import 'package:flutter/widgets.dart';
 
 class CustomIcons {
   static const String _kFontFamily = 'AlienIcons';

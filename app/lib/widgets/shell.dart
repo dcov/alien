@@ -1,4 +1,8 @@
-part of '../base.dart';
+import 'dart:collection';
+
+import 'package:flutter/material.dart';
+
+import 'pressable.dart';
 
 const double _kButtonSize = 48.0;
 

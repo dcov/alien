@@ -1,4 +1,7 @@
-part of '../base.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter/gestures.dart';
+
+import 'shell.dart';
 
 class PaddedScrollView extends StatelessWidget {
 

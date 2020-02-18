@@ -1,4 +1,4 @@
-part of '../base.dart';
+import 'package:flutter/widgets.dart';
 
 const Duration _kPressDuration = Duration(milliseconds: 100);
 

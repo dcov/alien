@@ -1,4 +1,6 @@
-part of '../base.dart';
+import 'dart:math' as math;
+
+import 'package:flutter/widgets.dart';
 
 class CustomScrollPhysics extends ClampingScrollPhysics {
 

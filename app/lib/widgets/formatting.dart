@@ -1,4 +1,3 @@
-part of '../base.dart';
 
 const _kSecondsInAMinute = 60;
 const _kSecondsInAnHour = _kSecondsInAMinute * 60;

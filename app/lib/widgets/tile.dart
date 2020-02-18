@@ -1,4 +1,6 @@
-part of '../base.dart';
+import 'package:flutter/widgets.dart';
+
+import 'pressable.dart';
 
 class CustomTile extends StatelessWidget {
 
