@@ -1,4 +1,10 @@
-part of 'auth.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart' show AuthSession;
+
+import '../user/user_model.dart';
+
+part 'auth_model.g.dart';
 
 abstract class Permission implements Model {
 

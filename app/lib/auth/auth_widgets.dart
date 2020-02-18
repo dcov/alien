@@ -1,4 +1,17 @@
-part of 'auth.dart';
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+import '../user/user_widgets.dart';
+import '../widgets/padded_scroll_view.dart';
+import '../widgets/pressable.dart';
+import '../widgets/shell.dart';
+import '../widgets/tile.dart';
+import '../widgets/web_view_control.dart';
+
+import 'auth_events.dart';
+import 'auth_model.dart';
 
 class AuthButton extends StatelessWidget {
 
