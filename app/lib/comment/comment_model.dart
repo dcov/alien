@@ -6,7 +6,7 @@ abstract class Comment implements Saveable, Votable {
     return _$Comment(
       authorFlairText: data.authorFlairText,
       authorName: data.authorName,
-      body: Snudown(data.body),
+      body: Snudown.fromRaw(data.body),
       createdAtUtc: data.createdAtUtc,
       depth: data.depth,
       editedAtUtc: data.editedAtUtc,

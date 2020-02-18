@@ -21,7 +21,7 @@ abstract class Post implements Saveable, Votable, Target {
 
     Snudown snudown;
     if (data.selfText != null) {
-      snudown = Snudown(data.selfText);
+      snudown = Snudown.fromRaw(data.selfText);
     }
     return _$Post(
       authorName: data.authorName,

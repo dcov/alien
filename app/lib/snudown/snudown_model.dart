@@ -2,7 +2,7 @@ part of 'snudown.dart';
 
 abstract class Snudown implements Model {
 
-  factory Snudown(String data) {
+  factory Snudown.fromRaw(String data) {
     final Snudown result = _$Snudown(
       nodes: const <Node>[],
       models: const <String, Model>{}
