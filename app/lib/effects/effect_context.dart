@@ -1,4 +1,10 @@
-part of 'base.dart';
+import 'package:flutter/widgets.dart';
+import 'package:hive/hive.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+import 'package:scraper/scraper.dart';
+
+import 'effect_renderer.dart';
 
 class EffectContext {
 

@@ -1,4 +1,4 @@
-part of '../base.dart';
+import 'package:flutter/widgets.dart';
 
 class EffectRenderer extends StatefulWidget {
 

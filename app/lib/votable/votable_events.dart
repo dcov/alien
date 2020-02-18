@@ -1,4 +1,4 @@
-part of 'votable.dart';
+import 'package:elmer/elmer.dart';
 
 class Upvote extends Event {
 
