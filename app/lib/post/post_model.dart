@@ -1,6 +1,14 @@
-part of 'post.dart';
+import 'package:reddit/reddit.dart';
 
-abstract class Post implements Saveable, Votable, Target {
+import '../comments_tree/comments_tree_model.dart';
+import '../media/media_model.dart';
+import '../saveable/saveable_model.dart';
+import '../snudown/snudown_model.dart';
+import '../votable/votable_model.dart';
+
+part 'post_model.g.dart';
+
+abstract class Post implements Saveable, Votable {
   
   factory Post.fromData(PostData data) {
     Media media;

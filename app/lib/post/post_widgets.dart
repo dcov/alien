@@ -1,4 +1,37 @@
-part of '../post.dart';
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:reddit/reddit.dart' show VoteDir;
+
+import '../media/media_widgets.dart';
+import '../widgets/formatting.dart';
+import '../widgets/pressable.dart';
+import '../widgets/tile.dart';
+
+import 'post_model.dart';
+
+class PostDepthTile extends StatelessWidget {
+
+  PostDepthTile({
+    Key key,
+    @required this.post,
+  }) : super(key: key);
+
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomTile(
+      onTap: () { },
+      icon: Icon(Icons.comment),
+      title: Text(
+        post.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis
+      ),
+    );
+  }
+}
 
 class PostListTile extends StatelessWidget {
 
@@ -16,7 +49,7 @@ class PostListTile extends StatelessWidget {
   Widget build(_) => Connector(
     builder: (BuildContext context, EventDispatch dispatch) {
       return Pressable(
-        onPress: () => context.push(post),
+        onPress: () { },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -84,5 +117,43 @@ class PostListTile extends StatelessWidget {
       );
     },
   );
+}
+
+enum PostTileLayout {
+  depth,
+  list,
+}
+
+class PostTile extends StatelessWidget {
+
+  PostTile({
+    Key key,
+    @required this.post,
+    @required this.layout,
+    this.includeSubredditName,
+  }) : assert(post != null),
+       assert(layout != null),
+       assert(includeSubredditName != null || layout == PostTileLayout.depth),
+       super(key: key);
+
+  final Post post;
+
+  final PostTileLayout layout;
+
+  final bool includeSubredditName;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (layout) {
+      case PostTileLayout.depth:
+        return PostDepthTile(post: post);
+      case PostTileLayout.list:
+        return PostListTile(
+          post: post,
+          includeSubredditName: includeSubredditName
+        );
+    }
+    throw UnimplementedError();
+  }
 }
 
