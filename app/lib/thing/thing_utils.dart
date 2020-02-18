@@ -1,6 +1,4 @@
-import 'package:elmer/elmer.dart';
-
-part 'thing_model.dart';
+import 'thing_model.dart';
 
 /// Converts [Thing.id] into a 'full' id by prefixing it with [Thing.kind].
 /// 
@@ -9,4 +7,3 @@ part 'thing_model.dart';
 String makeFullId(Thing thing) {
   return '${thing.kind}_${thing.id}';
 }
-
