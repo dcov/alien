@@ -1,4 +1,12 @@
-part of 'comment.dart';
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+
+import '../snudown/snudown_widgets.dart';
+import '../widgets/formatting.dart';
+import '../widgets/insets.dart';
+
+import 'comment_model.dart';
 
 class CommentTile extends StatelessWidget {
 
