@@ -1,4 +1,13 @@
-part of 'app.dart';
+import 'dart:io' show Directory;
+
+import 'package:elmer/elmer.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart' as pathProvider;
+
+import '../auth/auth_effects.dart';
+import '../effects/effect_context.dart';
+
+import 'app_events.dart';
 
 class InitResources extends Effect with RetrieveUsers, RetrieveSignedInUser {
 
@@ -19,19 +28,6 @@ class InitResources extends Effect with RetrieveUsers, RetrieveSignedInUser {
     } catch (_) {
       return InitResourcesFail();
     }
-  }
-}
-
-class RenderUserChange extends Effect {
-
-  const RenderUserChange({ @required this.app });
-
-  final App app;
-
-  @override
-  dynamic perform(EffectContext context) {
-    final AppRenderer renderer = context.renderer.withId(app);
-    renderer?.renderUserChange();
   }
 }
 
