@@ -1,4 +1,8 @@
-part of 'defaults.dart';
+import 'package:flutter/widgets.dart';
+
+import '../widgets/tile.dart';
+
+import 'defaults_model.dart';
 
 class DefaultsTile extends StatelessWidget {
 
@@ -12,46 +16,9 @@ class DefaultsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomTile(
-      onTap: () => context.push(defaults),
+      onTap: () { },
       title: Text('Defaults')
     );
   }
-}
-
-class DefaultsEntry extends TargetEntry {
-
-  DefaultsEntry({ @required this.defaults });
-
-  final Defaults defaults;
-
-  @override
-  Target get target => this.defaults;
-
-  @override
-  String get title => 'Defaults';
-
-  @override
-  List<Widget> buildTopActions(BuildContext context) => <Widget>[
-  ];
-
-  @override
-  Widget buildBody(BuildContext context) => Connector(
-    builder: (_, __) {
-      final List<Subreddit> subreddits = defaults.subreddits;
-      return TrackingScrollView(
-        offset: defaults.offset,
-        slivers: <Widget>[
-          SliverList(delegate: SliverChildBuilderDelegate(
-            (_, int index) => SubredditTile(subreddit: subreddits[index]),
-            childCount: subreddits.length
-          ))
-        ]
-      );
-    }
-  );
-
-  @override
-  List<Widget> buildBottomActions(BuildContext context) => <Widget>[
-  ];
 }
 

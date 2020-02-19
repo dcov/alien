@@ -1,4 +1,11 @@
-part of 'defaults.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../effects/effect_context.dart';
+
+import 'defaults_events.dart';
+import 'defaults_model.dart';
 
 class GetDefaults extends Effect {
 
