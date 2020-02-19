@@ -1,4 +1,12 @@
-part of 'subscriptions.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../effects/effect_context.dart';
+import '../user/user_model.dart';
+
+import 'subscriptions_events.dart';
+import 'subscriptions_model.dart';
 
 class GetSubscriptions extends Effect {
 

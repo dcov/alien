@@ -1,4 +1,13 @@
-part of 'subscriptions.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../auth/auth_model.dart';
+import '../subreddit/subreddit_events.dart';
+import '../subreddit/subreddit_model.dart';
+
+import 'subscriptions_effects.dart';
+import 'subscriptions_model.dart';
 
 class RefreshSubscriptions extends Event {
 
@@ -40,7 +49,7 @@ class GetSubscriptionsSuccess extends Event {
       ..subreddits.clear()
       ..subreddits.addAll(
           data.map((SubredditData sd) => Subreddit.fromData(sd)))
-      ..subreddits.sort(compareSubreddits);
+      ..subreddits.sort((s1, s2) => s1.name.compareTo(s2.name));
   }
 }
 
@@ -58,9 +67,8 @@ class AddSubscriptionUpdate extends ProxyUpdate<AddSubscription> {
   AddSubscriptionUpdate();
 
   @override
-  dynamic update(RootRouting root, AddSubscription event) {
-    final Subscriptions subscriptions = root.routing.tree.singleWhere((t) => t is Subscriptions);
-    subscriptions.subreddits.add(event.subreddit);
+  dynamic update(_, AddSubscription event) {
+    // TODO: Implement
   }
 }
 
@@ -69,6 +77,8 @@ class RemoveSubscriptionUpdate extends ProxyUpdate<RemoveSubscription> {
   RemoveSubscriptionUpdate();
 
   @override
-  dynamic update(RootRouting root, RemoveSubscription event) {}
+  dynamic update(_, RemoveSubscription event) {
+    // TODO: Implement
+  }
 }
 
