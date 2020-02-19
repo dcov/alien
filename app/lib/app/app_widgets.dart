@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theming/theming_widgets.dart';
+import '../widgets/bottom_sheet_layout.dart';
 import '../widgets/scroll_configuration.dart';
 
 import 'app_model.dart';
@@ -82,7 +83,20 @@ class _MainState extends State<_Main> {
 
   @override
   Widget build(_) {
-    return const SizedBox();
+    return Material(
+      child: BottomSheetLayout(
+        body: Scaffold(
+          appBar: AppBar(title: Text('Alien'))
+        ),
+        sheetBuilder: (_, __) {
+          return Material(
+            elevation: 4.0,
+            color: Colors.grey,
+            child: SizedBox.expand()
+          );
+        }
+      )
+    );
   }
 }
 
