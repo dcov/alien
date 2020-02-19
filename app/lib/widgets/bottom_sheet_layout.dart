@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/widgets.dart';
 
 typedef BottomSheetWidgetBuilder = Widget Function(
@@ -63,6 +64,8 @@ class _BottomSheetLayoutState extends State<BottomSheetLayout> with TickerProvid
           child: GestureDetector(
             onVerticalDragUpdate: _delegate.handleDragUpdate,
             onVerticalDragEnd: _delegate.handleDragEnd,
+            behavior: HitTestBehavior.translucent,
+            dragStartBehavior: DragStartBehavior.start
           ),
         ),
       ]
@@ -94,7 +97,7 @@ class _BottomSheetLayoutDelegate extends MultiChildLayoutDelegate {
 
   void handleDragEnd(DragEndDetails details) {
     if (details.primaryVelocity.abs() >= 700) {
-      controller.fling(velocity: -details.primaryVelocity / 2);
+      controller.fling(velocity: -details.primaryVelocity / _draggableAmount);
     } else if (controller.value >= 0.5) {
       controller.fling(velocity: 1.0);
     } else {
