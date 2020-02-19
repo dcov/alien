@@ -1,4 +1,12 @@
-part of 'subreddit.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+
+import '../effects/effect_context.dart';
+import '../subreddit/subreddit_model.dart';
+import '../thing/thing_utils.dart' as utils;
+import '../user/user_model.dart';
+
+import 'subreddit_events.dart';
 
 class PostSubscribe extends Effect {
 
@@ -16,7 +24,7 @@ class PostSubscribe extends Effect {
     try {
       await context.client
           .asUser(user.token)
-          .postSubscribe(makeFullId(subreddit));
+          .postSubscribe(utils.makeFullId(subreddit));
     } catch (_) {
       return PostSubscribeFail(subreddit: subreddit);
     }
@@ -39,7 +47,7 @@ class PostUnsubscribe extends Effect {
     try {
       await context.client
           .asUser(user.token)
-          .postUnsubscribe(makeFullId(subreddit));
+          .postUnsubscribe(utils.makeFullId(subreddit));
     } catch (_) {
       return PostUnsubscribeFail(subreddit: subreddit);
     }

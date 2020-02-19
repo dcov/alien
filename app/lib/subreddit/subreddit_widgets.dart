@@ -1,4 +1,10 @@
-part of 'subreddit.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+
+import '../widgets/icons.dart';
+import '../widgets/tile.dart';
+
+import 'subreddit_model.dart';
 
 class SubredditTile extends StatelessWidget {
 
@@ -16,8 +22,7 @@ class SubredditTile extends StatelessWidget {
   Widget build(_) => Connector(
     builder: (BuildContext context, _) {
       return CustomTile(
-        onTap: () => context.push(subreddit),
-        depth: includeDepth ? subreddit.depth : 0,
+        onTap: () { },
         icon: Icon(
           CustomIcons.subreddit,
           color: Colors.blueGrey,
@@ -30,25 +35,5 @@ class SubredditTile extends StatelessWidget {
       );
     },
   );
-}
-
-class SubredditEntry extends TargetEntry {
-
-  SubredditEntry({ @required this.subreddit });
-
-  final Subreddit subreddit;
-
-  @override
-  Target get target => subreddit;
-
-  @override
-  String get title => subreddit.name;
-
-  @override
-  Widget buildBody(BuildContext context) {
-    return SubredditPostsScrollView(
-      subredditPosts: subreddit.posts
-    );
-  }
 }
 

@@ -1,4 +1,14 @@
-part of 'subreddit.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+
+import '../auth/auth_model.dart';
+import '../listing/listing_model.dart';
+import '../subreddit/subreddit_model.dart';
+import '../subreddit_posts/subreddit_posts_events.dart';
+import '../subreddit_posts/subreddit_posts_model.dart';
+import '../user/user_model.dart';
+
+import 'subreddit_effects.dart';
 
 class InitSubreddit extends Event {
 
