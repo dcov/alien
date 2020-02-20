@@ -19,8 +19,8 @@ class SubredditTile extends StatelessWidget {
   final bool includeDepth;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, _) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       return CustomTile(
         onTap: () { },
         icon: Icon(

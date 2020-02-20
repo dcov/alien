@@ -26,8 +26,10 @@ class Runner extends StatelessWidget {
       DeviceOrientation.portraitUp,
     ]);
 
-    return Connector(
-      stateBuilder: (_, App app, __) {
+    return Tracker(
+      builder: (BuildContext context) {
+        final App app = context.state;
+
         /// This check does two things: It checks whether the state has been
         /// initialized and returns [_Splash] if it hasn't, but more importantly
         /// it let's [Connector] know that the only value we depend on is
