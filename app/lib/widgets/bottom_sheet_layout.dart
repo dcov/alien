@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart' show DragStartBehavior;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 typedef BottomSheetWidgetBuilder = Widget Function(
   BuildContext context,
@@ -53,7 +53,22 @@ class _BottomSheetLayoutState extends State<BottomSheetLayout> with TickerProvid
       children: <Widget>[
         LayoutId(
           id: _BottomSheetLayoutSlot.body,
-          child: widget.body,
+          child: ValueListenableBuilder(
+            valueListenable: _delegate.controller,
+            builder: (_, double value, Widget child) {
+              return IgnorePointer(
+                ignoring: value != 0,
+                child: DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.25 * value)
+                  ),
+                  child: child
+                ),
+              );
+            },
+            child: widget.body
+          )
         ),
         LayoutId(
           id: _BottomSheetLayoutSlot.sheet,
