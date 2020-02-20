@@ -1,4 +1,3 @@
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -27,8 +26,8 @@ class ListingScrollView extends StatelessWidget {
   final LoadPageCallback onLoadPage;
 
   @override
-  Widget build(_) => Connector(
-    builder: (_, __) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       switch (listing.mode) {
         case ListingMode.endless:
           return _EndlessListingScrollView(
@@ -64,7 +63,7 @@ class _EndlessListingScrollView extends StatefulWidget {
 }
 
 class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
-    with ConnectionStateMixin, ScrollOffsetMixin {
+    with TrackerStateMixin, ScrollOffsetMixin {
 
   @override
   ScrollOffset get offset => widget.listing.offset;
@@ -84,7 +83,7 @@ class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
   }
 
   @override
-  void capture(_) {
+  void track(_) {
     final Listing listing = widget.listing;
     _trackOffset = listing.status == ListingStatus.idle && 
                    listing.pagination?.nextPageExists == true;
@@ -92,9 +91,9 @@ class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
 
   @override
   Widget build(_) {
-    super.build(_);
-    return Connector(
-      builder: (BuildContext context, EventDispatch dispatch) {
+    super.buildCheck();
+    return Tracker(
+      builder: (BuildContext context) {
         final Listing listing = widget.listing;
         return PaddedScrollView(
           controller: controller,

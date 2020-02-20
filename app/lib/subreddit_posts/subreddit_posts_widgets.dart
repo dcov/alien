@@ -1,4 +1,3 @@
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/widgets.dart';
 
@@ -19,8 +18,8 @@ class SubredditPostsScrollView extends StatelessWidget {
   final SubredditPosts subredditPosts;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext _, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       return ListingScrollView(
         listing: subredditPosts,
         builder: (_, post) {
@@ -31,7 +30,7 @@ class SubredditPostsScrollView extends StatelessWidget {
           );
         },
         onLoadPage: (ListingStatus status) {
-          dispatch(LoadSubredditPosts(
+          context.dispatch(LoadSubredditPosts(
             subredditPosts: subredditPosts,
             status: status
           ));

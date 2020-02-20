@@ -1,4 +1,3 @@
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -35,8 +34,8 @@ class _CommentsTreeScrollableState extends State<CommentsTreeScrollable> {
   }
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       final CommentsTree commentsTree = widget.commentsTree;
       return PaddedScrollView(
         controller: _controller,
@@ -81,14 +80,14 @@ class _MoreTile extends StatelessWidget {
   final More more;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext _, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       return Padding(
         padding: EdgeInsets.only(left: 16.0 * more.depth),
         child: Material(
           child: InkWell(
             onTap: !more.isLoading
-              ? () => dispatch(LoadMoreComments(
+              ? () => context.dispatch(LoadMoreComments(
                     commentsTree: commentsTree, more: more))
               : null,
             child: Padding(

@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -17,13 +16,13 @@ class MediaThumbnail extends StatelessWidget {
   final Media media;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       Widget result;
       switch (media.thumbnailStatus) {
         case ThumbnailStatus.notLoaded:
           SchedulerBinding.instance.addPostFrameCallback((_) {
-            dispatch(LoadThumbnail(media: this.media));
+            context.dispatch(LoadThumbnail(media: this.media));
           });
           continue loading;
         loading:

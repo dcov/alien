@@ -1,4 +1,3 @@
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -21,8 +20,8 @@ class CommentTile extends StatelessWidget {
   final bool includeDepthPadding;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       Widget result = Material(
         child: Padding(
           padding: includeDepthPadding

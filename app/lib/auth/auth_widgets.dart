@@ -1,4 +1,3 @@
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -47,8 +46,8 @@ class AuthEntry extends ShellAreaEntry {
   String get title => 'Accounts';
 
   @override
-  Widget buildBody(_) => Connector(
-    builder: (BuildContext context, __) {
+  Widget buildBody(_) => Tracker(
+    builder: (BuildContext context) {
       if (auth.authenticating) {
         return Center(
           child: CircularProgressIndicator()
@@ -125,8 +124,8 @@ class _LoginEntry extends ShellAreaEntry {
   }
 
   @override
-  Widget buildBody(_) => Connector(
-    builder: (BuildContext context, __) {
+  Widget buildBody(_) => Tracker(
+    builder: (BuildContext context) {
       if (auth.authenticating) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
           context.pop();
@@ -211,15 +210,15 @@ class _PermissionTile extends StatelessWidget {
   final Permission permission;
 
   @override
-  Widget build(_) => Connector(
-    builder: (_, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       return Pressable(
         onPress: () {},
         child: Row(
           children: <Widget>[
             Checkbox(
               onChanged: (_) {
-                dispatch(TogglePermission(
+                context.dispatch(TogglePermission(
                   permission: permission
                 ));
               },

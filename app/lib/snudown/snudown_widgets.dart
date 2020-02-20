@@ -1,4 +1,3 @@
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -65,8 +64,8 @@ class SnudownBody extends StatelessWidget {
   final bool scrollable;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       return Markdown(
         nodes: snudown.nodes,
         styleSheet: _createStyleSheet(context),

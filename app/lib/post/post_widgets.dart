@@ -1,4 +1,3 @@
-import 'package:elmer/elmer.dart';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart' show VoteDir;
@@ -46,8 +45,8 @@ class PostListTile extends StatelessWidget {
   final bool includeSubredditName;
   
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context, EventDispatch dispatch) {
+  Widget build(_) => Tracker(
+    builder: (BuildContext context) {
       return Pressable(
         onPress: () { },
         child: Padding(
