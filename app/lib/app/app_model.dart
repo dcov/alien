@@ -1,6 +1,12 @@
-part of 'app.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
 
-abstract class App implements RootAuth, RootRouting, RootTheming {
+import '../auth/auth_model.dart';
+import '../theming/theming_model.dart';
+
+part 'app_model.g.dart';
+
+abstract class App implements RootAuth, RootTheming {
 
   factory App({
     @required String clientId,
@@ -12,7 +18,6 @@ abstract class App implements RootAuth, RootRouting, RootTheming {
         clientId: clientId,
         redirectUri: redirectUri
       ),
-      routing: Routing(),
       theming: Theming()
     );
   }

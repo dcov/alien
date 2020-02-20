@@ -1,4 +1,15 @@
-part of 'comments_tree.dart';
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+
+import '../comment/comment_model.dart';
+import '../comment/comment_widgets.dart';
+import '../thing/thing_model.dart';
+
+import '../widgets/padded_scroll_view.dart';
+
+import 'comments_tree_events.dart';
+import 'comments_tree_model.dart';
 
 class CommentsTreeScrollable extends StatefulWidget {
 

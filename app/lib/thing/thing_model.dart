@@ -1,4 +1,4 @@
-part of 'thing.dart';
+import 'package:elmer/elmer.dart';
 
 @abs
 abstract class Thing implements Model {

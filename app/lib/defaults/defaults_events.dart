@@ -1,4 +1,11 @@
-part of 'defaults.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../subreddit/subreddit_model.dart';
+
+import 'defaults_effects.dart';
+import 'defaults_model.dart';
 
 class InitDefaults extends Event {
 
@@ -66,7 +73,7 @@ class DefaultsLoaded extends Event {
       ..refreshing = false
       ..subreddits.addAll(
         this.subreddits.map((data) => Subreddit.fromData(data)))
-      ..subreddits.sort(compareSubreddits);
+      ..subreddits.sort((s1, s2) => s1.name.compareTo(s2.name));
   }
 }
 

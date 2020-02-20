@@ -1,11 +1,12 @@
-part of 'app.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// Renders changes to the [App] state.
-abstract class AppRenderer {
+import '../theming/theming_widgets.dart';
+import '../widgets/bottom_sheet_layout.dart';
+import '../widgets/scroll_configuration.dart';
 
-  /// Renders a change in the logged-in user.
-  void renderUserChange();
-}
+import 'app_model.dart';
 
 /// The root widget in the tree.
 ///
@@ -78,191 +79,24 @@ class _Main extends StatefulWidget {
   _MainState createState() => _MainState();
 }
 
-class _MainState extends State<_Main> with EffectRendererMixin, TargetsMixin implements AppRenderer {
-
-  final GlobalKey<ShellState> _shellKey = GlobalKey<ShellState>();
-  _MenuController _menuController;
-  RoutingController _routingController;
-
-  ShellState get _shell => _shellKey.currentState;
-
-  /// Our [rendererId] is the [App] instance because there's only one instance.
-  @override
-  Object get rendererId => widget.app;
-
-  @override
-  void renderUserChange() {
-    /// Resync the [App.routing] state with the body of the [Shell].
-    ///
-    /// This is safe to call, i.e. it will never fail, because while changing
-    /// user accounts, calls to [RoutingController.push], or
-    /// [RoutingController.pop] are not possible.
-    ///
-    /// See [RoutingController.resync] for why this is important.
-    _routingController.resync();
-
-    /// Pop the [Shell] drawer to the main menu.
-    _menuController.popToRoot();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _routingController = RoutingController(
-      routing: widget.app.routing,
-      onGetArea: () => _shell.body,
-      onGenerateEntry: super.createEntry,
-      onDispatchPush: super.handlePush,
-      onDispatchPop: super.handlePop,
-    );
-    _menuController = _MenuController(
-      auth: widget.app.auth,
-      routing: widget.app.routing,
-      onGetShell: () => _shell,
-      onGetDrawer: () => _shell.drawer,
-      onTargetPush: (Target t) {
-        _shell.closeDrawer();
-        _routingController.push(t);
-      },
-      onTargetPop: _routingController.pop,
-      tileBuilder: super.buildTile,
-    );
-  }
+class _MainState extends State<_Main> {
 
   @override
   Widget build(_) {
-    return Shell(
-      key: _shellKey,
-      drawerController: _menuController,
-      bodyController: _routingController,
-      initialDrawerEntries: _menuController.initialEntries,
-      initialBodyEntries: _routingController.initialEntries,
+    return Material(
+      child: BottomSheetLayout(
+        body: Scaffold(
+          appBar: AppBar(title: Text('Alien'))
+        ),
+        sheetBuilder: (_, __) {
+          return Material(
+            elevation: 4.0,
+            color: Colors.grey,
+            child: SizedBox.expand()
+          );
+        }
+      )
     );
   }
-}
-
-typedef _TargetHandler = void Function(Target target);
-
-typedef _TileBuilder = Widget Function(BuildContext context, Target target);
-
-class _MenuController extends ShellAreaController {
-
-  _MenuController({
-    @required this.auth,
-    @required this.routing,
-    @required this.onGetShell,
-    @required this.onGetDrawer,
-    @required this.onTargetPush,
-    @required this.onTargetPop,
-    @required this.tileBuilder
-  }) : assert(auth != null),
-       assert(routing != null),
-       assert(onGetDrawer != null),
-       assert(onTargetPush != null),
-       assert(onTargetPop != null);
-
-  final Auth auth;
-
-  final Routing routing;
-
-  final ValueGetter<ShellState> onGetShell;
-
-  final ValueGetter<ShellAreaState> onGetDrawer;
-
-  final _TargetHandler onTargetPush;
-
-  final _TargetHandler onTargetPop;
-
-  final _TileBuilder tileBuilder;
-
-  List<ShellAreaEntry> get initialEntries {
-    return <ShellAreaEntry>[
-      _MainMenuEntry(
-        auth: auth,
-        routing: routing,
-        tileBuilder: tileBuilder,
-      )
-    ];
-  }
-
-  void popToRoot() async {
-    final ShellState shell = onGetShell();
-    final ShellAreaState drawer = onGetDrawer();
-    while(drawer.entries.length > 1) {
-      await drawer.pop();
-    }
-    shell.shrinkDrawer();
-  }
-
-  @override
-  void push(Object value) async {
-    if (value is Target) {
-      onTargetPush(value);
-    } else {
-      assert(value is ShellAreaEntry);
-      final ShellState shell = onGetShell();
-      final ShellAreaState drawer = onGetDrawer();
-      if (drawer.entries.length == 1) {
-        await shell.expandDrawer();
-      }
-      drawer.push(value);
-    }
-  }
-
-  @override
-  void pop([Object value]) async {
-    if (value is Target) {
-      onTargetPop(value);
-    } else {
-      assert(value == null || value is ShellAreaEntry);
-      final ShellState shell = onGetShell();
-      final ShellAreaState drawer = onGetDrawer();
-      assert(drawer.entries.length > 1);
-      await drawer.pop(value);
-      if (drawer.entries.length == 1)
-        shell.shrinkDrawer();
-    }
-  }
-}
-
-class _MainMenuEntry extends ShellAreaEntry {
-
-  _MainMenuEntry({
-    @required this.auth,
-    @required this.routing,
-    @required this.tileBuilder,
-  });
-
-  final Auth auth;
-
-  final Routing routing;
-
-  final _TileBuilder tileBuilder;
-
-  @override
-  String get title => auth.currentUser?.name ?? 'Alien';
-
-  @override
-  List<Widget> buildTopActions(BuildContext context) {
-    return <Widget>[
-      AuthButton(auth: auth)
-    ];
-  }
-
-  @override
-  Widget buildBody(_) => Connector(
-    builder: (BuildContext context, _) {
-      return PaddedScrollView(
-        slivers: <Widget>[
-          SliverList(delegate: SliverChildBuilderDelegate(
-            (_, int index) {
-              return tileBuilder(context, routing.tree[index]);
-            },
-            childCount: routing.tree.length
-          ))
-        ]
-      );
-    }
-  );
 }
 

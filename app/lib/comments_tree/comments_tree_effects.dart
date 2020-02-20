@@ -1,4 +1,11 @@
-part of 'comments_tree.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../effects/effect_context.dart';
+
+import 'comments_tree_events.dart';
+import 'comments_tree_model.dart';
 
 class GetPostComments extends Effect {
 

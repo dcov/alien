@@ -1,4 +1,8 @@
-part of 'subscriptions.dart';
+import 'package:flutter/widgets.dart';
+
+import '../widgets/tile.dart';
+
+import 'subscriptions_model.dart';
 
 class SubscriptionsTile extends StatelessWidget {
 
@@ -12,38 +16,9 @@ class SubscriptionsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomTile(
-      onTap: () => context.push(subscriptions),
+      onTap: () { },
       title: Text('Subscriptions')
     );
   }
-}
-
-class SubscriptionsEntry extends TargetEntry {
-
-  SubscriptionsEntry({ @required this.subscriptions });
-
-  final Subscriptions subscriptions;
-
-  @override
-  Target get target => subscriptions;
-
-  @override
-  String get title => 'Subscriptions';
-
-  @override
-  Widget buildBody(_) => Connector(
-    builder: (_, __) {
-      final List<Subreddit> subreddits = subscriptions.subreddits;
-      return TrackingScrollView(
-        offset: subscriptions.offset,
-        slivers: <Widget>[
-          SliverList(delegate: SliverChildBuilderDelegate(
-            (_, int index) => SubredditTile(subreddit: subreddits[index]),
-            childCount: subreddits.length
-          ))
-        ]
-      );
-    }
-  );
 }
 

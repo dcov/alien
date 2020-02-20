@@ -1,4 +1,8 @@
-part of 'listing.dart';
+import 'package:elmer/elmer.dart';
+import 'package:reddit/reddit.dart';
+
+import '../thing/thing_model.dart';
+import '../widgets/scroll_offset.dart';
 
 enum ListingMode {
   single,

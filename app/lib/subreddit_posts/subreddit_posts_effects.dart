@@ -1,4 +1,12 @@
-part of 'subreddit_posts.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../effects/effect_context.dart';
+import '../listing/listing_model.dart';
+
+import 'subreddit_posts_events.dart';
+import 'subreddit_posts_model.dart';
 
 class GetSubredditPosts extends Effect {
 

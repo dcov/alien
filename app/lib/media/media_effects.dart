@@ -1,4 +1,10 @@
-part of 'media.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+
+import '../effects/effect_context.dart';
+
+import 'media_events.dart';
+import 'media_model.dart';
 
 class ScrapeThumbnail extends Effect {
 

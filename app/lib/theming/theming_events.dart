@@ -1,4 +1,8 @@
-part of 'theming.dart';
+import 'package:elmer/elmer.dart';
+import 'package:flutter/material.dart' show ThemeData;
+import 'package:meta/meta.dart';
+
+import 'theming_model.dart';
 
 class UpdateTheme extends Event {
 

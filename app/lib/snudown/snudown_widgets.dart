@@ -1,4 +1,9 @@
-part of 'snudown.dart';
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+
+import 'snudown_model.dart';
 
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {
   final ThemeData theme = Theme.of(context);

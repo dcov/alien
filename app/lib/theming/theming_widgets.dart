@@ -1,4 +1,8 @@
-part of 'theming.dart';
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+
+import 'theming_model.dart';
 
 class Themer extends StatelessWidget {
 

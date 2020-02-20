@@ -1,4 +1,10 @@
-part of 'comments_tree.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../thing/thing_model.dart';
+
+part 'comments_tree_model.g.dart';
 
 abstract class More implements Thing {
 

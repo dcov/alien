@@ -1,4 +1,11 @@
-part of 'auth.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../user/user_model.dart';
+
+import 'auth_effects.dart';
+import 'auth_model.dart';
 
 class InitAuth extends Event {
 

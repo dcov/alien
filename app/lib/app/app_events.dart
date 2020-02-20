@@ -1,4 +1,11 @@
-part of 'app.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+
+import '../auth/auth_events.dart';
+import '../theming/theming_events.dart';
+
+import 'app_effects.dart';
+import 'app_model.dart';
 
 class Init extends Event {
 
@@ -50,7 +57,6 @@ class ResetState extends Event {
   @override
   dynamic update(App app) {
     return <Message>{
-      InitTargets()
     };
   }
 }
@@ -63,7 +69,6 @@ class UserChangedUpdate extends ProxyUpdate<UserChanged> {
   dynamic update(App app, UserChanged _) {
     return <Message>{
       ResetState(),
-      RenderUserChange(app: app),
     };
   }
 }

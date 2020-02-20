@@ -1,6 +1,11 @@
-part of 'defaults.dart';
+import 'package:elmer/elmer.dart';
 
-abstract class Defaults implements Target {
+import '../subreddit/subreddit_model.dart';
+import '../widgets/scroll_offset.dart';
+
+part 'defaults_model.g.dart';
+
+abstract class Defaults implements Model {
 
   factory Defaults() {
     return _$Defaults(

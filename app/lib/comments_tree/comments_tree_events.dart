@@ -1,4 +1,12 @@
-part of 'comments_tree.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../comment/comment_model.dart';
+import '../thing/thing_model.dart';
+
+import 'comments_tree_effects.dart';
+import 'comments_tree_model.dart';
 
 class LoadCommentsTree extends Event {
 
@@ -103,5 +111,26 @@ class GetMoreCommentsFail extends Event {
 
   @override
   dynamic update(_) { }
+}
+
+// Helper functions
+
+// Maps [data] to a either a [Comment], or [More] object depending on its type.
+Thing _mapThing(ThingData data) {
+  if (data is CommentData)
+    return Comment.fromData(data);
+  else if (data is MoreData)
+    return More.fromData(data);
+  
+  return null;
+}
+
+// Flattens the [data] tree structure.
+Iterable<ThingData> _expandTree(Iterable<ThingData> data) sync* {
+  for (final ThingData td in data) {
+    yield td;
+    if (td is CommentData)
+      yield* _expandTree(td.replies);
+  }
 }
 

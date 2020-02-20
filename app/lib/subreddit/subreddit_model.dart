@@ -1,6 +1,11 @@
-part of 'subreddit.dart';
+import 'package:reddit/reddit.dart' show SubredditData;
 
-abstract class Subreddit implements Thing, Target {
+import '../subreddit_posts/subreddit_posts_model.dart';
+import '../thing/thing_model.dart';
+
+part 'subreddit_model.g.dart';
+
+abstract class Subreddit implements Thing {
 
   factory Subreddit.fromData(SubredditData data) {
     return _$Subreddit(

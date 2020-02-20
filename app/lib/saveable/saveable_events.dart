@@ -1,4 +1,11 @@
-part of 'saveable.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+
+import '../auth/auth_model.dart';
+import '../user/user_model.dart';
+
+import 'saveable_effects.dart';
+import 'saveable_model.dart';
 
 class ToggleSaved extends Event {
 

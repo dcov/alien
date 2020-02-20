@@ -1,4 +1,13 @@
-part of 'subreddit_posts.dart';
+import 'package:elmer/elmer.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+
+import '../listing/listing_events.dart';
+import '../listing/listing_model.dart';
+import '../post/post_model.dart';
+import '../subreddit_posts/subreddit_posts_model.dart';
+
+import 'subreddit_posts_effects.dart';
 
 class LoadSubredditPosts extends LoadPage {
 

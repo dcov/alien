@@ -1,4 +1,10 @@
-part of 'comment.dart';
+import 'package:reddit/reddit.dart' show CommentData;
+
+import '../saveable/saveable_model.dart';
+import '../snudown/snudown_model.dart';
+import '../votable/votable_model.dart';
+
+part 'comment_model.g.dart';
 
 abstract class Comment implements Saveable, Votable {
 
@@ -6,7 +12,7 @@ abstract class Comment implements Saveable, Votable {
     return _$Comment(
       authorFlairText: data.authorFlairText,
       authorName: data.authorName,
-      body: Snudown(data.body),
+      body: Snudown.fromRaw(data.body),
       createdAtUtc: data.createdAtUtc,
       depth: data.depth,
       editedAtUtc: data.editedAtUtc,

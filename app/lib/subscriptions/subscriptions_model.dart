@@ -1,13 +1,17 @@
-part of 'subscriptions.dart';
+import 'package:elmer/elmer.dart';
 
-abstract class Subscriptions implements Target {
+import '../subreddit/subreddit_model.dart';
+import '../widgets/scroll_offset.dart';
+
+part 'subscriptions_model.g.dart';
+
+abstract class Subscriptions implements Model {
 
   factory Subscriptions() {
     return _$Subscriptions(
       refreshing: false,
       subreddits: const <Subreddit>[],
       offset: ScrollOffset(),
-      depth: 0
     );
   }
 

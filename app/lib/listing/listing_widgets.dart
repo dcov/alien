@@ -1,4 +1,11 @@
-part of 'listing.dart';
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/material.dart';
+
+import '../widgets/padded_scroll_view.dart';
+import '../widgets/scroll_offset.dart';
+
+import 'listing_model.dart';
 
 typedef ThingWidgetBuilder = Widget Function(BuildContext context, dynamic thing);
 
