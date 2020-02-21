@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theming/theming_widgets.dart';
+import '../widgets/bottom_navigation.dart';
 import '../widgets/bottom_sheet_layout.dart';
 import '../widgets/scroll_configuration.dart';
 
@@ -16,7 +17,8 @@ import 'app_model.dart';
 /// initialized [App] state and doesn't rebuild anymore.
 class Runner extends StatelessWidget {
 
-  Runner({ Key key }) : super(key: key);
+  Runner({ Key key })
+    : super(key: key);
 
   @override
   Widget build(_) {
@@ -43,22 +45,19 @@ class Runner extends StatelessWidget {
           builder: (_, Widget child) {
             return Themer(
               theming: app.theming,
-              child: child,
-            );
+              child: child,);
           },
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
-            child: _Main(app: app)
-          )
-        );
-      }
-    );
+            child: _Scaffold(app: app)));
+      });
   }
 }
 
 class _Splash extends StatelessWidget {
 
-  const _Splash({ Key key }) : super(key: key);
+  const _Splash({ Key key })
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +67,9 @@ class _Splash extends StatelessWidget {
 
 /// The main [Widget] in the tree which essentially wires up all of the 
 /// top-level components of the app.
-class _Main extends StatefulWidget {
+class _Scaffold extends StatefulWidget {
 
-  _Main({
+  _Scaffold({
     Key key,
     this.app,
   }) : super(key: key);
@@ -78,27 +77,36 @@ class _Main extends StatefulWidget {
   final App app;
 
   @override
-  _MainState createState() => _MainState();
+  _ScaffoldState createState() => _ScaffoldState();
 }
 
-class _MainState extends State<_Main> {
+class _ScaffoldState extends State<_Scaffold> {
 
   @override
   Widget build(_) {
     return Material(
       child: BottomSheetLayout(
         body: Scaffold(
-          appBar: AppBar(title: Text('Alien'))
-        ),
+          appBar: AppBar(title: Text('Alien'))),
         sheetBuilder: (_, __) {
           return Material(
             elevation: 4.0,
-            color: Colors.grey,
-            child: SizedBox.expand()
-          );
-        }
-      )
-    );
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16.0))),
+            child: Stack(
+              children: <Widget>[
+                SizedBox(
+                  height: 48.0,
+                  child: BottomNavigation(
+                    activeColor: Colors.blue,
+                    inactiveColor: Colors.grey,
+                    items: <BottomNavigationBarItem>[
+                      BottomNavigationBarItem(icon: Icon(Icons.list)),
+                      BottomNavigationBarItem(icon: Icon(Icons.mail)),
+                      BottomNavigationBarItem(icon: Icon(Icons.person)),
+                    ]))
+              ]));
+        }));
   }
 }
 
