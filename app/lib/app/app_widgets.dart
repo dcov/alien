@@ -34,7 +34,7 @@ class Runner extends StatelessWidget {
 
         /// This check does two things: It checks whether the state has been
         /// initialized and returns [_Splash] if it hasn't, but more importantly
-        /// it let's [Connector] know that the only value we depend on is
+        /// it let's [Tracker] know that the only value we depend on is
         /// the [app.initialized] value. This means we'll only rebuild once -
         /// when the [app.initialized] value is set to [true].
         if (!app.initialized)
@@ -45,7 +45,7 @@ class Runner extends StatelessWidget {
           builder: (_, Widget child) {
             return Themer(
               theming: app.theming,
-              child: child,);
+              child: child);
           },
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
