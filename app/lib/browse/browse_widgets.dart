@@ -3,19 +3,17 @@ import 'package:flutter/widgets.dart';
 
 import 'browse_model.dart';
 
-class BrowseTabView extends StatefulWidget {
+class BrowseTabController extends StatefulWidget {
 
-  BrowseTabView({
+  BrowseTabController({
     Key key,
   }) : super(key: key);
 
-
-
   @override
-  _BrowseTabViewState createState() => _BrowseTabViewState();
+  _BrowseTabControllerState createState() => _BrowseTabControllerState();
 }
 
-class _BrowseTabViewState extends State<BrowseTabView> {
+class _BrowseTabControllerState extends State<BrowseTabController> {
 
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
