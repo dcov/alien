@@ -6,90 +6,76 @@ import '../thing/thing_model.dart';
 
 import 'listing_model.dart';
 
-abstract class LoadPage extends Event {
+abstract class UpdateListing extends Event {
 
-  const LoadPage();
+  const UpdateListing();
 
   @protected
-  Page loadPage(Listing listing, ListingStatus status) {
+  Page updateListing(Listing listing, ListingStatus newStatus) {
     assert(listing != null);
-    assert(status != null);
-    assert(status != ListingStatus.idle);
+    assert(newStatus != null);
+    assert(newStatus != ListingStatus.idle);
 
-    switch(status) {
-      case ListingStatus.loadingFirst:
-        if (listing.status == ListingStatus.loadingFirst)
+    switch(newStatus) {
+      case ListingStatus.refreshing:
+        // Check if the listing is already refreshing
+        if (listing.status == ListingStatus.refreshing)
           return null;
 
-        listing..status = ListingStatus.loadingFirst
+        listing..status = ListingStatus.refreshing
                ..pagination = Pagination()
                ..things.clear();
 
         return listing.pagination.nextPage;
-      case ListingStatus.loadingNext:
+      case ListingStatus.loadingMore:
         assert(listing.pagination != null);
         assert(listing.pagination.nextPageExists);
         if (listing.status != ListingStatus.idle)
           return null;
         
-        listing.status = ListingStatus.loadingNext;
-        if (listing.mode == ListingMode.single)
-          listing.things.clear();
-        
-        return listing.pagination.nextPage;
-      case ListingStatus.loadingPrevious:
-        assert(listing.pagination != null);
-        assert(listing.pagination.previousPageExists);
-        assert(listing.mode == ListingMode.single);
-        if (listing.status != ListingStatus.idle)
-          return null;
-        
-        listing..status = ListingStatus.loadingPrevious
+        listing..status = ListingStatus.loadingMore
                ..things.clear();
         
-        return listing.pagination.previousPage;
+        return listing.pagination.nextPage;
       default:
         return null;
     }
   }
 }
 
-abstract class LoadPageSuccess extends Event {
+abstract class UpdateListingSuccess extends Event {
 
-  const LoadPageSuccess();
+  const UpdateListingSuccess();
 
   @protected
-  void loadPageSuccess(
+  void updateListingSuccess(
       Listing listing,
-      ListingStatus status,
+      ListingStatus expectedStatus,
       ListingData data,
       Thing mapper(dynamic data)) {
     assert(listing.pagination != null);
-    assert(status != ListingStatus.idle);
-    if (listing.status != status)
+    assert(expectedStatus != null);
+    assert(expectedStatus != ListingStatus.idle);
+    if (listing.status != expectedStatus)
       return;
     
-    Iterable<ThingData> tdi = data.things;
-    switch (status) {
-      case ListingStatus.loadingPrevious:
-        listing.pagination = listing.pagination.backward(data);
-        continue mapThings;
-      case ListingStatus.loadingNext:
-        tdi = tdi.where((ThingData td) {
+    Iterable<ThingData> newThings = data.things;
+    switch (listing.status) {
+      case ListingStatus.loadingMore:
+        // Filter out any [Thing] items from [newThings] that are already in
+        // [listing.things] by comparing their [Thing.id] values.
+        newThings = newThings.where((ThingData td) {
           for (final Thing t in listing.things) {
             if (t.id == td.id)
               return false;
           }
           return true;
         });
-        continue forward;
-      forward:
-      case ListingStatus.loadingFirst:
-        listing.pagination = listing.pagination.forward(data);
-        continue mapThings;
-      mapThings:
+        continue update;
+      update:
       default:
-        listing.things.addAll(tdi.map(mapper));
+        listing.pagination = listing.pagination.forward(data);
+        listing.things.addAll(newThings.map(mapper));
     }
 
     listing.status = ListingStatus.idle;
