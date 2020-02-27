@@ -1,34 +1,55 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'browse_model.dart';
 
-class BrowseTabController extends StatefulWidget {
+class BrowseTabView extends StatefulWidget {
 
-  BrowseTabController({
+  BrowseTabView({
     Key key,
-  }) : super(key: key);
+    @required this.browse,
+  }) : assert(browse != null),
+       super(key: key);
+
+  final Browse browse;
 
   @override
-  _BrowseTabControllerState createState() => _BrowseTabControllerState();
+  _BrowseTabViewState createState() => _BrowseTabViewState();
 }
 
-class _BrowseTabControllerState extends State<BrowseTabController> {
+class _BrowseTabViewState extends State<BrowseTabView> {
 
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
+    return CupertinoTabView(
       key: _navigatorKey,
-      );
+      onGenerateRoute: (RouteSettings settings) {
+        if (settings.name != "/")
+          throw ArgumentError("BrowseTabController cannot generate a route for ${settings.name}");
+
+        return CupertinoPageRoute(
+          builder: (BuildContext context) {
+            return _BrowsePage(browse: widget.browse);
+          });
+      });
   }
 }
 
-class _BrowseView extends StatelessWidget {
+class _BrowsePage extends StatelessWidget {
+
+  _BrowsePage({
+    Key key,
+    @required this.browse
+  }) : assert(browse != null),
+       super(key: key);
+
+  final Browse browse;
 
   @override
   Widget build(BuildContext context) {
+    
   }
 }
 
