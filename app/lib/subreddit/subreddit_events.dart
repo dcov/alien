@@ -1,12 +1,14 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart' show Page, ListingData, PostData;
 
 import '../auth/auth_model.dart';
+import '../listing/listing_events.dart';
 import '../listing/listing_model.dart';
+import '../post/post_model.dart';
 import '../subreddit/subreddit_model.dart';
-import '../subreddit_posts/subreddit_posts_events.dart';
-import '../subreddit_posts/subreddit_posts_model.dart';
 import '../user/user_model.dart';
+import '../widgets/scroll_offset.dart';
 
 import 'subreddit_effects.dart';
 
@@ -19,13 +21,14 @@ class InitSubreddit extends Event {
 
   @override
   dynamic update(_) {
-    subreddit.posts = SubredditPosts(
-      subredditName: subreddit.name,
-    );
-    return LoadSubredditPosts(
-      subredditPosts: subreddit.posts,
-      status: ListingStatus.loadingFirst
-    );
+    subreddit.posts = Listing<Post>(
+      status: ListingStatus.idle,
+      things: <Post>[],
+      offset: ScrollOffset());
+
+    return UpdateSubredditPosts(
+      subreddit: subreddit,
+      newStatus: ListingStatus.refreshing);
   }
 }
 
@@ -61,16 +64,14 @@ class ToggleSubscribed extends Event {
         RemoveSubscription(subreddit: subreddit),
         PostUnsubscribe(
           subreddit: subreddit,
-          user: user
-        )
+          user: user)
       };
 
     return <Message>{
       AddSubscription(subreddit: subreddit),
       PostSubscribe(
         subreddit: subreddit,
-        user: user
-      )
+        user: user)
     };
   }
 }
@@ -111,5 +112,58 @@ class PostUnsubscribeFail extends Event {
   dynamic update(_) {
     subreddit.userIsSubscriber = true;
   }
+}
+
+class UpdateSubredditPosts extends UpdateListing {
+
+  const UpdateSubredditPosts({
+    @required this.subreddit,
+    @required this.newStatus
+  });
+
+  final Subreddit subreddit;
+
+  final ListingStatus newStatus;
+
+  @override
+  dynamic update(_) {
+    final Page page = updateListing(subreddit.posts, newStatus);
+    if (page != null) {
+      return GetSubredditPosts(
+        subreddit: subreddit,
+        newStatus: newStatus,
+        page: page);
+    }
+  }
+}
+
+class GetSubredditPostsSuccess extends UpdateListingSuccess {
+
+  GetSubredditPostsSuccess({
+    @required this.subreddit,
+    @required this.expectedStatus,
+    @required this.result,
+  });
+
+  final Subreddit subreddit;
+  final ListingStatus expectedStatus;
+  final ListingData<PostData> result;
+
+  @override
+  dynamic update(_) {
+    updateListingSuccess(
+      subreddit.posts,
+      expectedStatus,
+      result,
+      (data) => Post.fromData(data));
+  }
+}
+
+class GetSubredditPostsFail extends Event {
+
+  const GetSubredditPostsFail();
+
+  @override
+  dynamic update(_) { }
 }
 
