@@ -1,68 +1,36 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
+import '../thing/thing_model.dart';
 import '../widgets/padded_scroll_view.dart';
 import '../widgets/scroll_offset.dart';
 
 import 'listing_model.dart';
 
-typedef ThingWidgetBuilder = Widget Function(BuildContext context, dynamic thing);
+typedef ThingWidgetBuilder<T extends Thing> = Widget Function(BuildContext context, T thing);
 
-typedef LoadPageCallback = void Function(ListingStatus status);
+typedef UpdateListingCallback = void Function(ListingStatus newStatus);
 
-class ListingScrollView extends StatelessWidget {
+class ListingScrollView<T extends Thing> extends StatefulWidget {
 
   ListingScrollView({
     Key key,
     @required this.listing,
     @required this.builder,
-    @required this.onLoadPage,
+    @required this.onUpdateListing
   }) : super(key: key);
 
-  final Listing listing;
+  final Listing<T> listing;
 
-  final ThingWidgetBuilder builder;
+  final ThingWidgetBuilder<T> builder;
 
-  final LoadPageCallback onLoadPage;
-
-  @override
-  Widget build(_) => Tracker(
-    builder: (BuildContext context) {
-      switch (listing.mode) {
-        case ListingMode.endless:
-          return _EndlessListingScrollView(
-            listing: listing,
-            builder: builder,
-            onLoadPage: onLoadPage,
-          );
-        case ListingMode.single:
-        default:
-          return const SizedBox();
-      }
-    }
-  );
-}
-
-class _EndlessListingScrollView extends StatefulWidget {
-
-  _EndlessListingScrollView({
-    Key key,
-    @required this.listing,
-    @required this.builder,
-    @required this.onLoadPage
-  }) : super(key: key);
-
-  final Listing listing;
-
-  final ThingWidgetBuilder builder;
-
-  final LoadPageCallback onLoadPage;
+  final UpdateListingCallback onUpdateListing;
 
   @override
-  _EndlessListingScrollViewState createState() => _EndlessListingScrollViewState();
+  _ListingScrollViewState<T> createState() => _ListingScrollViewState<T>();
 }
 
-class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
+class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T>>
     with TrackerStateMixin, ScrollOffsetMixin {
 
   @override
@@ -78,13 +46,13 @@ class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
 
     final ScrollMetrics metrics = controller.position;
     if (metrics.pixels > (metrics.maxScrollExtent - 100)) {
-      widget.onLoadPage(ListingStatus.loadingNext);
+      widget.onUpdateListing(ListingStatus.loadingMore);
     }
   }
 
   @override
   void track(_) {
-    final Listing listing = widget.listing;
+    final Listing<T> listing = widget.listing;
     _trackOffset = listing.status == ListingStatus.idle && 
                    listing.pagination?.nextPageExists == true;
   }
@@ -94,11 +62,11 @@ class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
     super.buildCheck();
     return Tracker(
       builder: (BuildContext context) {
-        final Listing listing = widget.listing;
+        final Listing<T> listing = widget.listing;
         return PaddedScrollView(
           controller: controller,
           slivers: <Widget>[
-            if (listing.status == ListingStatus.loadingFirst)
+            if (listing.status == ListingStatus.refreshing)
               SliverToBoxAdapter(child: CircularProgressIndicator()),
 
             SliverList(
@@ -106,16 +74,12 @@ class _EndlessListingScrollViewState extends State<_EndlessListingScrollView>
                 (BuildContext context, int index) {
                   return widget.builder(context, listing.things[index]);
                 },
-                childCount: listing.things.length
-              ),
-            ),
+                childCount: listing.things.length)),
 
-            if (listing.status == ListingStatus.loadingNext)
+            if (listing.status == ListingStatus.loadingMore)
               SliverToBoxAdapter(child: CircularProgressIndicator()),
-          ],
-        );
-      },
-    );
+          ]);
+      });
   }
 }
 
