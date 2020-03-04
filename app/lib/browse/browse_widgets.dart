@@ -1,6 +1,7 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../home/home_widgets.dart';
 import '../subscriptions/subscriptions_widgets.dart';
 
 import 'browse_model.dart';
@@ -60,7 +61,10 @@ class _BrowsePage extends StatelessWidget {
           onPressed: () { },
           child: Icon(CupertinoIcons.ellipsis))),
       child: CustomScrollView(
-        slivers: <Widget>[]));
+        slivers: <Widget>[
+          if (browse.home != null)
+            HomeTile(home: browse.home),
+        ]));
   }
 }
 
