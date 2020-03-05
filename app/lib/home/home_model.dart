@@ -8,6 +8,8 @@ part 'home_model.g.dart';
 
 abstract class Home implements Model {
 
+  factory Home({ Listing<Post> posts, HomeSort sortBy }) = _$Home;
+
   Listing<Post> posts;
 
   HomeSort sortBy;

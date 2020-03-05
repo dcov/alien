@@ -1,9 +1,10 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../browse/browse_widgets.dart';
 import '../theming/theming_widgets.dart';
-import '../widgets/bottom_navigation.dart';
 import '../widgets/bottom_sheet_layout.dart';
 import '../widgets/scroll_configuration.dart';
 
@@ -40,7 +41,7 @@ class Runner extends StatelessWidget {
         if (!app.initialized)
           return _Splash();
 
-        return MaterialApp(
+        return CupertinoApp(
           debugShowCheckedModeBanner: false,
           builder: (_, Widget child) {
             return Themer(
@@ -82,31 +83,29 @@ class _Scaffold extends StatefulWidget {
 
 class _ScaffoldState extends State<_Scaffold> {
 
+  Widget _buildTabView(BuildContext context, int index) {
+    switch (index) {
+      case 0: return BrowseTabView(browse: widget.app.browse);
+      case 1: return const SizedBox();
+      case 2: return const SizedBox();
+    }
+    throw StateError("The current tab index in the app scaffold is not valid, index is $index");
+  }
+
   @override
   Widget build(_) {
-    return Material(
-      child: BottomSheetLayout(
-        body: Scaffold(
-          appBar: AppBar(title: Text('Alien'))),
-        sheetBuilder: (_, __) {
-          return Material(
-            elevation: 4.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16.0))),
-            child: Stack(
-              children: <Widget>[
-                SizedBox(
-                  height: 48.0,
-                  child: BottomNavigation(
-                    activeColor: Colors.blue,
-                    inactiveColor: Colors.grey,
-                    items: <BottomNavigationBarItem>[
-                      BottomNavigationBarItem(icon: Icon(Icons.list)),
-                      BottomNavigationBarItem(icon: Icon(Icons.mail)),
-                      BottomNavigationBarItem(icon: Icon(Icons.person)),
-                    ]))
-              ]));
-        }));
+    return BottomSheetLayout(
+      body: CupertinoTabScaffold(
+        tabBar: CupertinoTabBar(
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(icon: Icon(Icons.list)),
+            BottomNavigationBarItem(icon: Icon(Icons.mail_outline)),
+            BottomNavigationBarItem(icon: Icon(Icons.person_outline)),
+          ]),
+        tabBuilder: _buildTabView),
+      sheetBuilder: (_, __) {
+        return Stack();
+      });
   }
 }
 

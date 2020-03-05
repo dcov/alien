@@ -7,8 +7,17 @@ part 'browse_model.g.dart';
 
 abstract class Browse implements Model {
 
-  Home home;
+  factory Browse.signedIn() {
+    return _$Browse(
+      home: Home(),
+      subscriptions: Subscriptions(),
+    );
+  }
 
-  Subscriptions subscriptions;
+  factory Browse.signedOut() = _$Browse;
+
+  Home get home;
+
+  Subscriptions get subscriptions;
 }
 
