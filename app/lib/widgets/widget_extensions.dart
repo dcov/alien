@@ -7,3 +7,10 @@ extension NavigatorExtensions on BuildContext {
   bool pop<T>([T result]) => Navigator.pop(this, result);
 }
 
+extension MediaQueryExtensions on BuildContext {
+
+  EdgeInsets get mediaPadding {
+    return MediaQuery.of(this).padding;
+  }
+}
+
