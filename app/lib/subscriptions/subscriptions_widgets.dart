@@ -1,24 +1,40 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
-import '../widgets/tile.dart';
+import '../subreddit/subreddit_widgets.dart';
 
 import 'subscriptions_model.dart';
 
-class SubscriptionsTile extends StatelessWidget {
+class SubscriptionsSliver extends StatelessWidget {
 
-  SubscriptionsTile({
+  SubscriptionsSliver({
     Key key,
     @required this.subscriptions
   }) : super(key: key);
 
   final Subscriptions subscriptions;
 
+  SliverChildDelegate _createRefreshingDelegate() {
+    return SliverChildListDelegate(
+      <Widget>[
+        CircularProgressIndicator()
+      ]);
+  }
+
+  SliverChildDelegate _createBuilderDelegate() {
+    return SliverChildBuilderDelegate(
+      (BuildContext context, int index) {
+        return SubredditTile(
+          subreddit: subscriptions.subreddits[index]);
+      },
+      childCount: subscriptions.subreddits.length);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CustomTile(
-      onTap: () { },
-      title: Text('Subscriptions')
-    );
+    return SliverList(
+      delegate: subscriptions.refreshing
+          ? _createRefreshingDelegate()
+          : _createBuilderDelegate());
   }
 }
 

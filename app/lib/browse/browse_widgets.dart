@@ -4,65 +4,42 @@ import 'package:flutter/material.dart';
 
 import '../home/home_widgets.dart';
 import '../subscriptions/subscriptions_widgets.dart';
+import '../widgets/page.dart';
+import '../widgets/widget_extensions.dart';
 
 import 'browse_model.dart';
 
-class BrowseTabView extends StatefulWidget {
+class BrowsePage extends Page {
 
-  BrowseTabView({
-    Key key,
+  BrowsePage({
+    RouteSettings settings,
     @required this.browse,
-  }) : assert(browse != null),
-       super(key: key);
+  }) : super(settings: settings);
 
   final Browse browse;
 
   @override
-  _BrowseTabViewState createState() => _BrowseTabViewState();
-}
-
-class _BrowseTabViewState extends State<BrowseTabView> {
-
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoTabView(
-      key: _navigatorKey,
-      onGenerateRoute: (RouteSettings settings) {
-        if (settings.name != "/")
-          throw ArgumentError("BrowseTabController cannot generate a route for ${settings.name}");
-
-        return CupertinoPageRoute(
-          title: "Browse",
-          builder: (BuildContext context) {
-            return _BrowsePage(browse: widget.browse);
-          });
-      });
-  }
-}
-
-class _BrowsePage extends StatelessWidget {
-
-  _BrowsePage({
-    Key key,
-    @required this.browse
-  }) : assert(browse != null),
-       super(key: key);
-
-  final Browse browse;
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        trailing: GestureDetector(
-          onTap: () {},
-          child: Icon(Icons.more_vert))),
-      child: CustomScrollView(
-        slivers: <Widget>[
-          if (browse.home != null)
-            HomeTile(home: browse.home),
+  Widget buildPage(BuildContext context, _, __) {
+    assert(this.isFirst);
+    return Material(
+      child: Column(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(top: context.mediaPadding.top),
+            child: SizedBox(
+              height: 48.0,
+              child: NavigationToolbar(
+                middle: Text(
+                  "Browse")))),
+          Expanded(
+            child: CustomScrollView(
+              slivers: <Widget>[
+                if (browse.home != null)
+                  SliverToBoxAdapter(child: HomeTile(home: browse.home)),
+                if (browse.subscriptions != null)
+                  SubscriptionsSliver(
+                    subscriptions: browse.subscriptions),
+              ])),
         ]));
   }
 }

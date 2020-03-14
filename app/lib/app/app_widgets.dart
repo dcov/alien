@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 
 import '../browse/browse_widgets.dart';
 import '../theming/theming_widgets.dart';
+import '../widgets/bottom_navigation.dart';
 import '../widgets/bottom_sheet_layout.dart';
+import '../widgets/page.dart';
 import '../widgets/scroll_configuration.dart';
 
 import 'app_model.dart';
@@ -83,28 +85,89 @@ class _Scaffold extends StatefulWidget {
 
 class _ScaffoldState extends State<_Scaffold> {
 
-  Widget _buildTabView(BuildContext context, int index) {
-    switch (index) {
-      case 0: return BrowseTabView(browse: widget.app.browse);
-      case 1: return const SizedBox();
-      case 2: return const SizedBox();
+  List<GlobalKey> _tabKeys;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    resetKeys();
+  }
+
+  void resetKeys() {
+    _tabKeys = List.generate(4, (_) => GlobalKey());
+  }
+
+  Widget _buildTabNavigator(GlobalKey key, PageFactory onGenerateRoute) {
+    return PageNavigator(
+      key: key,
+      onGeneratePage: (RouteSettings settings) {
+        if (settings.name == "/") {
+          return onGenerateRoute(settings);
+        }
+        throw ArgumentError("");
+      });
+  }
+
+  Widget _buildTabView() {
+    switch (_currentIndex) {
+      case 0:
+        return _buildTabNavigator(
+          _tabKeys[0],
+          (RouteSettings settings) {
+            return BrowsePage(
+              settings: settings,
+              browse: widget.app.browse);
+          });
+      case 1:
+        return _buildTabNavigator(
+          _tabKeys[1],
+          (RouteSettings settings) {
+            return null;
+          });
+      case 2:
+        return _buildTabNavigator(
+          _tabKeys[2],
+          (RouteSettings settings) {
+            return null;
+          });
+      case 3:
+        return _buildTabNavigator(
+          _tabKeys[3],
+          (RouteSettings settings) {
+            return null;
+          });
     }
-    throw StateError("The current tab index in the app scaffold is not valid, index is $index");
+    throw StateError("The current tab index in the app scaffold is not valid, index is $_currentIndex");
   }
 
   @override
   Widget build(_) {
     return BottomSheetLayout(
-      body: CupertinoTabScaffold(
-        tabBar: CupertinoTabBar(
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(icon: Icon(Icons.list)),
-            BottomNavigationBarItem(icon: Icon(Icons.mail_outline)),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline)),
-          ]),
-        tabBuilder: _buildTabView),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: _buildTabView()),
       sheetBuilder: (_, __) {
-        return Stack();
+        return Stack(
+          children: <Widget>[
+            BottomNavigation(
+              currentIndex: _currentIndex,
+              items: <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home)),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.search)),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.mail)),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person)),
+              ],
+              onTap: (int index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              }),
+          ]);
       });
   }
 }
