@@ -2,6 +2,7 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../defaults/defaults_widgets.dart';
 import '../home/home_widgets.dart';
 import '../subscriptions/subscriptions_widgets.dart';
 import '../widgets/page.dart';
@@ -39,6 +40,8 @@ class BrowsePage extends Page {
                 if (browse.subscriptions != null)
                   SubscriptionsSliver(
                     subscriptions: browse.subscriptions),
+                if (browse.defaults != null)
+                  DefaultsSliver(defaults: browse.defaults)
               ])),
         ]));
   }
