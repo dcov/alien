@@ -1,3 +1,4 @@
+import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../subreddit/subreddit_widgets.dart';
@@ -30,11 +31,14 @@ class DefaultsSliver extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SliverList(
-      delegate: defaults.refreshing
-          ? _createRefreshingDelegate()
-          : _createBuilderDelegate());
+  Widget build(_) {
+    return Tracker(
+      builder: (_) {
+        return SliverList(
+          delegate: defaults.refreshing
+              ? _createRefreshingDelegate()
+              : _createBuilderDelegate());
+      });
   }
 }
 
