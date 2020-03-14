@@ -1,24 +1,40 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
-import '../widgets/tile.dart';
+import '../subreddit/subreddit_widgets.dart';
 
 import 'defaults_model.dart';
 
-class DefaultsTile extends StatelessWidget {
+class DefaultsSliver extends StatelessWidget {
 
-  DefaultsTile({
+  DefaultsSliver({
     Key key,
-    @required this.defaults
+    @required this.defaults,
   }) : super(key: key);
 
   final Defaults defaults;
 
+  SliverChildDelegate _createRefreshingDelegate() {
+    return SliverChildListDelegate(
+      <Widget>[
+        CircularProgressIndicator()
+      ]);
+  }
+
+  SliverChildDelegate _createBuilderDelegate() {
+    return SliverChildBuilderDelegate(
+      (BuildContext context, int index) {
+        return SubredditTile(
+          subreddit: defaults.subreddits[index]);
+      },
+      childCount: defaults.subreddits.length);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CustomTile(
-      onTap: () { },
-      title: Text('Defaults')
-    );
+    return SliverList(
+      delegate: defaults.refreshing
+          ? _createRefreshingDelegate()
+          : _createBuilderDelegate());
   }
 }
 
