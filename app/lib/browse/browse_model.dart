@@ -1,5 +1,6 @@
 import 'package:elmer/elmer.dart';
 
+import '../defaults/defaults_model.dart';
 import '../home/home_model.dart';
 import '../subscriptions/subscriptions_model.dart';
 
@@ -14,9 +15,14 @@ abstract class Browse implements Model {
     );
   }
 
-  factory Browse.signedOut() = _$Browse;
+  factory Browse.signedOut() {
+    return _$Browse(
+      defaults: Defaults());
+  }
 
   Home get home;
+
+  Defaults get defaults;
 
   Subscriptions get subscriptions;
 }
