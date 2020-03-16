@@ -17,7 +17,7 @@ class DefaultsSliver extends StatelessWidget {
   SliverChildDelegate _createRefreshingDelegate() {
     return SliverChildListDelegate(
       <Widget>[
-        CircularProgressIndicator()
+        Center(child: CircularProgressIndicator())
       ]);
   }
 

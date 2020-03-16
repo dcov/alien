@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 
 import '../browse/browse_widgets.dart';
 import '../theming/theming_widgets.dart';
+import '../user/user_model.dart';
+import '../user/user_widgets.dart';
+import '../widgets/animated_offstage.dart';
 import '../widgets/bottom_navigation.dart';
 import '../widgets/bottom_sheet_layout.dart';
 import '../widgets/page.dart';
@@ -83,91 +86,77 @@ class _Scaffold extends StatefulWidget {
   _ScaffoldState createState() => _ScaffoldState();
 }
 
-class _ScaffoldState extends State<_Scaffold> {
+class _ScaffoldState extends State<_Scaffold>
+    with TrackerStateMixin {
 
-  List<GlobalKey> _tabKeys;
   int _currentIndex = 0;
 
+  User _currentUser;
+
   @override
-  void initState() {
-    super.initState();
-    resetKeys();
+  void track(StateSetter setState) {
+    setState(() {
+      _currentUser = widget.app.auth.currentUser;
+    });
   }
 
-  void resetKeys() {
-    _tabKeys = List.generate(4, (_) => GlobalKey());
-  }
-
-  Widget _buildTabNavigator(GlobalKey key, PageFactory onGenerateRoute) {
-    return PageNavigator(
-      key: key,
+  Widget _buildTabView(int index) {
+    final Widget navigator = PageNavigator(
+      // We use a [ValueKey] for the navigator with the current [User] as a 
+      // value so that when it changes, the navigation stack resets.
+      key: ValueKey(_currentUser),
       onGeneratePage: (RouteSettings settings) {
         if (settings.name == "/") {
-          return onGenerateRoute(settings);
+          switch (index) {
+            case 0:
+              return BrowsePage(
+                settings: settings,
+                browse: widget.app.browse);
+            case 1:
+              return UserPage(
+                settings: settings,
+                user: widget.app.auth.currentUser);
+          }
         }
         throw ArgumentError("");
       });
-  }
 
-  Widget _buildTabView() {
-    switch (_currentIndex) {
-      case 0:
-        return _buildTabNavigator(
-          _tabKeys[0],
-          (RouteSettings settings) {
-            return BrowsePage(
-              settings: settings,
-              browse: widget.app.browse);
-          });
-      case 1:
-        return _buildTabNavigator(
-          _tabKeys[1],
-          (RouteSettings settings) {
-            return null;
-          });
-      case 2:
-        return _buildTabNavigator(
-          _tabKeys[2],
-          (RouteSettings settings) {
-            return null;
-          });
-      case 3:
-        return _buildTabNavigator(
-          _tabKeys[3],
-          (RouteSettings settings) {
-            return null;
-          });
-    }
-    throw StateError("The current tab index in the app scaffold is not valid, index is $_currentIndex");
+    return AnimatedOffstage(
+      offstage: index != _currentIndex,
+      child: navigator);
   }
 
   @override
   Widget build(_) {
     return BottomSheetLayout(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: _buildTabView()),
+      body: Stack(
+        fit: StackFit.expand,
+        children: List.generate(2, _buildTabView)),
       sheetBuilder: (_, __) {
-        return Stack(
-          children: <Widget>[
-            BottomNavigation(
-              currentIndex: _currentIndex,
-              items: <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home)),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.search)),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.mail)),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person)),
-              ],
-              onTap: (int index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              }),
-          ]);
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(
+              width: 0.0,
+              color: Color(0x4C000000)),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(16.0))),
+          child: Stack(
+            children: <Widget>[
+              BottomNavigation(
+                  currentIndex: _currentIndex,
+                  items: <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home)),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person)),
+                  ],
+                  onTap: (int index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  }),
+            ]));
       });
   }
 }
