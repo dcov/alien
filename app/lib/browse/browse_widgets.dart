@@ -1,4 +1,3 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -30,18 +29,19 @@ class BrowsePage extends Page {
             child: SizedBox(
               height: 48.0,
               child: NavigationToolbar(
-                middle: Text(
-                  "Browse")))),
+                middle: Text("Browse")))),
           Expanded(
             child: CustomScrollView(
               slivers: <Widget>[
                 if (browse.home != null)
                   SliverToBoxAdapter(child: HomeTile(home: browse.home)),
-                if (browse.subscriptions != null)
+                if (browse.subscriptions != null) ...[
                   SubscriptionsSliver(
                     subscriptions: browse.subscriptions),
-                if (browse.defaults != null)
-                  DefaultsSliver(defaults: browse.defaults)
+                ],
+                if (browse.defaults != null) ...[
+                    DefaultsSliver(defaults: browse.defaults)
+                ]
               ])),
         ]));
   }

@@ -50,7 +50,7 @@ class HomePage extends StatelessWidget {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(),
       child: ListingScrollView(
-        listing: home.posts,
+        listing: home.listing,
         builder: (BuildContext _, Post post) {
           return PostTile(
             post: post,

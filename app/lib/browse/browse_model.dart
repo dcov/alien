@@ -8,22 +8,22 @@ part 'browse_model.g.dart';
 
 abstract class Browse implements Model {
 
-  factory Browse.signedIn() {
-    return _$Browse(
-      home: Home(),
-      subscriptions: Subscriptions(),
-    );
-  }
-
-  factory Browse.signedOut() {
-    return _$Browse(
-      defaults: Defaults());
-  }
+  factory Browse({
+    Home home,
+    Defaults defaults,
+    Subscriptions subscriptions
+  }) = _$Browse;
 
   Home get home;
 
   Defaults get defaults;
 
   Subscriptions get subscriptions;
+}
+
+@abs
+abstract class RootBrowse implements Model {
+
+  Browse browse;
 }
 

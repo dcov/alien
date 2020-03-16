@@ -7,7 +7,7 @@ import '../theming/theming_model.dart';
 
 part 'app_model.g.dart';
 
-abstract class App implements RootAuth, RootTheming {
+abstract class App implements RootAuth, RootBrowse, RootTheming {
 
   factory App({
     @required String clientId,
@@ -24,7 +24,5 @@ abstract class App implements RootAuth, RootTheming {
   }
 
   bool initialized;
-
-  Browse browse;
 }
 

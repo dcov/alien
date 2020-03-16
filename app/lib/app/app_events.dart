@@ -2,7 +2,7 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 
 import '../auth/auth_events.dart';
-import '../browse/browse_model.dart';
+import '../browse/browse_events.dart';
 import '../theming/theming_events.dart';
 
 import 'app_effects.dart';
@@ -29,14 +29,14 @@ class InitResourcesSuccess extends Event {
 
   @override
   dynamic update(App app) {
-    app..initialized = true
-       ..browse = signedInUser != null ? Browse.signedIn() : Browse.signedOut();
+    app.initialized = true;
 
     return <Message>{
       InitAuth(
         users: users,
         signedInUser: signedInUser,
       ),
+      InitBrowse(),
       UpdateTheme(theming: app.theming),
       ResetState()
     };

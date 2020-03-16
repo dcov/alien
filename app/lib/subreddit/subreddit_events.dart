@@ -8,7 +8,6 @@ import '../listing/listing_model.dart';
 import '../post/post_model.dart';
 import '../subreddit/subreddit_model.dart';
 import '../user/user_model.dart';
-import '../widgets/scroll_offset.dart';
 
 import 'subreddit_effects.dart';
 
@@ -23,8 +22,7 @@ class InitSubreddit extends Event {
   dynamic update(_) {
     subreddit.posts = Listing<Post>(
       status: ListingStatus.idle,
-      things: <Post>[],
-      offset: ScrollOffset());
+      things: <Post>[]);
 
     return UpdateSubredditPosts(
       subreddit: subreddit,

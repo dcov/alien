@@ -26,7 +26,7 @@ class UpdateHomePosts extends UpdateListing {
     final Auth auth = root.auth;
     assert(auth.currentUser != null);
 
-    final Page page = updateListing(home.posts, newStatus);
+    final Page page = updateListing(home.listing, newStatus);
     if (page != null) {
       return GetHomePosts(
         home: home,
@@ -54,7 +54,7 @@ class GetHomePostsSuccess extends UpdateListingSuccess {
   @override
   dynamic update(_) {
     updateListingSuccess(
-      home.posts,
+      home.listing,
       expectedStatus,
       result,
       (data) => Post.fromData(data));
