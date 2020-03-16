@@ -7,7 +7,7 @@ import '../effects/effect_context.dart';
 import 'defaults_events.dart';
 import 'defaults_model.dart';
 
-class GetDefaults extends Effect {
+class GetDefaults implements Effect {
 
   const GetDefaults({ @required this.defaults });
 
@@ -22,12 +22,13 @@ class GetDefaults extends Effect {
             Page(limit: Page.kMaxLimit))
         .then(
             (ListingData<SubredditData> listing) {
-              return DefaultsLoaded(
+              return GetDefaultsSuccess(
                 defaults: defaults,
                 subreddits: listing.things
               );
             },
             onError: (e) {
+              return GetDefaultsFailed(defaults: defaults);
             });
   }
 }

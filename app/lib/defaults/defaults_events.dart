@@ -7,41 +7,14 @@ import '../subreddit/subreddit_model.dart';
 import 'defaults_effects.dart';
 import 'defaults_model.dart';
 
-class InitDefaults extends Event {
-
-  const InitDefaults({ @required this.defaults });
-
-  final Defaults defaults;
-
-  @override
-  Event update(_) {
-    defaults.refreshing = false;
-    return LoadDefaults(defaults: defaults);
-  }
-}
-
-class DisposeDefaults extends Event {
-
-  const DisposeDefaults({ @required this.defaults });
-
-  final Defaults defaults;
-
-  @override
-  void update(_) {
-    defaults..subreddits.clear()
-            ..refreshing = false
-            ..offset.value = 0.0;
-  }
-}
-
-class LoadDefaults extends Event {
+class LoadDefaults implements Event {
 
   const LoadDefaults({ @required this.defaults });
 
   final Defaults defaults;
 
   @override
-  Effect update(_) {
+  dynamic update(_) {
     if (defaults.refreshing)
       return null;
     
@@ -52,9 +25,9 @@ class LoadDefaults extends Event {
   }
 }
 
-class DefaultsLoaded extends Event {
+class GetDefaultsSuccess implements Event {
 
-  const DefaultsLoaded({
+  const GetDefaultsSuccess({
     @required this.defaults,
     @required this.subreddits
   });
@@ -64,7 +37,7 @@ class DefaultsLoaded extends Event {
   final Iterable<SubredditData> subreddits;
 
   @override
-  void update(_) {
+  dynamic update(_) {
     // Ensure we're still expecting this.
     if (!defaults.refreshing)
       return;
@@ -75,5 +48,15 @@ class DefaultsLoaded extends Event {
         this.subreddits.map((data) => Subreddit.fromData(data)))
       ..subreddits.sort((s1, s2) => s1.name.compareTo(s2.name));
   }
+}
+
+class GetDefaultsFailed implements Event {
+
+  const GetDefaultsFailed({ @required this.defaults });
+
+  final Defaults defaults;
+
+  @override
+  dynamic update(_) { }
 }
 
