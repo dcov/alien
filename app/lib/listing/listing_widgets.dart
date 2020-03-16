@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../thing/thing_model.dart';
 import '../widgets/padded_scroll_view.dart';
-import '../widgets/scroll_offset.dart';
 
 import 'listing_model.dart';
 
@@ -31,20 +30,25 @@ class ListingScrollView<T extends Thing> extends StatefulWidget {
 }
 
 class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T>>
-    with TrackerStateMixin, ScrollOffsetMixin {
+    with TrackerStateMixin {
+
+  ScrollController _controller;
+
+  bool _trackOffset;
 
   @override
-  ScrollOffset get offset => widget.listing.offset;
+  void initState() {
+    _controller = ScrollController();
+    _controller.addListener(_handlePositionChange);
+    _trackOffset = false;
+    super.initState();
+  }
 
-  bool _trackOffset = false;
-
-  @override
-  void didChangeOffset() {
-    super.didChangeOffset();
+  void _handlePositionChange() {
     if (!_trackOffset)
       return;
 
-    final ScrollMetrics metrics = controller.position;
+    final ScrollMetrics metrics = _controller.position;
     if (metrics.pixels > (metrics.maxScrollExtent - 100)) {
       widget.onUpdateListing(ListingStatus.loadingMore);
     }
@@ -64,7 +68,7 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
       builder: (BuildContext context) {
         final Listing<T> listing = widget.listing;
         return PaddedScrollView(
-          controller: controller,
+          controller: _controller,
           slivers: <Widget>[
             if (listing.status == ListingStatus.refreshing)
               SliverToBoxAdapter(child: CircularProgressIndicator()),

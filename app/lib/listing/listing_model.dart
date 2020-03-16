@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../thing/thing_model.dart';
-import '../widgets/scroll_offset.dart';
 
 part 'listing_model.g.dart';
 
@@ -19,16 +18,13 @@ abstract class Listing<T extends Thing> implements Model {
     ListingStatus status = ListingStatus.idle,
     @required List<T> things,
     Pagination pagination,
-    @required ScrollOffset offset,
   }) {
+    assert(status != null);
     assert(things != null);
-    assert(offset != null);
-
     return _$Listing<T>(
       status: status,
       things: things,
-      pagination: pagination,
-      offset: offset);
+      pagination: pagination);
   }
 
   ListingStatus status;
@@ -36,6 +32,4 @@ abstract class Listing<T extends Thing> implements Model {
   List<T> get things;
 
   Pagination pagination;
-
-  ScrollOffset get offset;
 }
