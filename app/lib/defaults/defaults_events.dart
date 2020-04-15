@@ -46,7 +46,9 @@ class GetDefaultsSuccess implements Event {
       ..refreshing = false
       ..subreddits.addAll(
         this.subreddits.map((data) => Subreddit.fromData(data)))
-      ..subreddits.sort((s1, s2) => s1.name.compareTo(s2.name));
+      ..subreddits.sort((s1, s2) {
+          return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
+        });
   }
 }
 

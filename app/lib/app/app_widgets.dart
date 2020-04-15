@@ -12,6 +12,7 @@ import '../widgets/bottom_navigation.dart';
 import '../widgets/bottom_sheet_layout.dart';
 import '../widgets/page.dart';
 import '../widgets/scroll_configuration.dart';
+import '../widgets/widget_extensions.dart';
 
 import 'app_model.dart';
 
@@ -127,37 +128,41 @@ class _ScaffoldState extends State<_Scaffold>
   }
 
   @override
-  Widget build(_) {
-    return BottomSheetLayout(
-      body: Stack(
-        fit: StackFit.expand,
-        children: List.generate(2, _buildTabView)),
-      sheetBuilder: (_, __) {
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-              width: 0.0,
-              color: Color(0x4C000000)),
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(16.0))),
-          child: Stack(
-            children: <Widget>[
-              BottomNavigation(
-                  currentIndex: _currentIndex,
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home)),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.person)),
-                  ],
-                  onTap: (int index) {
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  }),
-            ]));
-      });
+  Widget build(BuildContext context) {
+    final ThemeData theme = context.theme;
+    return Material(
+      child: BottomSheetLayout(
+        body: Stack(
+          fit: StackFit.expand,
+          children: List.generate(2, _buildTabView)),
+        sheetBuilder: (_, __) {
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.canvasColor,
+              border: Border.all(
+                width: 0.0,
+                color: Color(0x4C000000)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(16.0))),
+            child: Stack(
+              children: <Widget>[
+                BottomNavigation(
+                    activeColor: theme.accentColor,
+                    inactiveColor: theme.tabBarTheme.labelColor,
+                    currentIndex: _currentIndex,
+                    items: <BottomNavigationBarItem>[
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.home)),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.person)),
+                    ],
+                    onTap: (int index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    }),
+              ]));
+        }));
   }
 }
 
