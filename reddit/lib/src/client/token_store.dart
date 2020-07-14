@@ -1,11 +1,24 @@
-part of '../client.dart';
+import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 
-@visibleForTesting
+import '../types/data.dart';
+
 abstract class TokenStore {
 
-  TokenStore(this._client);
+  factory TokenStore.asDevice(
+    Client ioClient,
+    Map<String, String> basicHeader,
+    String deviceId
+  ) = _DeviceStore;
 
-  final RedditClient _client;
+  factory TokenStore.asUser(
+    Client ioClient,
+    Map<String, String> basicHeader,
+    String refreshToken
+  ) = _RefreshStore;
+
+  TokenStore._();
+
   int _expirationUtc;
   Map<String, String> _header;
   Future<Map<String, String>> _futureHeader;
@@ -44,48 +57,62 @@ abstract class TokenStore {
   void _setHeader(AccessTokenData data) {
     _expirationUtc = _currentUtc + (data.expiresIn * 1000) - 30000;
     _header = {
-      _kFormHeaderKey : _kFormHeaderValue,
-      _kAuthorizationHeaderKey : 'bearer ${data.accessToken}'
+      'Content-Type' : 'application/x-www-form-urlencoded',
+      'Authorization' : 'bearer ${data.accessToken}'
     };
   }
 
   @protected
   @visibleForTesting
   Future<Response> postTokenRequest();
-
-  @protected
-  Client get ioClient => RedditClient._ioClient;
 }
 
-@visibleForTesting
-class DeviceStore extends TokenStore {
+class _DeviceStore extends TokenStore {
 
-  DeviceStore(RedditClient client) : super(client);
+  _DeviceStore(
+    this.ioClient,
+    this._basicHeader,
+    this._deviceId
+  ) : super._();
+
+  final Client ioClient;
+
+  final Map<String, String> _basicHeader;
+
+  final String _deviceId;
 
   @override
   Future<Response> postTokenRequest() {
     return ioClient.post(
-      _kAccessTokenUrl,
-      headers: _client._basicHeader,
+      'https://www.reddit.com/api/v1/access_token',
+      headers: _basicHeader,
       body: 'grant_type=https://oauth.reddit.com/grants/installed_client'
-            '&device_id=${_client._deviceId}',
+            '&device_id=${_deviceId}',
     );
   }
 }
 
-@visibleForTesting
-class RefreshStore extends TokenStore {
+class _RefreshStore extends TokenStore {
 
-  RefreshStore(this._token, RedditClient client) : super(client);
+  _RefreshStore(
+    this.ioClient,
+    this._basicHeader,
+    this._refreshToken
+  ) : super._();
 
-  final String _token;
+  final Client ioClient;
+
+  final Map<String, String> _basicHeader;
+
+  final String _refreshToken;
 
   @override
   Future<Response> postTokenRequest() {
     return ioClient.post(
-      _kAccessTokenUrl,
-      headers: _client._basicHeader,
-      body: 'grant_type=refresh_token&refresh_token=${_token}'
+      'https://www.reddit.com/api/v1/access_token',
+      headers: _basicHeader,
+      body: 'grant_type=refresh_token&refresh_token=${_refreshToken}'
     );
   }
 }
+
