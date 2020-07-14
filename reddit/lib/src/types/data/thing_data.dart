@@ -1,4 +1,4 @@
-part of '../data.dart';
+part of 'data.dart';
 
 List<T> _castList<T>(List list) =>
   (list != null && list.isNotEmpty) ? list.cast<T>() : null;
@@ -547,3 +547,4 @@ class ListingData<T extends ThingData> {
     }
   }
 }
+

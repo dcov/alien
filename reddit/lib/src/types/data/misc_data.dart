@@ -1,4 +1,4 @@
-part of '../data.dart';
+part of 'data.dart';
 
 class ScopeData {
 
@@ -55,3 +55,4 @@ class MultiData {
     }
   }
 }
+

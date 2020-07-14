@@ -1,7 +1,6 @@
-
-part 'parameters/listing_parameters.dart';
-part 'parameters/misc_parameters.dart';
-part 'parameters/sort_parameters.dart';
+part 'listing_parameters.dart';
+part 'misc_parameters.dart';
+part 'sort_parameters.dart';
 
 abstract class Parameter {
 
@@ -15,3 +14,4 @@ abstract class Parameter {
   @override
   String toString() => this.value;
 }
+

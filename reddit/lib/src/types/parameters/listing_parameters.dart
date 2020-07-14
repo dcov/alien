@@ -1,4 +1,4 @@
-part of '../parameters.dart';
+part of 'parameters.dart';
 
 class Page extends Parameter {
 
@@ -49,3 +49,4 @@ class UserSubreddits extends Parameter {
 
   const UserSubreddits._(String name) : super._(name);
 }
+

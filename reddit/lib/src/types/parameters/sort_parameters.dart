@@ -1,4 +1,4 @@
-part of '../parameters.dart';
+part of 'parameters.dart';
 
 class TimeSort extends Parameter {
   static const TimeSort hour = TimeSort._('hour');
@@ -8,7 +8,7 @@ class TimeSort extends Parameter {
   static const TimeSort year = TimeSort._('year');
   static const TimeSort all = TimeSort._('all');
 
-  const TimeSort._(String name, [String value]) : super._(name, value);
+  const TimeSort._(String name) : super._(name);
 }
 
 abstract class TimedParameter extends Parameter {
@@ -67,3 +67,4 @@ class HistorySort extends Parameter {
 
   const HistorySort._(String name) : super._(name);
 }
+

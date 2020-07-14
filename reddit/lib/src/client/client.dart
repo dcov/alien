@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../types/data.dart';
-
 import 'token_store.dart';
 
 class RedditClient {
@@ -15,34 +15,36 @@ class RedditClient {
 
   final TokenStore _store;
 
+  static String _formatUrl(String subdomain, String endpoint) => 'https://$subdomain.reddit.com$endpoint';
+
   static String _extractBody(Response response) => response.body;
 
-  Future<String> get(String url) async {
+  Future<String> get(String endpoint, { String subdomain = 'oauth' }) async {
     return _ioClient.get(
-      url,
+      _formatUrl(subdomain, endpoint),
       headers: await _store.tokenHeader,
     ).then(_extractBody);
   }
 
-  Future<String> post(String url, [String body]) async {
+  Future<String> post(String endpoint, { String subdomain = 'oauth', String body }) async {
     return _ioClient.post(
-      url,
+      _formatUrl(subdomain, endpoint),
       body: body,
       headers: await _store.tokenHeader
     ).then(_extractBody);
   }
 
-  Future<String> patch(String url, [String body]) async {
+  Future<String> patch(String endpoint, { String subdomain = 'oauth', String body }) async {
     return _ioClient.patch(
-      url,
+      _formatUrl(subdomain, endpoint),
       body: body,
       headers: await _store.tokenHeader
     ).then(_extractBody);
   }
 
-  Future<String> delete(String url) async {
+  Future<String> delete(String endpoint, { String subdomain = 'oauth' }) async {
     return _ioClient.delete(
-      url,
+      _formatUrl(subdomain, endpoint),
       headers: await _store.tokenHeader
     ).then(_extractBody);
   }

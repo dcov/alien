@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'parameters.dart';
+import '../parameters/parameters.dart';
 
-part 'data/auth_data.dart';
-part 'data/misc_data.dart';
-part 'data/thing_data.dart';
+part 'auth_data.dart';
+part 'misc_data.dart';
+part 'thing_data.dart';
 
 typedef DataExtractor = dynamic Function(dynamic obj);
 
@@ -13,3 +13,4 @@ Map _extractData(dynamic obj) {
 }
 
 Map _extractNothing(dynamic obj) => obj;
+
