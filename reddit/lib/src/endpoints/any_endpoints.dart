@@ -1,12 +1,14 @@
-part of '../endpoints.dart';
+part of 'endpoints.dart';
 
-mixin AnyEndpoints on EndpointInteractor {
+extension AnyEndpoints on RedditClient {
 
   Future<Iterable<ScopeData>> getScopeDescriptions([Iterable<Scope> scopes]) {
     final String parameter = scopes != null
         ? '?scopes=${scopes.join(' ')}'
         : '';
-    return get('${_kOAuthUrl}/api/v1/scopes${parameter}')
+
+    return get('/api/v1/scopes${parameter}')
         .then((String json) => ScopeData.iterableFromJson(json));
   }
 }
+

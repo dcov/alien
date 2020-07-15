@@ -1,19 +1,19 @@
-part of '../endpoints.dart';
+part of 'endpoints.dart';
 
-mixin ReadEndpoints on EndpointInteractor {
+extension ReadEndpoints on RedditClient {
 
   Future<AccountData> getAccount(String username) {
-    return get('${_kOAuthUrl}/user/$username/about')
+    return get('/user/$username/about')
         .then((String json) => AccountData.fromJson(json));
   }
 
   Future<ListingData<PostData>> getHomePosts(HomeSort sort, Page page) {
-    return get('${_kOAuthUrl}/${sort}/${_kRawJsonArgs}&${page}')
+    return get('/${sort}/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
   Future<ListingData<ThingData>> getPostComments(String permalink, CommentsSort sort) {
-    return get('${_kOAuthUrl}/${permalink}/${_kRawJsonArgs}&sort=${sort}')
+    return get('/${permalink}/${_kRawJsonArgs}&sort=${sort}')
         .then((String json) {
           return ListingData.fromJson(json, (data) {
             return data[1]['data'];
@@ -22,7 +22,7 @@ mixin ReadEndpoints on EndpointInteractor {
   }
 
   Future<ListingData<PostData>> getPostsById(Iterable<String> fullPostIds) {
-    return get('${_kOAuthUrl}/by_id/${fullPostIds.join(',')}')
+    return get('/by_id/${fullPostIds.join(',')}')
         .then((String json) => ListingData.fromJson(json));
   }
 
@@ -34,9 +34,8 @@ mixin ReadEndpoints on EndpointInteractor {
         });
   }
 
-  Future<ListingData<ThingData>> getMoreComments(String fullPostId, String moreId,
-      Iterable<String> thingIds) {
-    return get('${_kOAuthUrl}/api/morechildren/${_kRawJsonArgs}'
+  Future<ListingData<ThingData>> getMoreComments(String fullPostId, String moreId, Iterable<String> thingIds) {
+    return get('/api/morechildren/${_kRawJsonArgs}'
                '&link_id=${fullPostId}&id=${moreId}'
                '&children=${thingIds.join(',')}')
         .then((String json) {
@@ -46,23 +45,22 @@ mixin ReadEndpoints on EndpointInteractor {
   }
 
   Future<MultiData> getMultiByPath(String multiPath, bool expandSubreddits) {
-    return get('${_kOAuthUrl}/api/multi/${multiPath}/'
+    return get('/api/multi/${multiPath}/'
                '?expand_srs=${expandSubreddits}')
         .then((String json) => MultiData.fromJson(json));
   }
 
   Future<ListingData<PostData>> getOriginalPosts(OriginalSort sort, Page page) {
-    return get('${_kOAuthUrl}/original/${sort}/${_kRawJsonArgs}&${page}')
+    return get('/original/${sort}/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
   Future<SubredditData> getSubredditByName(String subredditName) {
-    return get('${_kOAuthUrl}/r/${subredditName}/about')
+    return get('/r/${subredditName}/about')
         .then((String json) => SubredditData.fromJson(json));
   }
 
-  Future<Iterable<SubredditData>> getSubredditsByName(
-      Iterable<String> subredditNames) async {
+  Future<Iterable<SubredditData>> getSubredditsByName(Iterable<String> subredditNames) async {
     final List<SubredditData> result = List<SubredditData>(subredditNames.length);
     for (final String subredditName in subredditNames) {
       final SubredditData data = await getSubredditByName(subredditName);
@@ -72,28 +70,25 @@ mixin ReadEndpoints on EndpointInteractor {
   }
 
   Future<ListingData<SubredditData>> getSubreddits(Subreddits where, Page page) {
-    return get('${_kOAuthUrl}/subreddits/${where}/?${page}')
+    return get('/subreddits/${where}/?${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
-  Future<ListingData<PostData>> getSubredditPosts(String subredditName,
-      SubredditSort sort, Page page) {
-    return get('${_kOAuthUrl}/r/${subredditName}/${sort}'
+  Future<ListingData<PostData>> getSubredditPosts(String subredditName, SubredditSort sort, Page page) {
+    return get('/r/${subredditName}/${sort}'
                '/${_kRawJsonArgs}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
-  Future<Iterable<MultiData>> getMultisOfUser(String username,
-      bool expandSubreddits) {
-    return get('${_kOAuthUrl}/api/multi/user/${username}/'
+  Future<Iterable<MultiData>> getMultisOfUser(String username, bool expandSubreddits) {
+    return get('/api/multi/user/${username}/'
                '?expand_srs=${expandSubreddits}')
         .then((String json) => MultiData.iterableFromJson(json));
   }
 
-  Future<Iterable<SubredditData>> postSubredditSearch(String query, bool exact,
-      bool includeOver18) {
-    return post('${_kOAuthUrl}/api/search_subreddits',
-        'query=${query}&exact=${exact}&include_over_18=${includeOver18}')
+  Future<Iterable<SubredditData>> postSubredditSearch(String query, bool exact, bool includeOver18) {
+    return post('/api/search_subreddits', body: 'query=${query}&exact=${exact}&include_over_18=${includeOver18}')
             .then((String json) => SubredditData.iterableFromJson(json));
   }
 }
+

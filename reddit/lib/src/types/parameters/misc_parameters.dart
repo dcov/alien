@@ -1,4 +1,4 @@
-part of '../parameters.dart';
+part of 'parameters.dart';
 
 class Scope extends Parameter {
   static const Scope account = Scope._('account');
@@ -55,3 +55,4 @@ class VoteDir extends Parameter {
 
   const VoteDir._(String name, String value) : super._(name, value);
 }
+
