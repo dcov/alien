@@ -15,7 +15,7 @@ abstract class TokenStore {
     Client ioClient,
     Map<String, String> basicHeader,
     String refreshToken
-  ) = _RefreshStore;
+  ) = _UserStore;
 
   TokenStore._();
 
@@ -92,9 +92,9 @@ class _DeviceStore extends TokenStore {
   }
 }
 
-class _RefreshStore extends TokenStore {
+class _UserStore extends TokenStore {
 
-  _RefreshStore(
+  _UserStore(
     this.ioClient,
     this._basicHeader,
     this._refreshToken
