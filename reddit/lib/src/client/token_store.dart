@@ -1,7 +1,7 @@
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
-import '../types/data.dart';
+import '../types/data/data.dart';
 
 abstract class TokenStore {
 

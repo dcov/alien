@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
-import '../../types.dart';
+import '../types/data/data.dart';
+import '../types/parameters/parameters.dart';
 
 enum _PaginationState {
   normal,

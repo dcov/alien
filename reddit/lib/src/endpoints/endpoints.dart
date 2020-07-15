@@ -1,6 +1,6 @@
 import '../client/client.dart';
-import '../types/data.dart';
-import '../types/parameters.dart';
+import '../types/data/data.dart';
+import '../types/parameters/parameters.dart';
 
 part 'any_endpoints.dart';
 part 'identity_endpoints.dart';

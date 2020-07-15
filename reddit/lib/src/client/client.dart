@@ -1,10 +1,9 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
-import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
-import '../types/data.dart';
+import '../types/data/data.dart';
 import 'token_store.dart';
 
 class RedditClient {
@@ -53,7 +52,11 @@ class RedditClient {
 class Reddit {
 
   /// Creates a reddit app instance that can be used to instantiate [RedditClient]s to access the reddit api.
-  factory Reddit(String appId, String appUri) {
+  ///
+  /// [appId]: The id string of the app.
+  /// [appUri]: (Optional) The uri that a user is redirected to when authenticating the app. This is only needed if
+  /// the app will be acquiring the initial access token for a user, i.e. if you call [postCode].
+  factory Reddit(String appId, [String appUri, Client ioClient]) {
 
     /// Generate a random device id.
     final String deviceId = Uuid().v1().toString().substring(0, 30);
@@ -64,18 +67,20 @@ class Reddit {
       'Authorization' : 'basic ${base64.encode(utf8.encode('${appId}:'))}'
     };
 
+    ioClient ??= Client();
+
     final Reddit reddit = Reddit._(
-      appId,
       appUri,
       deviceId,
-      basicHeader);
+      basicHeader,
+      ioClient);
 
     /// Since there can only be one device based [RedditClient] instance per reddit app, we can instantiate it
     /// right away.
     reddit._clients[deviceId] = RedditClient(
-      _ioClient,
+      ioClient,
       TokenStore.asDevice(
-        _ioClient,
+        ioClient,
         basicHeader,
         deviceId));
 
@@ -83,20 +88,12 @@ class Reddit {
   }
 
   Reddit._(
-    this.appId,
-    this.appUri,
+    this._appUri,
     this._deviceId,
-    this._basicHeader);
+    this._basicHeader,
+    this._ioClient);
 
-  static Client _ioClient = Client();
-  static set ioClient(Client value) {
-    assert(value != null);
-    _ioClient = value;
-  }
-
-  final String appId;
-
-  final String appUri;
+  final String _appUri;
 
   final String _deviceId;
 
@@ -104,12 +101,18 @@ class Reddit {
 
   final Map<String, RedditClient> _clients = Map<String, RedditClient>();
 
+  final Client _ioClient;
+
   Future<RefreshTokenData> postCode(String code) {
+    if (_appUri == null) {
+      throw StateError("Cannot acquire an access token without the app's uri. Initialize the Reddit instance with an appUri value.");
+    }
+    
     return _ioClient
       .post(
         'https://www.reddit.com/api/v1/access_token',
         headers: _basicHeader,
-        body: 'grant_type=authorization_code&code=$code&redirect_uri=$appUri')
+        body: 'grant_type=authorization_code&code=$code&redirect_uri=$_appUri')
       .then((Response response) {
         final RefreshTokenData data = RefreshTokenData.fromJson(response.body);
         RedditClient client = _clients[data.refreshToken];
