@@ -15,7 +15,7 @@ class GetPostComments extends Effect {
 
   @override
   Future<Event> perform(EffectContext context) {
-    return context.client
+    return context.reddit
         .asDevice()
         .getPostComments(
           commentsTree.permalink,
@@ -46,7 +46,7 @@ class GetMoreComments extends Effect {
 
   @override
   Future<Event> perform(EffectContext context) {
-    return context.client
+    return context.reddit
         .asDevice()
         .getMoreComments(
           commentsTree.fullPostId,

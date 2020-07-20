@@ -13,7 +13,7 @@ class EffectContext {
     @required String redditRedirect,
   }) {
     return EffectContext._(
-      RedditClient(redditId, redditRedirect),
+      Reddit(redditId, redditRedirect),
       Hive,
       Scraper(),
       _defaultRenderer,
@@ -21,13 +21,13 @@ class EffectContext {
   }
 
   EffectContext._(
-    this.client,
+    this.reddit,
     this.hive,
     this.scraper,
     this._renderer
   );
 
-  final RedditClient client;
+  final Reddit reddit;
 
   final HiveInterface hive;
 

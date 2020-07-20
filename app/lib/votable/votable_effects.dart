@@ -1,6 +1,6 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
-import 'package:reddit/reddit.dart' show VoteDir;
+import 'package:reddit/reddit.dart';
 
 import '../effects/effect_context.dart';
 import '../thing/thing_utils.dart' as utils;
@@ -22,7 +22,7 @@ class PostVote extends Effect {
 
   @override
   Future<Event> perform(EffectContext context) {
-    return context.client
+    return context.reddit
       .asUser(user.token)
       .postVote(utils.makeFullId(votable), votable.voteDir)
       .catchError((e) {

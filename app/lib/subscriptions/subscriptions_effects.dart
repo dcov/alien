@@ -21,14 +21,14 @@ class GetSubscriptions extends Effect {
 
   @override
   Future<Event> perform(EffectContext context) async {
-    final RedditInteractor reddit = context.client.asUser(user.token);
+    final RedditClient client = context.reddit.asUser(user.token);
 
     try {
       final List<SubredditData> result = List<SubredditData>();
       Pagination pagination = Pagination.maxLimit();
 
       do {
-        final ListingData<SubredditData> listing = await reddit.getUserSubreddits(
+        final ListingData<SubredditData> listing = await client.getUserSubreddits(
           UserSubreddits.subscriber,
           pagination.nextPage,
           false

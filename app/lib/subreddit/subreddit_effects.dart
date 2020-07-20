@@ -24,7 +24,7 @@ class PostSubscribe extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     try {
-      await context.client
+      await context.reddit
           .asUser(user.token)
           .postSubscribe(utils.makeFullId(subreddit));
     } catch (_) {
@@ -47,7 +47,7 @@ class PostUnsubscribe extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     try {
-      await context.client
+      await context.reddit
           .asUser(user.token)
           .postUnsubscribe(utils.makeFullId(subreddit));
     } catch (_) {
@@ -72,7 +72,7 @@ class GetSubredditPosts extends Effect {
   
   @override
   dynamic perform(EffectContext context) {
-    return context.client
+    return context.reddit
       .asDevice()
       .getSubredditPosts(
         subreddit.name, subreddit.sortBy, page)
