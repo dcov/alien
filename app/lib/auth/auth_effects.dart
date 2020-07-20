@@ -15,7 +15,7 @@ class GetPermissions extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     try {
-      final Iterable<ScopeData> data = await context.client
+      final Iterable<ScopeData> data = await context.reddit
               .asDevice()
               .getScopeDescriptions();
       return GetPermissionsSuccess(data: data);
@@ -34,10 +34,10 @@ class PostCode extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     try {
-      final RedditClient client = context.client;
-      final RefreshTokenData tokenData = await client.postCode(code);
+      final Reddit reddit = context.reddit;
+      final RefreshTokenData tokenData = await reddit.postCode(code);
 
-      final AccountData accountData = await client
+      final AccountData accountData = await reddit
           .asUser(tokenData.refreshToken)
           .getUserAccount();
 

@@ -15,7 +15,7 @@ class GetDefaults implements Effect {
 
   @override
   Future<Event> perform(EffectContext context) {
-    return context.client
+    return context.reddit
         .asDevice()
         .getSubreddits(
             Subreddits.defaults,

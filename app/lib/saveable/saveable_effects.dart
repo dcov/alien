@@ -21,10 +21,10 @@ class PostSaveable extends Effect {
 
   @override
   Future<Event> perform(EffectContext context) async {
-    final RedditInteractor reddit = context.client.asUser(user.token);
+    final RedditClient client = context.reddit.asUser(user.token);
     return (saveable.isSaved
-        ? reddit.postSave(utils.makeFullId(saveable))
-        : reddit.postUnsave(utils.makeFullId(saveable)))
+        ? client.postSave(utils.makeFullId(saveable))
+        : client.postUnsave(utils.makeFullId(saveable)))
       .then((_) => null, onError: (_) => null);
   }
 }

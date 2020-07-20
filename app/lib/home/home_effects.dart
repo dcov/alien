@@ -28,7 +28,7 @@ class GetHomePosts extends Effect {
 
   @override
   dynamic perform(EffectContext context) {
-    return context.client
+    return context.reddit
       .asUser(user.token)
       .getHomePosts(home.sortBy, page)
       .then(
