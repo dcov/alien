@@ -1,5 +1,5 @@
 import 'logic/init_logic.dart';
-import 'views/app_runner.dart';
+import 'views/app_view.dart';
 
 import 'config.dart' as config;
 import 'effects.dart';
@@ -11,6 +11,6 @@ void main() {
     initial: InitApp(
       appId: config.kAppId,
       appRedirect: config.kAppRedirect),
-    view: AppRunner());
+    view: AppView());
 }
 

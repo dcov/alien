@@ -11,9 +11,9 @@ import '../widgets/scroll_configuration.dart';
 /// phase between when the [App] state has yet to be initialized, in which it
 /// renders a graphic, and after it's been initialized, in which it renders the
 /// initialized [App] state and doesn't rebuild anymore.
-class AppRunner extends StatelessWidget {
+class AppView extends StatelessWidget {
 
-  AppRunner({ Key key })
+  AppView({ Key key })
     : super(key: key);
 
   @override
