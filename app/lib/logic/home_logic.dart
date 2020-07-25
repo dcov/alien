@@ -1,16 +1,14 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
-import 'package:reddit/reddit.dart' show Page, ListingData, PostData;
+import 'package:reddit/reddit.dart';
 
-import '../auth/auth_model.dart';
-import '../listing/listing_model.dart' show ListingStatus;
-import '../listing/listing_events.dart';
-import '../post/post_model.dart';
+import '../effects/effect_context.dart';
+import '../models/auth_model.dart';
+import '../models/home_model.dart';
+import '../models/listing_model.dart';
+import '../models/user_model.dart';
 
-import 'home_effects.dart';
-import 'home_model.dart';
-
-class UpdateHomePosts extends UpdateListing {
+class UpdateHomePosts implements Event {
 
   UpdateHomePosts({
     @required this.home,
@@ -22,7 +20,7 @@ class UpdateHomePosts extends UpdateListing {
   final ListingStatus newStatus;
 
   @override
-  dynamic update(RootAuth root) {
+  Effect update(RootAuth root) {
     final Auth auth = root.auth;
     assert(auth.currentUser != null);
 
@@ -68,6 +66,41 @@ class GetHomePostsFail extends Event {
   @override
   dynamic update(_) {
     // TODO: Implement
+  }
+}
+
+class GetHomePosts extends Effect {
+
+  GetHomePosts({
+    @required this.home,
+    @required this.newStatus,
+    @required this.page,
+    @required this.user,
+  });
+
+  final Home home;
+
+  final ListingStatus newStatus;
+
+  final Page page;
+
+  final User user;
+
+  @override
+  dynamic perform(EffectContext context) {
+    return context.reddit
+      .asUser(user.token)
+      .getHomePosts(home.sortBy, page)
+      .then(
+        (ListingData<PostData> data) {
+          return GetHomePostsSuccess(
+            home: home,
+            expectedStatus: newStatus,
+            result: data);
+        },
+        onError: (_) {
+          return GetHomePostsFail();
+        });
   }
 }
 

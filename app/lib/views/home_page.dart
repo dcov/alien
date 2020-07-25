@@ -2,14 +2,14 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../listing/listing_model.dart' show ListingStatus;
-import '../listing/listing_widgets.dart';
-import '../post/post_model.dart';
-import '../post/post_widgets.dart';
+import '../logic/home_logic.dart';
+import '../models/home_model.dart';
+import '../models/listing_model.dart';
+import '../models/post_model.dart';
 import '../widgets/widget_extensions.dart';
 
-import 'home_events.dart';
-import 'home_model.dart';
+import 'listing_scroll_view.dart';
+import 'post_tiles.dart';
 
 class HomeTile extends StatelessWidget {
 
