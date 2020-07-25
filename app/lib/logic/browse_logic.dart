@@ -1,13 +1,12 @@
 import 'package:elmer/elmer.dart';
 
-import '../auth/auth_model.dart';
-import '../defaults/defaults_events.dart';
-import '../defaults/defaults_model.dart';
-import '../home/home_model.dart';
-import '../subscriptions/subscriptions_events.dart';
-import '../subscriptions/subscriptions_model.dart';
-
-import 'browse_model.dart';
+import '../logic/defaults_logic.dart';
+import '../logic/subscriptions_logic.dart';
+import '../models/auth_model.dart';
+import '../models/browse_model.dart';
+import '../models/defaults_model.dart';
+import '../models/home_model.dart';
+import '../models/subscriptions_model.dart';
 
 class InitBrowse implements Event {
 
