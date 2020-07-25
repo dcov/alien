@@ -1,18 +1,16 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../comment/comment_model.dart';
-import '../comment/comment_widgets.dart';
-import '../thing/thing_model.dart';
-
+import '../logic/comments_tree_logic.dart';
+import '../models/comment_model.dart';
+import '../models/comments_tree_model.dart';
 import '../widgets/padded_scroll_view.dart';
 
-import 'comments_tree_events.dart';
-import 'comments_tree_model.dart';
+import 'comment_tile.dart';
 
-class CommentsTreeScrollable extends StatefulWidget {
+class CommentsTreeScrollView extends StatefulWidget {
 
-  CommentsTreeScrollable({
+  CommentsTreeScrollView({
     Key key,
     @required this.commentsTree,
   }) : super(key: key);
@@ -20,10 +18,10 @@ class CommentsTreeScrollable extends StatefulWidget {
   final CommentsTree commentsTree;
 
   @override
-  _CommentsTreeScrollableState createState() => _CommentsTreeScrollableState();
+  _CommentsTreeScrollViewState createState() => _CommentsTreeScrollViewState();
 }
 
-class _CommentsTreeScrollableState extends State<CommentsTreeScrollable> {
+class _CommentsTreeScrollViewState extends State<CommentsTreeScrollView> {
 
   ScrollController _controller;
 
@@ -34,7 +32,7 @@ class _CommentsTreeScrollableState extends State<CommentsTreeScrollable> {
   }
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       final CommentsTree commentsTree = widget.commentsTree;
       return PaddedScrollView(
@@ -80,7 +78,7 @@ class _MoreTile extends StatelessWidget {
   final More more;
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       return Padding(
         padding: EdgeInsets.only(left: 16.0 * more.depth),

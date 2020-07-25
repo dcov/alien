@@ -2,14 +2,14 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import '../subreddit/subreddit_model.dart';
-
-import 'defaults_effects.dart';
-import 'defaults_model.dart';
+import '../effects/effect_context.dart';
+import '../models/defaults_model.dart';
 
 class LoadDefaults implements Event {
 
-  const LoadDefaults({ @required this.defaults });
+  LoadDefaults({
+    @required this.defaults
+  });
 
   final Defaults defaults;
 
@@ -27,7 +27,7 @@ class LoadDefaults implements Event {
 
 class GetDefaultsSuccess implements Event {
 
-  const GetDefaultsSuccess({
+  GetDefaultsSuccess({
     @required this.defaults,
     @required this.subreddits
   });
@@ -54,7 +54,9 @@ class GetDefaultsSuccess implements Event {
 
 class GetDefaultsFailed implements Event {
 
-  const GetDefaultsFailed({ @required this.defaults });
+  GetDefaultsFailed({
+    @required this.defaults
+  });
 
   final Defaults defaults;
 
@@ -62,3 +64,30 @@ class GetDefaultsFailed implements Event {
   dynamic update(_) { }
 }
 
+class GetDefaults implements Effect {
+
+  GetDefaults({
+    @required this.defaults
+  });
+
+  final Defaults defaults;
+
+  @override
+  Future<Event> perform(EffectContext context) {
+    return context.reddit
+        .asDevice()
+        .getSubreddits(
+            Subreddits.defaults,
+            Page(limit: Page.kMaxLimit))
+        .then(
+            (ListingData<SubredditData> listing) {
+              return GetDefaultsSuccess(
+                defaults: defaults,
+                subreddits: listing.things
+              );
+            },
+            onError: (e) {
+              return GetDefaultsFailed(defaults: defaults);
+            });
+  }
+}
