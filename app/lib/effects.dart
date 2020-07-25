@@ -1,4 +1,62 @@
+import 'package:elmer/elmer.dart';
+import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hive/hive.dart';
+import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
+import 'package:scraper/scraper.dart';
+
+void runLoopWithEffects({
+  @required String appId,
+  @required String appRedirect,
+  @required Initial initial,
+  Set<ProxyUpdate> proxies,
+  @required Widget view,
+}) {
+  final GlobalKey<EffectRendererState> rendererKey = GlobalKey<EffectRendererState>();
+  runLoop(
+    initial: initial,
+    container: EffectContext(
+      appId: appId,
+      appRedirect: appRedirect,
+      rendererKey: rendererKey),
+    proxies: proxies,
+    view: EffectRenderer(
+      key: rendererKey,
+      child: view));
+}
+
+class EffectContext {
+
+  factory EffectContext({
+    @required String appId,
+    @required String appRedirect,
+    @required GlobalKey<EffectRendererState> rendererKey
+  }) {
+    return EffectContext._(
+      Reddit(appId, appRedirect),
+      Hive,
+      Scraper(),
+      rendererKey,
+    );
+  }
+
+  EffectContext._(
+    this.reddit,
+    this.hive,
+    this.scraper,
+    this._rendererKey
+  );
+
+  final Reddit reddit;
+
+  final HiveInterface hive;
+
+  final Scraper scraper;
+
+  EffectRendererState get renderer => _rendererKey.currentState;
+  final GlobalKey<EffectRendererState> _rendererKey;
+}
 
 class EffectRenderer extends StatefulWidget {
 
