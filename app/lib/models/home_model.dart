@@ -1,8 +1,11 @@
 import 'package:elmer/elmer.dart';
 import 'package:reddit/reddit.dart' show HomeSort;
 
-import '../post/post_model.dart';
-import '../listing/listing_model.dart';
+import 'post_model.dart';
+import 'listing_model.dart';
+
+export 'post_model.dart';
+export 'listing_model.dart';
 
 part 'home_model.g.dart';
 

@@ -2,9 +2,9 @@ import 'package:elmer/elmer.dart';
 import 'package:flutter/material.dart' show ThemeData;
 import 'package:meta/meta.dart';
 
-import 'theming_model.dart';
+import '../models/theming_model.dart';
 
-class UpdateTheme extends Event {
+class UpdateTheme implements Event {
 
   const UpdateTheme({
     @required this.theming,

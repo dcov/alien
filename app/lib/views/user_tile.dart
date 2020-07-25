@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/page.dart';
-import '../widgets/pressable.dart';
-import '../widgets/tile.dart';
-
-import 'user_model.dart';
+import '../../models/user_model.dart';
+import '../../widgets/pressable.dart';
+import '../../widgets/tile.dart';
 
 class UserTile extends StatelessWidget {
 
@@ -32,20 +30,5 @@ class UserTile extends StatelessWidget {
 			title: Text(user.name),
 		);
 	}
-}
-
-class UserPage extends Page {
-
-  UserPage({
-    RouteSettings settings,
-    @required this.user,
-  }) : super(settings: settings);
-
-  final User user;
-
-  @override
-  Widget buildPage(BuildContext context, _, __) {
-    return Material();
-  }
 }
 

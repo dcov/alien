@@ -1,8 +1,12 @@
 import 'package:reddit/reddit.dart' show CommentData;
 
-import '../saveable/saveable_model.dart';
-import '../snudown/snudown_model.dart';
-import '../votable/votable_model.dart';
+import 'saveable_model.dart';
+import 'snudown_model.dart';
+import 'votable_model.dart';
+
+export 'saveable_model.dart';
+export 'snudown_model.dart';
+export 'votable_model.dart';
 
 part 'comment_model.g.dart';
 

@@ -1,9 +1,13 @@
 import 'package:elmer/elmer.dart';
 import 'package:reddit/reddit.dart' show SubredditData, SubredditSort;
 
-import '../listing/listing_model.dart';
-import '../post/post_model.dart';
-import '../thing/thing_model.dart';
+import 'listing_model.dart';
+import 'post_model.dart';
+import 'thing_model.dart';
+
+export 'listing_model.dart';
+export 'post_model.dart';
+export 'thing_model.dart';
 
 part 'subreddit_model.g.dart';
 

@@ -2,7 +2,9 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import '../thing/thing_model.dart';
+import 'thing_model.dart';
+
+export 'thing_model.dart';
 
 part 'comments_tree_model.g.dart';
 

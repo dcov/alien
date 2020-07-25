@@ -1,9 +1,9 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../subreddit/subreddit_widgets.dart';
+import '../models/subscriptions_model.dart';
 
-import 'subscriptions_model.dart';
+import 'subreddit_tile.dart';
 
 class SubscriptionsSliver extends StatelessWidget {
 
@@ -32,7 +32,7 @@ class SubscriptionsSliver extends StatelessWidget {
 
   @override
   Widget build(_) {
-    return Tracker(
+    return Connector(
       builder: (_) {
         return SliverList(
           delegate: subscriptions.refreshing

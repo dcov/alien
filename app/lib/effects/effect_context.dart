@@ -9,11 +9,11 @@ import 'effect_renderer.dart';
 class EffectContext {
 
   factory EffectContext({
-    @required String redditId,
-    @required String redditRedirect,
+    @required String appId,
+    @required String appRedirect,
   }) {
     return EffectContext._(
-      Reddit(redditId, redditRedirect),
+      Reddit(appId, appRedirect),
       Hive,
       Scraper(),
       _defaultRenderer,

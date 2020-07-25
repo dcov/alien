@@ -1,10 +1,10 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../thing/thing_model.dart';
+import '../models/listing_model.dart';
+import '../models/thing_model.dart';
 import '../widgets/padded_scroll_view.dart';
 
-import 'listing_model.dart';
 
 typedef ThingWidgetBuilder<T extends Thing> = Widget Function(BuildContext context, T thing);
 
@@ -30,7 +30,7 @@ class ListingScrollView<T extends Thing> extends StatefulWidget {
 }
 
 class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T>>
-    with TrackerStateMixin {
+    with ConnectionStateMixin {
 
   ScrollController _controller;
 
@@ -55,7 +55,7 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
   }
 
   @override
-  void track(_) {
+  void didUpdate(_) {
     final Listing<T> listing = widget.listing;
     _trackOffset = listing.status == ListingStatus.idle && 
                    listing.pagination?.nextPageExists == true;
@@ -64,7 +64,7 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
   @override
   Widget build(_) {
     super.buildCheck();
-    return Tracker(
+    return Connector(
       builder: (BuildContext context) {
         final Listing<T> listing = widget.listing;
         return PaddedScrollView(

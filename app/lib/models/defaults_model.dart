@@ -1,6 +1,8 @@
 import 'package:elmer/elmer.dart';
 
-import '../subreddit/subreddit_model.dart';
+import 'subreddit_model.dart';
+
+export 'subreddit_model.dart';
 
 part 'defaults_model.g.dart';
 

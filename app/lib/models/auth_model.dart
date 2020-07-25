@@ -1,26 +1,20 @@
 import 'package:elmer/elmer.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart' show AuthSession;
 
-import '../user/user_model.dart';
+import 'user_model.dart';
+
+export 'user_model.dart';
 
 part 'auth_model.g.dart';
 
 abstract class Permission implements Model {
 
   factory Permission({
-    @required String id,
-    @required String name,
-    @required String description,
-    @required bool enabled,
-  }) {
-    return _$Permission(
-      id: id,
-      name: name,
-      description: description,
-      enabled: enabled,
-    );
-  }
+    String id,
+    String name,
+    String description,
+    bool enabled,
+  }) = _$Permission;
 
   String get id;
 
@@ -40,22 +34,28 @@ enum PermissionsStatus {
 abstract class Auth implements Model {
 
   factory Auth({
-    @required String clientId,
-    @required String redirectUri,
+    String appId,
+    String appRedirect,
+    List<User> users = const <User>[],
+    List<Permission> permissions = const <Permission>[],
+    bool authenticating,
+    AuthSession session,
+    User currentUser,
+    PermissionsStatus permissionsStatus,
   }) {
     return _$Auth(
-      clientId: clientId,
-      redirectUri: redirectUri,
+      appId: appId,
+      appRedirect: appRedirect,
       users: const <User>[],
       permissions: <Permission>[],
-      authenticating: false,
-      permissionsStatus: PermissionsStatus.notLoaded,
+      authenticating: authenticating,
+      permissionsStatus: permissionsStatus,
     );
   }
 
-  String get clientId;
+  String get appId;
 
-  String get redirectUri;
+  String get appRedirect;
 
   List<User> get users;
 

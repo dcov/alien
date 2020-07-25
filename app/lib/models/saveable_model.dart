@@ -1,6 +1,8 @@
 import 'package:elmer/elmer.dart';
 
-import '../thing/thing_model.dart';
+import 'thing_model.dart';
+
+export 'thing_model.dart';
 
 @abs
 abstract class Saveable implements Thing {

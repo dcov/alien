@@ -1,7 +1,7 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import 'theming_model.dart';
+import '../models/theming_model.dart';
 
 class Themer extends StatelessWidget {
 
@@ -16,7 +16,7 @@ class Themer extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       return AnimatedTheme(
         data: theming.data,
@@ -25,3 +25,4 @@ class Themer extends StatelessWidget {
     },
   );
 }
+

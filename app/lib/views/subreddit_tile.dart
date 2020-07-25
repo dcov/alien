@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../widgets/icons.dart';
 import '../widgets/tile.dart';
 
-import 'subreddit_model.dart';
+import '../models/subreddit_model.dart';
 
 class SubredditTile extends StatelessWidget {
 
@@ -19,7 +19,7 @@ class SubredditTile extends StatelessWidget {
   final bool includeDepth;
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       return CustomTile(
         onTap: () { },

@@ -3,14 +3,35 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects/effect_context.dart';
-import '../thing/thing_utils.dart' as utils;
-import '../user/user_model.dart';
+import '../models/auth_model.dart';
+import '../models/saveable_model.dart';
+import '../models/user_model.dart';
+import '../utils/thing_utils.dart' as utils;
 
-import 'saveable_model.dart';
+class ToggleSaved implements Event {
 
-class PostSaveable extends Effect {
+  ToggleSaved({
+    @required this.saveable,
+    this.user,
+  });
 
-  const PostSaveable({
+  final Saveable saveable;
+
+  final User user;
+
+  @override
+  Effect update(RootAuth root) {
+    saveable.isSaved = !saveable.isSaved;
+    return PostSaveable(
+      saveable: saveable,
+      user: user ?? root.auth.currentUser,
+    );
+  }
+}
+
+class PostSaveable implements Effect {
+
+  PostSaveable({
      @required this.saveable,
      @required this.user
   });
@@ -28,3 +49,4 @@ class PostSaveable extends Effect {
       .then((_) => null, onError: (_) => null);
   }
 }
+

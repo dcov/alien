@@ -1,7 +1,10 @@
 import 'package:elmer/elmer.dart';
 
-import '../subreddit/subreddit_model.dart';
+import 'subreddit_model.dart';
 import '../widgets/scroll_offset.dart';
+
+export 'subreddit_model.dart';
+export '../widgets/scroll_offset.dart';
 
 part 'subscriptions_model.g.dart';
 
@@ -21,3 +24,4 @@ abstract class Subscriptions implements Model {
 
   ScrollOffset get offset;
 }
+

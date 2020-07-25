@@ -1,4 +1,4 @@
-import 'thing_model.dart';
+import '../models/thing_model.dart';
 
 /// Converts [Thing.id] into a 'full' id by prefixing it with [Thing.kind].
 /// 
