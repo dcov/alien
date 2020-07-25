@@ -11,7 +11,7 @@ import '../models/auth_model.dart';
 
 class InitApp implements Initial {
 
-  const InitApp({
+  InitApp({
     @required this.appId,
     @required this.appRedirect
   }) : assert(appId != null),
@@ -35,7 +35,7 @@ class InitApp implements Initial {
 
 class InitResources implements Effect {
 
-  const InitResources();
+  InitResources();
 
   @override
   dynamic perform(EffectContext context) async {
@@ -57,7 +57,7 @@ class InitResources implements Effect {
 
 class InitResourcesSuccess implements Event {
 
-  const InitResourcesSuccess({
+  InitResourcesSuccess({
     @required this.users,
     @required this.signedInUser,
   });
@@ -84,7 +84,7 @@ class InitResourcesSuccess implements Event {
 
 class InitResourcesFail implements Event {
 
-  const InitResourcesFail();
+  InitResourcesFail();
 
   /// TODO: Implement
   @override
