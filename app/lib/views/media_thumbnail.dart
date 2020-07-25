@@ -3,8 +3,8 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'media_events.dart';
-import 'media_model.dart';
+import '../logic/media_logic.dart';
+import '../models/media_model.dart';
 
 class MediaThumbnail extends StatelessWidget {
 
@@ -16,7 +16,7 @@ class MediaThumbnail extends StatelessWidget {
   final Media media;
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       Widget result;
       switch (media.thumbnailStatus) {

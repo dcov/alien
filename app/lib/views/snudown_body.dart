@@ -2,7 +2,7 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
-import 'snudown_model.dart';
+import '../models/snudown_model.dart';
 
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {
   final ThemeData theme = Theme.of(context);
@@ -64,7 +64,7 @@ class SnudownBody extends StatelessWidget {
   final bool scrollable;
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       return Markdown(
         nodes: snudown.nodes,

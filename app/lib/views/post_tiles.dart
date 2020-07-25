@@ -2,12 +2,12 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart' show VoteDir;
 
-import '../media/media_widgets.dart';
+import '../models/post_model.dart';
 import '../widgets/formatting.dart';
 import '../widgets/pressable.dart';
 import '../widgets/tile.dart';
 
-import 'post_model.dart';
+import 'media_thumbnail.dart';
 
 class PostDepthTile extends StatelessWidget {
 
@@ -26,9 +26,7 @@ class PostDepthTile extends StatelessWidget {
       title: Text(
         post.title,
         maxLines: 1,
-        overflow: TextOverflow.ellipsis
-      ),
-    );
+        overflow: TextOverflow.ellipsis));
   }
 }
 
@@ -45,7 +43,7 @@ class PostListTile extends StatelessWidget {
   final bool includeSubredditName;
   
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       return Pressable(
         onPress: () { },
@@ -68,9 +66,7 @@ class PostListTile extends StatelessWidget {
                             Text('r/${post.subredditName}'),
                           Text('u/${post.authorName}'),
                           Text(formatElapsedUtc(post.createdAtUtc)),
-                        ]
-                      )
-                    ),
+                        ])),
                     Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: <Widget>[
@@ -79,15 +75,10 @@ class PostListTile extends StatelessWidget {
                           style: TextStyle(
                             color: post.voteDir == VoteDir.up ? Colors.deepOrange :
                                    post.voteDir == VoteDir.down ? Colors.indigoAccent :
-                                   Colors.grey
-                          )
-                        ),
+                                   Colors.grey)),
                         Text('${formatCount(post.commentCount)} comments')
-                      ],
-                    )
-                  ]
-                )
-              ),
+                      ])
+                  ])),
               if (post.media != null) 
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0),
@@ -96,26 +87,14 @@ class PostListTile extends StatelessWidget {
                       child: ClipPath(
                         clipper: ShapeBorderClipper(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4.0)
-                          )
-                        ),
+                            borderRadius: BorderRadius.circular(4.0))),
                         child: SizedBox(
                           width: 70,
                           height: 60,
                           child: MediaThumbnail(
-                            media: post.media,
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-            ],
-          ),
-        )
-      );
-    },
-  );
+                            media: post.media))))))
+            ])));
+    });
 }
 
 enum PostTileLayout {
@@ -149,8 +128,7 @@ class PostTile extends StatelessWidget {
       case PostTileLayout.list:
         return PostListTile(
           post: post,
-          includeSubredditName: includeSubredditName
-        );
+          includeSubredditName: includeSubredditName);
     }
     throw UnimplementedError();
   }
