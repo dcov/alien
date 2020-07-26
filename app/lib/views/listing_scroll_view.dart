@@ -8,7 +8,7 @@ import '../widgets/padded_scroll_view.dart';
 
 typedef ThingWidgetBuilder<T extends Thing> = Widget Function(BuildContext context, T thing);
 
-typedef UpdateListingCallback = void Function(ListingStatus newStatus);
+typedef TransitionListingCallback = void Function(ListingStatus to);
 
 class ListingScrollView<T extends Thing> extends StatefulWidget {
 
@@ -16,14 +16,14 @@ class ListingScrollView<T extends Thing> extends StatefulWidget {
     Key key,
     @required this.listing,
     @required this.builder,
-    @required this.onUpdateListing
+    @required this.onTransitionListing
   }) : super(key: key);
 
   final Listing<T> listing;
 
   final ThingWidgetBuilder<T> builder;
 
-  final UpdateListingCallback onUpdateListing;
+  final TransitionListingCallback onTransitionListing;
 
   @override
   _ListingScrollViewState<T> createState() => _ListingScrollViewState<T>();
@@ -50,7 +50,7 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
 
     final ScrollMetrics metrics = _controller.position;
     if (metrics.pixels > (metrics.maxScrollExtent - 100)) {
-      widget.onUpdateListing(ListingStatus.loadingMore);
+      widget.onTransitionListing(ListingStatus.loadingMore);
     }
   }
 

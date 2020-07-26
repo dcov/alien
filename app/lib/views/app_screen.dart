@@ -3,10 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../browse/browse_widgets.dart';
-import '../theming/theming_widgets.dart';
-import '../user/user_model.dart';
-import '../user/user_widgets.dart';
+import '../models/app_model.dart';
+import '../models/user_model.dart';
 import '../widgets/animated_offstage.dart';
 import '../widgets/bottom_navigation.dart';
 import '../widgets/bottom_sheet_layout.dart';
@@ -14,24 +12,14 @@ import '../widgets/page.dart';
 import '../widgets/scroll_configuration.dart';
 import '../widgets/widget_extensions.dart';
 
-import 'app_model.dart';
-
-class _Splash extends StatelessWidget {
-
-  const _Splash({ Key key })
-    : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox();
-  }
-}
+import 'browse_page.dart';
+import 'user_page.dart';
 
 /// The main [Widget] in the tree which essentially wires up all of the 
 /// top-level components of the app.
-class _Scaffold extends StatefulWidget {
+class AppScreen extends StatefulWidget {
 
-  _Scaffold({
+  AppScreen({
     Key key,
     this.app,
   }) : super(key: key);
@@ -39,18 +27,18 @@ class _Scaffold extends StatefulWidget {
   final App app;
 
   @override
-  _ScaffoldState createState() => _ScaffoldState();
+  _AppScreenState createState() => _AppScreenState();
 }
 
-class _ScaffoldState extends State<_Scaffold>
-    with TrackerStateMixin {
+class _AppScreenState extends State<AppScreen>
+    with ConnectionStateMixin {
 
   int _currentIndex = 0;
 
   User _currentUser;
 
   @override
-  void track(StateSetter setState) {
+  void didUpdate(StateSetter setState) {
     setState(() {
       _currentUser = widget.app.auth.currentUser;
     });

@@ -1,13 +1,12 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Page;
 
-import '../defaults/defaults_widgets.dart';
-import '../home/home_widgets.dart';
-import '../subscriptions/subscriptions_widgets.dart';
+import '../models/browse_model.dart';
 import '../widgets/page.dart';
 import '../widgets/widget_extensions.dart';
 
-import 'browse_model.dart';
+import 'defaults_sliver.dart';
+import 'home_page.dart';
+import 'subscriptions_sliver.dart';
 
 class BrowsePage extends Page {
 

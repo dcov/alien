@@ -2,7 +2,7 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import '../effects/effect_context.dart';
+import '../effects.dart';
 import '../models/listing_model.dart';
 import '../models/post_model.dart';
 import '../models/subreddit_model.dart';

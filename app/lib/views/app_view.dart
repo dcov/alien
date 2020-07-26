@@ -4,6 +4,10 @@ import 'package:flutter/services.dart';
 
 import '../models/app_model.dart';
 import '../widgets/scroll_configuration.dart';
+import '../widgets/splash_screen.dart';
+
+import 'app_screen.dart';
+import 'themer.dart';
 
 /// The root widget in the tree.
 ///
@@ -34,7 +38,7 @@ class AppView extends StatelessWidget {
         /// the [app.initialized] value. This means we'll only rebuild once -
         /// when the [app.initialized] value is set to [true].
         if (!app.initialized)
-          return _Splash();
+          return SplashScreen();
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -45,7 +49,7 @@ class AppView extends StatelessWidget {
           },
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
-            child: _Scaffold(app: app)));
+            child: AppScreen(app: app)));
       });
   }
 }

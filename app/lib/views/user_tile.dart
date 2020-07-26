@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../models/user_model.dart';
-import '../../widgets/pressable.dart';
-import '../../widgets/tile.dart';
+import '../models/user_model.dart';
+import '../widgets/pressable.dart';
+import '../widgets/tile.dart';
 
 class UserTile extends StatelessWidget {
 

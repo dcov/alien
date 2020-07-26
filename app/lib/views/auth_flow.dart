@@ -2,15 +2,15 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../user/user_widgets.dart';
+import '../logic/auth_logic.dart';
+import '../models/auth_model.dart';
 import '../widgets/padded_scroll_view.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
 import '../widgets/tile.dart';
 import '../widgets/web_view_control.dart';
 
-import 'auth_events.dart';
-import 'auth_model.dart';
+import 'user_tile.dart';
 
 class AuthButton extends StatelessWidget {
 
@@ -29,10 +29,7 @@ class AuthButton extends StatelessWidget {
         height: 48.0,
         width: 48.0,
         child: Center(
-          child: Icon(Icons.person),
-        )
-      )
-    );
+          child: Icon(Icons.person))));
   }
 }
 
@@ -46,12 +43,11 @@ class AuthEntry extends ShellAreaEntry {
   String get title => 'Accounts';
 
   @override
-  Widget buildBody(_) => Tracker(
+  Widget buildBody(_) => Connector(
     builder: (BuildContext context) {
       if (auth.authenticating) {
         return Center(
-          child: CircularProgressIndicator()
-        );
+          child: CircularProgressIndicator());
       }
 
       return PaddedScrollView(
@@ -65,15 +61,11 @@ class AuthEntry extends ShellAreaEntry {
               return UserTile(
                 onLogIn: () => context.dispatch(LogInUser(user: auth.users[index])),
                 onLogOut: () => context.dispatch(LogOutUser(user: auth.users[index])),
-                user: auth.users[index],
-              );
+                user: auth.users[index]);
             },
-            childCount: auth.users.length + 1,
-          ))
-        ]
-      );
-    }
-  );
+            childCount: auth.users.length + 1))
+        ]);
+    });
 }
 
 class _LoginTile extends StatelessWidget {
@@ -93,8 +85,7 @@ class _LoginTile extends StatelessWidget {
                ..push(_LoginEntry(auth: auth));
       },
       icon: Icon(Icons.add),
-      title: Text('Add account'),
-    );
+      title: Text('Add account'));
   }
 }
 
@@ -117,14 +108,12 @@ class _LoginEntry extends ShellAreaEntry {
         child: SizedBox(
           width: 48.0,
           height: 48.0,
-          child: Icon(Icons.edit)
-        )
-      ),
+          child: Icon(Icons.edit))),
     ];
   }
 
   @override
-  Widget buildBody(_) => Tracker(
+  Widget buildBody(_) => Connector(
     builder: (BuildContext context) {
       if (auth.authenticating) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -139,8 +128,7 @@ class _LoginEntry extends ShellAreaEntry {
               onPageFinished: (String url) {
                 if (!auth.authenticating)
                   context.dispatch(CheckUrl(url: url));
-              }
-            );
+              });
 
       return AnimatedSwitcher(
         duration: _kSwitchDuration,
@@ -148,10 +136,7 @@ class _LoginEntry extends ShellAreaEntry {
           key: ValueKey(auth.permissionsStatus),
           child: Padding(
             padding: context.bodyAreaPadding,
-            child: result
-          )
-        )
-      );
+            child: result)));
     }
   );
 }
@@ -170,13 +155,9 @@ class _PermissionsEntry extends ShellAreaEntry {
     return PaddedScrollView(
       slivers: <Widget>[
         SliverList(delegate: SliverChildBuilderDelegate(
-          (_, int index) => _PermissionTile(
-            permission: auth.permissions[index]
-          ),
-          childCount: auth.permissions.length,
-        ))
-      ]
-    );
+          (_, int index) => _PermissionTile(permission: auth.permissions[index]),
+          childCount: auth.permissions.length))
+      ]);
   }
 
   @override
@@ -187,15 +168,13 @@ class _PermissionsEntry extends ShellAreaEntry {
           context..dispatch(ResetPermissions())
                  ..pop(this);
         },
-        child: Text('Cancel'),
-      ),
+        child: Text('Cancel')),
       Pressable(
         onPress: () {
           context..dispatch(ResetAuthSession())
                  ..pop(this);
         },
-        child: Text('Confirm'),
-      ),
+        child: Text('Confirm')),
     ];
   }
 }
@@ -210,7 +189,7 @@ class _PermissionTile extends StatelessWidget {
   final Permission permission;
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       return Pressable(
         onPress: () {},
@@ -222,13 +201,9 @@ class _PermissionTile extends StatelessWidget {
                   permission: permission
                 ));
               },
-              value: permission.enabled,
-            ),
+              value: permission.enabled),
             Expanded(child: Text(permission.name))
-          ]
-        ),
-      );
-    }
-  );
+          ]));
+    });
 }
 

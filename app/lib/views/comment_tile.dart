@@ -1,11 +1,11 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../snudown/snudown_widgets.dart';
+import '../models/comment_model.dart';
 import '../widgets/formatting.dart';
 import '../widgets/insets.dart';
 
-import 'comment_model.dart';
+import 'snudown_body.dart';
 
 class CommentTile extends StatelessWidget {
 
@@ -20,7 +20,7 @@ class CommentTile extends StatelessWidget {
   final bool includeDepthPadding;
 
   @override
-  Widget build(_) => Tracker(
+  Widget build(_) => Connector(
     builder: (BuildContext context) {
       Widget result = Material(
         child: Padding(
@@ -35,9 +35,7 @@ class CommentTile extends StatelessWidget {
                   Text(
                     comment.authorName,
                     style: TextStyle(
-                      color: comment.isSubmitter ? Colors.blue : null
-                    )
-                  ),
+                      color: comment.isSubmitter ? Colors.blue : null)),
                   Text(formatElapsedUtc(comment.createdAtUtc)),
                   Text(formatCount(comment.score)),
               ]),
@@ -47,14 +45,8 @@ class CommentTile extends StatelessWidget {
                   style: Theme.of(context).textTheme.body1,
                   child: SnudownBody(
                     snudown: comment.body,
-                    scrollable: false,
-                  ),
-                )
-              )
-            ]
-          )
-        )
-      );
+                    scrollable: false)))
+            ])));
 
       return result;
     }

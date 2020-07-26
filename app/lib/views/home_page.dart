@@ -25,8 +25,7 @@ class HomeTile extends StatelessWidget {
     return ListTile(
       onTap: () => context.push(HomePage.createRoute(home)),
       leading: Icon(Icons.home),
-      title: Text('Home'),
-    );
+      title: Text('Home'));
   }
 }
 
@@ -57,10 +56,10 @@ class HomePage extends StatelessWidget {
             layout: PostTileLayout.list,
             includeSubredditName: true);
         },
-        onUpdateListing: (ListingStatus newStatus) {
-          context.dispatch(UpdateHomePosts(
+        onUpdateListing: (ListingStatus to) {
+          context.dispatch(TransitionHomePosts(
               home: home,
-              newStatus: newStatus));
+              to: to));
         }));
   }
 }

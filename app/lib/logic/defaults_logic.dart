@@ -2,7 +2,7 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import '../effects/effect_context.dart';
+import '../effects.dart';
 import '../models/defaults_model.dart';
 
 class LoadDefaults implements Event {

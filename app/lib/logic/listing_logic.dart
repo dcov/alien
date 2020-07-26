@@ -71,7 +71,7 @@ class TransitionListingSuccess implements Event {
 
   final _ThingFactory thingFactory;
 
-  @protected
+  @override
   void update(_) {
     // If that status of the listing isn't what we're finishing transitioning to then this transition has been
     // overriden by a different transition, in which case we don't need to do anything.
@@ -99,6 +99,23 @@ class TransitionListingSuccess implements Event {
     }
 
     listing.status = ListingStatus.idle;
+  }
+}
+
+class TransitionListingFailure implements Event {
+
+  TransitionListingFailure({
+    @required this.listing,
+    @required this.to
+  });
+
+  final Listing listing;
+  
+  final ListingStatus to;
+
+  @override
+  void update(_) {
+    // TODO: implement
   }
 }
 

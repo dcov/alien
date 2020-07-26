@@ -3,36 +3,37 @@ import 'package:hive/hive.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import '../effects/effect_context.dart';
-import '../user/user_model.dart';
+import '../effects.dart';
+import '../models/auth_model.dart';
 
-import 'auth_events.dart';
+class GetPermissions implements Effect {
 
-class GetPermissions extends Effect {
-
-  const GetPermissions();
+  GetPermissions();
 
   @override
-  dynamic perform(EffectContext context) async {
-    try {
-      final Iterable<ScopeData> data = await context.reddit
-              .asDevice()
-              .getScopeDescriptions();
-      return GetPermissionsSuccess(data: data);
-    } catch (_) {
-      return GetPermissionsFail();
-    }
+  Future<Event> perform(EffectContext context) async {
+    return context.reddit
+      .asDevice()
+      .getScopeDescriptions()
+      .then((Iterable<ScopeData> data) {
+        return GetPermissionsSuccess(data: data);
+      })
+      .catchError((_) {
+        return GetPermissionsFailure();
+      });
   }
 }
 
-class PostCode extends Effect {
+class PostCode implements Effect {
 
-  const PostCode({ @required this.code });
+  PostCode({
+    @required this.code
+  });
 
   final String code;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Event> perform(EffectContext context) async {
     try {
       final Reddit reddit = context.reddit;
       final RefreshTokenData tokenData = await reddit.postCode(code);
@@ -46,19 +47,21 @@ class PostCode extends Effect {
         account: accountData 
       );
     } catch (_) {
-      return PostCodeFail();
+      return PostCodeFailure();
     }
   }
 }
 
-class StoreUser extends Effect {
+class StoreUser implements Effect {
 
-  StoreUser({ @required this.user });
+  StoreUser({
+    @required this.user
+  });
 
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Event> perform(EffectContext context) async {
     try {
       final Box box = await context.hive.openBox('auth');
       Map users = box.get('users') ?? Map();
@@ -68,27 +71,34 @@ class StoreUser extends Effect {
     } catch (_) {
       return StoreUserFail();
     }
+
+    // Nothing else needs to happen once this succeeds so we return null.
+    return null;
   }
 }
 
-class StoreSignedInUser extends Effect {
+class StoreSignedInUser implements Effect {
 
-  StoreSignedInUser({ this.user });
+  StoreSignedInUser({
+    this.user
+  });
 
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Event> perform(EffectContext context) async {
     try {
       final Box box = await context.hive.openBox('auth');
       await box.put('currentUser', user?.name);
     } catch (_) {
       return StoreSignedInUserFail();
     }
+
+    return null;
   }
 }
 
-class RemoveStoredUser extends Effect {
+class RemoveStoredUser implements Effect {
 
   const RemoveStoredUser({@required this.user });
 
@@ -127,9 +137,9 @@ mixin RetrieveSignedInUser on Effect {
   }
 }
 
-class InitAuth extends Event {
+class InitAuth implements Event {
 
-  const InitAuth({
+  InitAuth({
     @required this.users,
     @required this.signedInUser,
   });
@@ -153,7 +163,7 @@ class InitAuth extends Event {
   }
 }
 
-class LoginStart extends Event {
+class LoginStart implements Event {
 
   const LoginStart();
 
@@ -174,7 +184,7 @@ class LoginStart extends Event {
   }
 }
 
-class GetPermissionsSuccess extends Event {
+class GetPermissionsSuccess implements Event {
 
   const GetPermissionsSuccess({ @required this.data });
 
@@ -200,7 +210,7 @@ class GetPermissionsSuccess extends Event {
   }
 }
 
-class GetPermissionsFail extends Event {
+class GetPermissionsFail implements Event {
 
   const GetPermissionsFail();
 
@@ -211,7 +221,7 @@ class GetPermissionsFail extends Event {
   }
 }
 
-class ResetAuthSession extends Event {
+class ResetAuthSession implements Event {
 
   const ResetAuthSession();
 
@@ -219,8 +229,8 @@ class ResetAuthSession extends Event {
   dynamic update(RootAuth root) {
     final Auth auth = root.auth;
     auth.session = AuthSession(
-      auth.clientId,
-      auth.redirectUri,
+      auth.appId,
+      auth.appRedirect,
       auth.permissions
         .where((Permission permission) => permission.enabled)
         .map((Permission permission) => permission.id),
@@ -228,7 +238,7 @@ class ResetAuthSession extends Event {
   }
 }
 
-class ResetPermissions extends Event {
+class ResetPermissions implements Event {
 
   const ResetPermissions();
 
@@ -241,7 +251,7 @@ class ResetPermissions extends Event {
   }
 }
 
-class TogglePermission extends Event {
+class TogglePermission implements Event {
 
   TogglePermission({ @required this.permission });
 
@@ -253,7 +263,7 @@ class TogglePermission extends Event {
   }
 }
 
-class CheckUrl extends Event {
+class CheckUrl implements Event {
 
   CheckUrl({ @required this.url });
 
@@ -281,7 +291,7 @@ class CheckUrl extends Event {
   }
 }
 
-class LoginSuccess extends Event {
+class LoginSuccess implements Event {
 
   LoginSuccess({ @required this.code });
 
@@ -295,7 +305,7 @@ class LoginSuccess extends Event {
   }
 }
 
-class LoginError extends Event {
+class LoginError implements Event {
 
   const LoginError();
 
@@ -304,7 +314,7 @@ class LoginError extends Event {
   dynamic update(RootAuth root) { }
 }
 
-class PostCodeSuccess extends Event {
+class PostCodeSuccess implements Event {
 
   PostCodeSuccess({
     @required this.token,
@@ -345,7 +355,7 @@ class PostCodeSuccess extends Event {
   }
 }
 
-class PostCodeFail extends Event {
+class PostCodeFail implements Event {
 
   const PostCodeFail();
 
@@ -356,7 +366,7 @@ class PostCodeFail extends Event {
   }
 }
 
-class StoreUserFail extends Event {
+class StoreUserFail implements Event {
 
   const StoreUserFail();
 
@@ -365,7 +375,7 @@ class StoreUserFail extends Event {
   dynamic update(_) {}
 }
 
-class StoreSignedInUserFail extends Event {
+class StoreSignedInUserFail implements Event {
 
   const StoreSignedInUserFail();
 
@@ -374,7 +384,7 @@ class StoreSignedInUserFail extends Event {
   dynamic update(_) { }
 }
 
-class LogOutUser extends Event {
+class LogOutUser implements Event {
 
   const LogOutUser({ @required this.user });
 
@@ -400,7 +410,7 @@ class LogOutUser extends Event {
   }
 }
 
-class RemoveStoredUserFail extends Event {
+class RemoveStoredUserFail implements Event {
 
   /// TODO: Implement
   @override
@@ -424,7 +434,7 @@ class LogInUser extends Event {
   }
 }
 
-class UserChanged extends ProxyEvent {
+class UserChanged implements ProxyEvent {
   const UserChanged();
 }
 

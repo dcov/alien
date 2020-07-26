@@ -46,8 +46,7 @@ class _WebViewControlState extends State<WebViewControl> {
       onWebViewCreated: (WebViewController controller) {
         _controller = controller;
       },
-      onPageFinished: widget.onPageFinished,
-    );
+      onPageFinished: widget.onPageFinished);
   }
 }
 

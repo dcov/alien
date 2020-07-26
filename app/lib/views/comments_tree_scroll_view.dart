@@ -45,24 +45,18 @@ class _CommentsTreeScrollViewState extends State<CommentsTreeScrollView> {
                 if (thing is Comment) {
                   return CommentTile(
                     comment: thing,
-                    includeDepthPadding: true,
-                  );
+                    includeDepthPadding: true);
                 } else if (thing is More) {
                   return _MoreTile(
                     commentsTree: commentsTree,
-                    more: thing,
-                  );
+                    more: thing);
                 }
                 
                 return const SizedBox();
               },
-              childCount: commentsTree.things.length
-            ),
-          )
-        ],
-      );
-    },
-  );
+              childCount: commentsTree.things.length))
+        ]);
+    });
 }
 
 class _MoreTile extends StatelessWidget {
@@ -92,12 +86,7 @@ class _MoreTile extends StatelessWidget {
               padding: EdgeInsets.all(16.0),
               child: !more.isLoading
                 ? Text('Load ${more.count} comments')
-                : Text('Loading...'),
-            )
-          ),
-        ),
-      );
-    },
-  );
+                : Text('Loading...')))));
+    });
 }
 

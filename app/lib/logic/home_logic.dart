@@ -2,85 +2,51 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import '../effects/effect_context.dart';
+import '../effects.dart';
 import '../models/auth_model.dart';
 import '../models/home_model.dart';
-import '../models/listing_model.dart';
-import '../models/user_model.dart';
 
-class UpdateHomePosts implements Event {
+import 'listing_logic.dart';
 
-  UpdateHomePosts({
+class TransitionHomePosts implements Event {
+
+  TransitionHomePosts({
     @required this.home,
-    @required this.newStatus,
+    @required this.to,
   });
 
   final Home home;
 
-  final ListingStatus newStatus;
+  final ListingStatus to;
 
   @override
-  Effect update(RootAuth root) {
+  Event update(RootAuth root) {
     final Auth auth = root.auth;
     assert(auth.currentUser != null);
 
-    final Page page = updateListing(home.listing, newStatus);
-    if (page != null) {
-      return GetHomePosts(
+    return TransitionListing(
+      listing: home.listing,
+      to: to,
+      effectFactory: (Page page) => GetHomePosts(
         home: home,
-        newStatus: newStatus,
+        to: to,
         page: page,
-        user: auth.currentUser);
-    }
+        user: auth.currentUser));
   }
 }
 
-class GetHomePostsSuccess extends UpdateListingSuccess {
-
-  GetHomePostsSuccess({
-    @required this.home,
-    @required this.expectedStatus,
-    @required this.result,
-  });
-
-  final Home home;
-
-  final ListingStatus expectedStatus;
-
-  final ListingData<PostData> result;
-
-  @override
-  dynamic update(_) {
-    updateListingSuccess(
-      home.listing,
-      expectedStatus,
-      result,
-      (data) => Post.fromData(data));
-  }
-}
-
-class GetHomePostsFail extends Event {
-
-  GetHomePostsFail();
-
-  @override
-  dynamic update(_) {
-    // TODO: Implement
-  }
-}
-
-class GetHomePosts extends Effect {
+class GetHomePosts implements Effect {
 
   GetHomePosts({
     @required this.home,
-    @required this.newStatus,
+    @required this.to,
     @required this.page,
     @required this.user,
   });
 
   final Home home;
 
-  final ListingStatus newStatus;
+  final ListingStatus to;
 
   final Page page;
 
@@ -93,13 +59,16 @@ class GetHomePosts extends Effect {
       .getHomePosts(home.sortBy, page)
       .then(
         (ListingData<PostData> data) {
-          return GetHomePostsSuccess(
-            home: home,
-            expectedStatus: newStatus,
-            result: data);
+          return TransitionListingSuccess(
+            listing: home.listing,
+            to: to,
+            data: data,
+            thingFactory: (data) => Post.fromData(data));
         },
         onError: (_) {
-          return GetHomePostsFail();
+          return TransitionListingFailure(
+            listing: home.listing,
+            to: to);
         });
   }
 }

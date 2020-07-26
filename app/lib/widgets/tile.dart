@@ -37,13 +37,8 @@ class CustomTile extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: icon != null ? const EdgeInsets.only(left: 12.0) : EdgeInsets.zero,
-                child: title
-              )
-            )
-          ],
-        )
-      ),
-    );
+                child: title))
+          ])));
   }
 }
 

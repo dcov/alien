@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide Page;
 
-import '../../models/user_model.dart';
-import '../../widgets/page.dart';
+import '../models/user_model.dart';
+import '../widgets/page.dart';
 
 class UserPage extends Page {
 

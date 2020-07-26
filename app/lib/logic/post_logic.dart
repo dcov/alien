@@ -1,15 +1,17 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 
-import '../comments_tree/comments_tree_events.dart';
-import '../comments_tree/comments_tree_model.dart';
-import '../thing/thing_utils.dart' as utils;
+import '../models/comments_tree_model.dart';
+import '../models/post_model.dart';
+import '../utils/thing_utils.dart' as utils;
 
-import 'post_model.dart';
+import 'comments_tree_logic.dart';
 
-class InitPost extends Event {
+class InitPost implements Event {
 
-  InitPost({ @required this.post });
+  InitPost({
+    @required this.post
+  });
 
   final Post post;
 
@@ -25,9 +27,11 @@ class InitPost extends Event {
   }
 }
 
-class DisposePost extends Event {
+class DisposePost implements Event {
 
-  const DisposePost({ @required this.post });
+  const DisposePost({
+    @required this.post
+  });
 
   final Post post;
 
@@ -36,3 +40,4 @@ class DisposePost extends Event {
     post.comments = null;
   }
 }
+
