@@ -1,4 +1,16 @@
-import 'app/app_run.dart' as app;
+import 'logic/init_logic.dart';
+import 'views/app_view.dart';
 
-void main() => app.run();
+import 'config.dart' as config;
+import 'effects.dart';
+
+void main() {
+  runLoopWithEffects(
+    appId: config.kAppId,
+    appRedirect: config.kAppRedirect,
+    initial: InitApp(
+      appId: config.kAppId,
+      appRedirect: config.kAppRedirect),
+    view: AppView());
+}
 

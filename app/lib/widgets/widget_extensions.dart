@@ -4,7 +4,7 @@ extension NavigatorExtensions on BuildContext {
 
   Future<T> push<T>(Route<T> route) => Navigator.push(this, route);
 
-  bool pop<T>([T result]) => Navigator.pop(this, result);
+  void pop<T>([T result]) => Navigator.pop(this, result);
 }
 
 extension MediaQueryExtensions on BuildContext {
