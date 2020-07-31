@@ -1,15 +1,13 @@
 import 'package:elmer/elmer.dart';
 import 'package:reddit/reddit.dart' show SubredditData, SubredditSort;
 
-import 'listing_model.dart';
-import 'post_model.dart';
-import 'thing_model.dart';
+import 'listing.dart';
+import 'post.dart';
 
-export 'listing_model.dart';
-export 'post_model.dart';
-export 'thing_model.dart';
+export 'listing.dart';
+export 'post.dart';
 
-part 'subreddit_model.g.dart';
+part 'subreddit.g.dart';
 
 abstract class Subreddit implements Thing {
 

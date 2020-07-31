@@ -1,7 +1,7 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 
-part 'media_model.g.dart';
+part 'media.g.dart';
 
 enum ThumbnailStatus {
   notLoaded,

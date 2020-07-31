@@ -2,11 +2,11 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
-import 'thing_model.dart';
+import 'thing.dart';
 
-export 'thing_model.dart';
+export 'thing.dart';
 
-part 'comments_tree_model.g.dart';
+part 'comments_tree.g.dart';
 
 abstract class More implements Thing {
 

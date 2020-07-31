@@ -1,14 +1,14 @@
 import 'package:reddit/reddit.dart' show CommentData;
 
-import 'saveable_model.dart';
-import 'snudown_model.dart';
-import 'votable_model.dart';
+import 'saveable.dart';
+import 'snudown.dart';
+import 'votable.dart';
 
-export 'saveable_model.dart';
-export 'snudown_model.dart';
-export 'votable_model.dart';
+export 'saveable.dart';
+export 'snudown.dart';
+export 'votable.dart';
 
-part 'comment_model.g.dart';
+part 'comment.g.dart';
 
 abstract class Comment implements Saveable, Votable {
 

@@ -1,7 +1,7 @@
 import 'package:elmer/elmer.dart';
 import 'package:flutter/material.dart';
 
-part 'theming_model.g.dart';
+part 'theming.g.dart';
 
 @abs
 abstract class RootTheming implements Model {

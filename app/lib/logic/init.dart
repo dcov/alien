@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
 
-import '../effects/effect_context.dart';
+import '../effects.dart';
 import '../models/app_model.dart';
 import '../models/auth_model.dart';
 

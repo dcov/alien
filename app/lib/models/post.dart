@@ -1,19 +1,19 @@
 import 'package:elmer/elmer.dart';
 import 'package:reddit/reddit.dart';
 
-import 'comments_tree_model.dart';
-import 'media_model.dart';
-import 'saveable_model.dart';
-import 'snudown_model.dart';
-import 'votable_model.dart';
+import 'comments_tree.dart';
+import 'media.dart';
+import 'saveable.dart';
+import 'snudown.dart';
+import 'votable.dart';
 
-export 'comments_tree_model.dart';
-export 'media_model.dart';
-export 'saveable_model.dart';
-export 'snudown_model.dart';
-export 'votable_model.dart';
+export 'comments_tree.dart';
+export 'media.dart';
+export 'saveable.dart';
+export 'snudown.dart';
+export 'votable.dart';
 
-part 'post_model.g.dart';
+part 'post.g.dart';
 
 abstract class Post implements Saveable, Votable {
   

@@ -1,7 +1,7 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 
-part 'user_model.g.dart';
+part 'user.g.dart';
 
 abstract class User implements Model {
 

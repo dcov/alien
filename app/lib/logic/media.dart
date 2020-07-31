@@ -1,8 +1,8 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 
-import '../effects/effect_context.dart';
-import '../models/media_model.dart';
+import '../effects.dart';
+import '../models/media.dart';
 
 class LoadThumbnail implements Event {
 

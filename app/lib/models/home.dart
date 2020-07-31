@@ -1,13 +1,13 @@
 import 'package:elmer/elmer.dart';
 import 'package:reddit/reddit.dart' show HomeSort;
 
-import 'post_model.dart';
-import 'listing_model.dart';
+import 'post.dart';
+import 'listing.dart';
 
-export 'post_model.dart';
-export 'listing_model.dart';
+export 'post.dart';
+export 'listing.dart';
 
-part 'home_model.g.dart';
+part 'home.g.dart';
 
 abstract class Home implements Model {
 

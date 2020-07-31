@@ -1,7 +1,7 @@
 import 'package:elmer/elmer.dart';
 import 'package:markdown/markdown.dart';
 
-part 'snudown_model.g.dart';
+part 'snudown.g.dart';
 
 abstract class Snudown implements Model {
 

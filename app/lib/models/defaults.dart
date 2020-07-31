@@ -1,10 +1,10 @@
 import 'package:elmer/elmer.dart';
 
-import 'subreddit_model.dart';
+import 'subreddit.dart';
 
-export 'subreddit_model.dart';
+export 'subreddit.dart';
 
-part 'defaults_model.g.dart';
+part 'defaults.g.dart';
 
 abstract class Defaults implements Model {
 

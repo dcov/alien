@@ -1,14 +1,14 @@
 import 'package:elmer/elmer.dart';
 
-import 'defaults_model.dart';
-import 'home_model.dart';
-import 'subscriptions_model.dart';
+import 'defaults.dart';
+import 'home.dart';
+import 'subscriptions.dart';
 
-export 'defaults_model.dart';
-export 'home_model.dart';
-export 'subscriptions_model.dart';
+export 'defaults.dart';
+export 'home.dart';
+export 'subscriptions.dart';
 
-part 'browse_model.g.dart';
+part 'browse.g.dart';
 
 abstract class Browse implements Model {
 
