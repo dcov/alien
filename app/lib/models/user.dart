@@ -1,14 +1,9 @@
 import 'package:elmer/elmer.dart';
-import 'package:meta/meta.dart';
 
-part 'user.g.dart';
+part 'user.mdl.dart';
 
-abstract class User implements Model {
-
-  factory User({
-    @required String token,
-    @required String name,
-  }) = _$User;
+@model
+mixin $User {
 
   String get token;
 

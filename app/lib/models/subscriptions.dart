@@ -4,19 +4,13 @@ import 'subreddit.dart';
 
 export 'subreddit.dart';
 
-part 'subscriptions.g.dart';
+part 'subscriptions.mdl.dart';
 
-abstract class Subscriptions implements Model {
-
-  factory Subscriptions() {
-    return _$Subscriptions(
-      refreshing: false,
-      subreddits: const <Subreddit>[],
-    );
-  }
+@model
+mixin $Subscriptions {
 
   bool refreshing;
 
-  List<Subreddit> get subreddits; 
+  List<$Subreddit> get subreddits; 
 }
 

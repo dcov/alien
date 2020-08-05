@@ -8,26 +8,20 @@ export 'defaults.dart';
 export 'home.dart';
 export 'subscriptions.dart';
 
-part 'browse.g.dart';
+part 'browse.mdl.dart';
 
-abstract class Browse implements Model {
+@model
+mixin $Browse {
 
-  factory Browse({
-    Home home,
-    Defaults defaults,
-    Subscriptions subscriptions
-  }) = _$Browse;
+  $Home get home;
 
-  Home get home;
+  $Defaults get defaults;
 
-  Defaults get defaults;
-
-  Subscriptions get subscriptions;
+  $Subscriptions get subscriptions;
 }
 
-@abs
-abstract class RootBrowse implements Model {
+mixin BrowseOwner {
 
-  Browse browse;
+  $Browse browse;
 }
 

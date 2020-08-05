@@ -4,18 +4,13 @@ import 'subreddit.dart';
 
 export 'subreddit.dart';
 
-part 'defaults.g.dart';
+part 'defaults.mdl.dart';
 
-abstract class Defaults implements Model {
-
-  factory Defaults() {
-    return _$Defaults(
-      refreshing: false,
-      subreddits: const <Subreddit>[]);
-  }
+@model
+mixin $Defaults {
 
   bool refreshing;
 
-  List<Subreddit> get subreddits;
+  List<$Subreddit> get subreddits;
 }
 

@@ -1,4 +1,4 @@
-import 'package:reddit/reddit.dart' show CommentData;
+import 'package:elmer/elmer.dart';
 
 import 'saveable.dart';
 import 'snudown.dart';
@@ -8,32 +8,16 @@ export 'saveable.dart';
 export 'snudown.dart';
 export 'votable.dart';
 
-part 'comment.g.dart';
+part 'comment.mdl.dart';
 
-abstract class Comment implements Saveable, Votable {
-
-  factory Comment.fromData(CommentData data) {
-    return _$Comment(
-      authorFlairText: data.authorFlairText,
-      authorName: data.authorName,
-      body: Snudown.fromRaw(data.body),
-      createdAtUtc: data.createdAtUtc,
-      depth: data.depth,
-      editedAtUtc: data.editedAtUtc,
-      isSubmitter: data.isSubmitter,
-      id: data.id,
-      kind: data.kind,
-      isSaved: data.isSaved,
-      score: data.score,
-      voteDir: data.voteDir
-    );
-  }
+@model
+mixin $Comment implements Saveable, Votable {
 
   String get authorFlairText;
 
   String get authorName;
 
-  Snudown get body;
+  $Snudown get body;
 
   int get createdAtUtc;
 
@@ -43,3 +27,4 @@ abstract class Comment implements Saveable, Votable {
 
   bool get isSubmitter;
 }
+

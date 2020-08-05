@@ -1,5 +1,4 @@
 import 'package:elmer/elmer.dart';
-import 'package:reddit/reddit.dart';
 
 import 'comments_tree.dart';
 import 'media.dart';
@@ -13,52 +12,10 @@ export 'saveable.dart';
 export 'snudown.dart';
 export 'votable.dart';
 
-part 'post.g.dart';
+part 'post.mdl.dart';
 
-abstract class Post implements Saveable, Votable {
-  
-  factory Post.fromData(PostData data) {
-    Media media;
-    if (!data.isSelf) {
-      String thumbnail = data.thumbnailUrl;
-      if (thumbnail == null) {
-        thumbnail = data
-          .preview
-          ?.resolutions
-          ?.firstWhere((_) => true, orElse: () => null)
-          ?.url;
-      }
-      media = Media(
-        source: data.url,
-        thumbnail: thumbnail
-      );
-    }
-
-    Snudown snudown;
-    if (data.selfText != null) {
-      snudown = Snudown.fromRaw(data.selfText);
-    }
-    return _$Post(
-      authorName: data.authorName,
-      commentCount: data.commentCount,
-      createdAtUtc: data.createdAtUtc,
-      domainName: data.domainName,
-      id: data.id,
-      isNSFW: data.isNSFW,
-      isSaved: data.isSaved,
-      isSelf: data.isSelf,
-      kind: data.kind,
-      media: media,
-      permalink: data.permalink,
-      score: data.score,
-      selfText: snudown,
-      subredditName: data.subredditName,
-      thumbnailUrl: data.thumbnailUrl,
-      title: data.title,
-      url: data.url,
-      voteDir: data.voteDir
-    );
-  }
+@model
+mixin $Post implements Saveable, Votable {
 
   String get authorName;
 
@@ -72,11 +29,11 @@ abstract class Post implements Saveable, Votable {
 
   bool get isSelf;
 
-  Media get media;
+  $Media get media;
 
   String get permalink;
 
-  Snudown get selfText;
+  $Snudown get selfText;
 
   String get subredditName;
 
@@ -86,5 +43,5 @@ abstract class Post implements Saveable, Votable {
 
   String get url;
 
-  CommentsTree comments;
+  $CommentsTree comments;
 }

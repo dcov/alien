@@ -9,16 +9,10 @@ export 'auth.dart';
 export 'browse.dart';
 export 'theming.dart';
 
-part 'app.g.dart';
+part 'app.mdl.dart';
 
-abstract class App implements RootAuth, RootBrowse, RootTheming {
-
-  factory App({
-    bool initialized,
-    Auth auth,
-    Browse browse,
-    Theming theming,
-  }) = _$App;
+@model
+mixin $App implements AuthOwner, BrowseOwner, ThemingOwner {
 
   bool initialized;
 }

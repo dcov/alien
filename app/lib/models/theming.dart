@@ -1,26 +1,22 @@
 import 'package:elmer/elmer.dart';
 import 'package:flutter/material.dart';
 
-part 'theming.g.dart';
-
-@abs
-abstract class RootTheming implements Model {
-  Theming get theming;
-}
+part 'theming.mdl.dart';
 
 enum ThemeType {
   light,
   dark
 }
 
-abstract class Theming implements Model {
-
-  factory Theming({
-    ThemeData data,
-    ThemeType type
-  }) = _$Theming;
+@model
+mixin $Theming {
 
   ThemeData data;
 
   ThemeType type;
 }
+
+mixin ThemingOwner {
+  $Theming get theming;
+}
+

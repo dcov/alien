@@ -5,16 +5,10 @@ import 'user.dart';
 
 export 'user.dart';
 
-part 'auth.g.dart';
+part 'auth.mdl.dart';
 
-abstract class Permission implements Model {
-
-  factory Permission({
-    String id,
-    String name,
-    String description,
-    bool enabled,
-  }) = _$Permission;
+@model
+mixin $Permission {
 
   String get id;
 
@@ -31,47 +25,27 @@ enum PermissionsStatus {
   available
 }
 
-abstract class Auth implements Model {
-
-  factory Auth({
-    String appId,
-    String appRedirect,
-    List<User> users = const <User>[],
-    List<Permission> permissions = const <Permission>[],
-    bool authenticating,
-    AuthSession session,
-    User currentUser,
-    PermissionsStatus permissionsStatus,
-  }) {
-    return _$Auth(
-      appId: appId,
-      appRedirect: appRedirect,
-      users: const <User>[],
-      permissions: <Permission>[],
-      authenticating: authenticating,
-      permissionsStatus: permissionsStatus,
-    );
-  }
+@model
+mixin $Auth {
 
   String get appId;
 
   String get appRedirect;
 
-  List<User> get users;
+  List<$User> get users;
 
-  List<Permission> get permissions;
+  List<$Permission> get permissions;
 
   bool authenticating;
 
   AuthSession session;
 
-  User currentUser;
+  $User currentUser;
 
   PermissionsStatus permissionsStatus;
 }
 
-@abs
-abstract class RootAuth implements Model {
-  Auth get auth;
+mixin AuthOwner {
+  $Auth get auth;
 }
 

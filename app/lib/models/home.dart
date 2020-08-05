@@ -7,18 +7,12 @@ import 'listing.dart';
 export 'post.dart';
 export 'listing.dart';
 
-part 'home.g.dart';
+part 'home.mdl.dart';
 
-abstract class Home implements Model {
+@model
+mixin $Home {
 
-  factory Home() {
-    return _$Home(
-      listing: Listing<Post>(
-        things: <Post>[]),
-      sortBy: HomeSort.best);
-  }
-
-  Listing<Post> listing;
+  $Listing<$Post> listing;
 
   HomeSort sortBy;
 }

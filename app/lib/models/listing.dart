@@ -1,12 +1,11 @@
 import 'package:elmer/elmer.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import 'thing.dart';
 
 export 'thing.dart';
 
-part 'listing.g.dart';
+part 'listing.mdl.dart';
 
 enum ListingStatus {
   idle,
@@ -14,20 +13,8 @@ enum ListingStatus {
   loadingMore,
 }
 
-abstract class Listing<T extends Thing> implements Model {
-
-  factory Listing({
-    ListingStatus status = ListingStatus.idle,
-    @required List<T> things,
-    Pagination pagination,
-  }) {
-    assert(status != null);
-    assert(things != null);
-    return _$Listing<T>(
-      status: status,
-      things: things,
-      pagination: pagination);
-  }
+@model
+mixin $Listing<T extends Thing> {
 
   ListingStatus status;
 
@@ -35,3 +22,4 @@ abstract class Listing<T extends Thing> implements Model {
 
   Pagination pagination;
 }
+

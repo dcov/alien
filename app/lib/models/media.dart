@@ -1,7 +1,6 @@
 import 'package:elmer/elmer.dart';
-import 'package:meta/meta.dart';
 
-part 'media.g.dart';
+part 'media.mdl.dart';
 
 enum ThumbnailStatus {
   notLoaded,
@@ -10,20 +9,8 @@ enum ThumbnailStatus {
   loaded
 }
 
-abstract class Media implements Model {
-
-  factory Media({
-    @required String source,
-    String thumbnail
-  }) {
-    return _$Media(
-      source: source,
-      thumbnailStatus: thumbnail != null
-          ? ThumbnailStatus.loaded
-          : ThumbnailStatus.notLoaded,
-      thumbnail: thumbnail
-    );
-  }
+@model
+mixin $Media {
 
   String get source;
 

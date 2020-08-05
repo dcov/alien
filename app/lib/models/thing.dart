@@ -1,9 +1,9 @@
 import 'package:elmer/elmer.dart';
 
-@abs
-abstract class Thing implements Model {
+mixin Thing {
 
   String get id;
 
   String get kind;
 }
+
