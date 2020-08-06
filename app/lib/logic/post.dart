@@ -1,43 +1,48 @@
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart' show PostData;
 
-import '../models/comments_tree_model.dart';
-import '../models/post_model.dart';
-import '../utils/thing_utils.dart' as utils;
+import '../models/comments_tree.dart';
+import '../models/post.dart';
 
-import 'comments_tree_logic.dart';
+import 'comments_tree.dart';
+import 'thing.dart' show ThingExtensions;
 
-class InitPost implements Event {
+part 'post.msg.dart';
 
-  InitPost({
-    @required this.post
-  });
-
-  final Post post;
-
-  @override
-  Event update(_) {
-    post.comments = CommentsTree(
-      fullPostId: utils.makeFullId(post),
-      permalink: post.permalink,
-    );
-    return LoadCommentsTree(
-      commentsTree: post.comments
-    );
-  }
+@action initPostComments(_, { @required Post post }) {
+  post.comments = CommentsTree(
+    fullPostId: post.fullId,
+    permalink: post.permalink,
+  );
+  return LoadCommentsTree(
+    commentsTree: post.comments
+  );
 }
 
-class DisposePost implements Event {
+@action disposePostComments(_, { @required Post post }) {
+  post.comments = null;
+}
 
-  const DisposePost({
-    @required this.post
-  });
+extension PostDataExtensions on PostData {
 
-  final Post post;
-
-  @override
-  void update(_) {
-    post.comments = null;
+  Post toModel() {
+    return Post(
+      commentCount: this.commentCount,
+      isNSFW: this.isNSFW,
+      authorName: this.authorName,
+      createdAtUtc: this.createdAtUtc,
+      domainName: this.domainName,
+      isSelf: this.isSelf,
+      permalink: this.permalink,
+      subredditName: this.subredditName,
+      title: this.title,
+      url: this.url,
+      isSaved: this.isSaved,
+      id: this.id,
+      kind: this.kind,
+      score: this.score,
+      voteDir: this.voteDir);
   }
 }
 

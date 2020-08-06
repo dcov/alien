@@ -4,14 +4,14 @@ import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/listing.dart';
-import '../models/post.dart';
 import '../models/subreddit.dart';
 
 import 'listing.dart';
+import 'post.dart' show PostDataExtensions;
 
-part 'subreddit_posts.g.dart';
+part 'subreddit_posts.msg.dart';
 
-@event transitionSubredditPosts(_,
+@action transitionSubredditPosts(_,
     { @required Subreddit subreddit, @required ListingStatus to }) {
 
   return TransitionListing(
@@ -36,7 +36,9 @@ part 'subreddit_posts.g.dart';
           listing: subreddit.posts,
           to: to,
           data: data,
-          thingFactory: (data) => Post.fromData(data));
+          thingFactory: (PostData data) {
+            return data.toModel();
+          });
       },
       onError: (_) {
         // TODO: error handling

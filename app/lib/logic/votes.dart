@@ -6,11 +6,11 @@ import '../effects.dart';
 import '../models/auth.dart';
 import '../models/votable.dart';
 
-import 'thing.dart';
+import 'thing.dart' show ThingExtensions;
 
-part 'votes.g.dart';
+part 'votes.msg.dart';
 
-@event upvote(RootAuth root,
+@action upvote(AuthOwner owner,
     { @required Votable votable, User user }) {
 
   final VoteDir oldVoteDir = votable.voteDir;
@@ -25,11 +25,11 @@ part 'votes.g.dart';
 
   return PostVote(
     votable: votable,
-    user: user ?? root.auth.currentUser,
+    user: user ?? owner.auth.currentUser,
     oldVoteDir: oldVoteDir);
 }
 
-@event downvote(RootAuth root,
+@action downvote(AuthOwner owner,
     { @required Votable votable, User user }) {
 
   final VoteDir oldVoteDir = votable.voteDir;
@@ -44,7 +44,7 @@ part 'votes.g.dart';
 
   return PostVote(
     votable: votable,
-    user: user ?? root.auth.currentUser,
+    user: user ?? owner.auth.currentUser,
     oldVoteDir: oldVoteDir);
 }
 
@@ -53,7 +53,7 @@ part 'votes.g.dart';
 
   return context.reddit
     .asUser(user.token)
-    .postVote(makeFullId(votable), votable.voteDir)
+    .postVote(votable.fullId, votable.voteDir)
     .catchError(() {
       return PostVoteFailure(
         votable: votable,
@@ -61,7 +61,7 @@ part 'votes.g.dart';
     });
 }
 
-@event postVoteFailure(_,
+@action postVoteFailure(_,
     { @required Votable votable, @required VoteDir oldVoteDir }) {
 
   switch (oldVoteDir) {

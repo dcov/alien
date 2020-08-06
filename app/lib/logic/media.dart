@@ -4,73 +4,35 @@ import 'package:meta/meta.dart';
 import '../effects.dart';
 import '../models/media.dart';
 
-class LoadThumbnail implements Event {
+part 'media.msg.dart';
 
-  LoadThumbnail({
-    @required this.media
-  });
-
-  final Media media;
-
-  @override
-  Effect update(_) {
-    assert(media.thumbnailStatus == ThumbnailStatus.notLoaded);
-    media.thumbnailStatus = ThumbnailStatus.loading;
-    return GetThumbnail(media: this.media);
-  }
+@action loadThumbnail(_, { @required Media media }) {
+  assert(media.thumbnailStatus == ThumbnailStatus.notLoaded);
+  media.thumbnailStatus = ThumbnailStatus.loading;
+  return GetThumbnail(media: media);
 }
 
-class GetThumbnail implements Effect {
-
-  GetThumbnail({ @required this.media });
-
-  final Media media;
-
-  @override
-  Future<Event> perform(EffectContext context) {
-    return context.scraper.getThumbnail(media.source)
-        .then((String result) {
-          return GetThumbnailSuccess(
-            media: media,
-            result: result);
-        })
-        .catchError((_) {
-          return GetThumbnailFailure(media: media);
-        });
-  }
+@effect getThumbnail(EffectContext context, { @required Media media }) {
+  return context.scraper.getThumbnail(media.source)
+      .then((String result) {
+        return GetThumbnailSuccess(
+          media: media,
+          result: result);
+      })
+      .catchError((_) {
+        return GetThumbnailFailure();
+      });
 }
 
-class GetThumbnailSuccess implements Event {
-
-  GetThumbnailSuccess({
-    @required this.media,
-    @required this.result
-  });
-
-  final Media media;
-
-  final String result;
-
-  @override
-  void update(_) {
-    media
-      ..thumbnailStatus = result != null
-          ? ThumbnailStatus.loaded
-          : ThumbnailStatus.notFound
-      ..thumbnail = result;
-  }
+@action getThumbnailSuccess(_, { @required Media media, @required String result }) {
+  media
+    ..thumbnailStatus = result != null
+        ? ThumbnailStatus.loaded
+        : ThumbnailStatus.notFound
+    ..thumbnail = result;
 }
 
-class GetThumbnailFailure implements Event {
-
-  GetThumbnailFailure({
-    @required this.media
-  });
-
-  final Media media;
-  
-  @override
-  void update(_) {
-  }
+@action getThumbnailFailure(_) {
+  // TODO: implement
 }
 

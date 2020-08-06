@@ -6,88 +6,54 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
 
 import '../effects.dart';
-import '../models/app_model.dart';
-import '../models/auth_model.dart';
+import '../models/app.dart';
+import '../models/auth.dart';
 
-class InitApp implements Initial {
+import 'auth.dart';
+import 'browse.dart';
+import 'theming.dart';
 
-  InitApp({
-    @required this.appId,
-    @required this.appRedirect
-  }) : assert(appId != null),
-       assert(appRedirect != null);
+part 'init.msg.dart';
 
-  final String appId;
+@initial initApp({ @required String appId, @required String appRedirect }) {
+  return InitialResult(
+    state: App(
+      initialized: false,
+      auth: Auth(
+        appId: appId,
+        appRedirect: appRedirect)),
+    then: InitResources());
+}
 
-  final String appRedirect;
+@effect initResources(EffectContext context) async {
+  try {
+    await context.scraper.init();
 
-  @override
-  InitialResult init() {
-    return InitialResult(
-      state: App(
-        initialized: false,
-        auth: Auth(
-          appId: appId,
-          appRedirect: appRedirect)),
-      then: InitResources());
+    final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
+    context.hive.init(path.join(appDir.path, 'data'));
+
+    return InitResourcesSuccess(
+      users: await retrieveUsers(context),
+      signedInUser: await retrieveSignedInUser(context),
+    );
+  } catch (_) {
+    return InitResourcesFail();
   }
 }
 
-class InitResources implements Effect {
+@action initResourcesSuccess(App app, { @required Map<String, String> users, @required String signedInUser }) {
+  app.initialized = true;
 
-  InitResources();
-
-  @override
-  dynamic perform(EffectContext context) async {
-    try {
-      await context.scraper.init();
-
-      final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
-      context.hive.init(path.join(appDir.path, 'data'));
-
-      return InitResourcesSuccess(
-        users: await retrieveUsers(context),
-        signedInUser: await retrieveSignedInUser(context),
-      );
-    } catch (_) {
-      return InitResourcesFail();
-    }
-  }
+  return <Message>{
+    InitAuth(
+      users: users,
+      signedInUser: signedInUser,
+    ),
+    InitBrowse(),
+    UpdateTheme(theming: app.theming),
+  };
 }
 
-class InitResourcesSuccess implements Event {
-
-  InitResourcesSuccess({
-    @required this.users,
-    @required this.signedInUser,
-  });
-
-  final Map<String, String> users;
-
-  final String signedInUser;
-
-  @override
-  dynamic update(App app) {
-    app.initialized = true;
-
-    return <Message>{
-      InitAuth(
-        users: users,
-        signedInUser: signedInUser,
-      ),
-      InitBrowse(),
-      UpdateTheme(theming: app.theming),
-      ResetState()
-    };
-  }
-}
-
-class InitResourcesFail implements Event {
-
-  InitResourcesFail();
-
-  /// TODO: Implement
-  @override
-  dynamic update(_) {
-  }
+@action initResourcesFail(_) {
+  // TODO: implement
 }

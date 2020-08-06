@@ -1,9 +1,11 @@
 import '../models/thing.dart';
 
-/// Converts [Thing.id] into a 'full' id by prefixing it with [Thing.kind].
-/// 
-/// This is method is useful when calling certain Reddit endpoints that require
-/// a 'full' id.
-String makeFullId(Thing thing) {
-  return '${thing.kind}_${thing.id}';
+extension ThingExtensions on Thing {
+
+  /// Converts [this.id] into a 'full' id by prefixing it with [this.kind].
+  /// 
+  /// This getter is useful when calling certain Reddit endpoints that require
+  /// a 'full' id.
+  String get fullId => '${this.kind}_${this.id}';
 }
+

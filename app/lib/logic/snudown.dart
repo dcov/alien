@@ -2,7 +2,7 @@ import 'package:elmer/elmer.dart';
 import 'package:markdown/markdown.dart';
 import 'package:reddit/reddit.dart';
 
-import '../models/snudown_model.dart';
+import '../models/snudown.dart';
 
 typedef _OnLinkMatched<L extends Link> = void Function(String href, Link link);
 

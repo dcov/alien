@@ -1,42 +1,39 @@
 import 'package:elmer/elmer.dart';
 
-import '../logic/defaults_logic.dart';
-import '../logic/subscriptions_logic.dart';
-import '../models/auth_model.dart';
-import '../models/browse_model.dart';
-import '../models/defaults_model.dart';
-import '../models/home_model.dart';
-import '../models/subscriptions_model.dart';
+import '../models/auth.dart';
+import '../models/browse.dart';
+import '../models/defaults.dart';
+import '../models/home.dart';
+import '../models/subscriptions.dart';
 
-class InitBrowse implements Event {
+import 'defaults.dart';
+import 'subscriptions.dart';
 
-  const InitBrowse();
+part 'browse.msg.dart';
 
-  @override
-  dynamic update(Object model) {
-    assert(model is RootAuth);
-    assert(model is RootBrowse);
+@action initBrowse(Model model) {
+  assert(model is AuthOwner);
+  assert(model is BrowseOwner);
 
-    final Auth auth = (model as RootAuth).auth;
-    final RootBrowse root = model;
+  final Auth auth = (model as AuthOwner).auth;
+  final BrowseOwner owner = model as BrowseOwner;
 
-    /// If a user is signed in, we'll initialize the [Browse] model with a
-    /// [Home] model, and [Subscriptions] model.
-    if (auth.currentUser != null) {
-      root.browse = Browse(
-        home: Home(),
-        subscriptions: Subscriptions());
+  /// If a user is signed in, we'll initialize the [Browse] model with a
+  /// [Home] model, and [Subscriptions] model.
+  if (auth.currentUser != null) {
+    owner.browse = Browse(
+      home: Home(),
+      subscriptions: Subscriptions());
 
-      return RefreshSubscriptions(
-        subscriptions: root.browse.subscriptions);
-    } else {
-      /// A user is not signed in, so we'll initialize the [Browse] model
-      /// with a [Defaults] model.
-      root.browse = Browse(defaults: Defaults());
+    return RefreshSubscriptions(
+      subscriptions: owner.browse.subscriptions);
+  } else {
+    /// A user is not signed in, so we'll initialize the [Browse] model
+    /// with a [Defaults] model.
+    owner.browse = Browse(defaults: Defaults());
 
-      return LoadDefaults(
-        defaults: root.browse.defaults);
-    }
+    return LoadDefaults(
+      defaults: owner.browse.defaults);
   }
 }
 

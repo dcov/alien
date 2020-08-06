@@ -3,50 +3,35 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/auth_model.dart';
-import '../models/saveable_model.dart';
-import '../models/user_model.dart';
-import '../utils/thing_utils.dart' as utils;
+import '../models/auth.dart';
+import '../models/saveable.dart';
 
-class ToggleSaved implements Event {
+import 'thing.dart' show ThingExtensions;
 
-  ToggleSaved({
-    @required this.saveable,
-    this.user,
-  });
+part 'saveable.msg.dart';
 
-  final Saveable saveable;
+@action toggleSaved(AuthOwner owner, { @required Saveable saveable, User user }) {
+  saveable.isSaved = !saveable.isSaved;
+  return PostSaved(
+    saveable: saveable,
+    user: user ?? owner.auth.currentUser,
+  );
+}
 
-  final User user;
-
-  @override
-  Effect update(RootAuth root) {
-    saveable.isSaved = !saveable.isSaved;
-    return PostSaveable(
-      saveable: saveable,
-      user: user ?? root.auth.currentUser,
-    );
+@effect postSaved(EffectContext context, { @required Saveable saveable, @required User user }) async {
+  final RedditClient client = context.reddit.asUser(user.token);
+  try {
+    if (saveable.isSaved) {
+      client.postSave(saveable.fullId);
+    } else {
+      client.postUnsave(saveable.fullId);
+    }
+  } catch (_) {
+    return PostSavedFailure(saveable: saveable);
   }
 }
 
-class PostSaveable implements Effect {
-
-  PostSaveable({
-     @required this.saveable,
-     @required this.user
-  });
-
-  final Saveable saveable;
-
-  final User user;
-
-  @override
-  Future<Event> perform(EffectContext context) async {
-    final RedditClient client = context.reddit.asUser(user.token);
-    return (saveable.isSaved
-        ? client.postSave(utils.makeFullId(saveable))
-        : client.postUnsave(utils.makeFullId(saveable)))
-      .then((_) => null, onError: (_) => null);
-  }
+@action postSavedFailure(_, { @required Saveable saveable }) {
+  // TODO: implement
 }
 

@@ -7,11 +7,12 @@ import '../models/auth.dart';
 import '../models/subreddit.dart';
 import '../models/subscriptions.dart';
 
-import 'thing.dart';
+import 'subreddit.dart' show SubredditDataExtensions;
+import 'thing.dart' show ThingExtensions;
 
-part 'subscriptions.g.dart';
+part 'subscriptions.msg.dart';
 
-@event refreshSubscriptions(RootAuth root, { @required Subscriptions subscriptions }) {
+@action refreshSubscriptions(AuthOwner owner, { @required Subscriptions subscriptions }) {
 
   // If it's already refreshing we don't need to do anything.
   if (subscriptions.refreshing)
@@ -20,7 +21,7 @@ part 'subscriptions.g.dart';
   subscriptions.refreshing = true;
   return GetSubscriptions(
     subscriptions: subscriptions,
-    user: root.auth.currentUser
+    user: owner.auth.currentUser
   );
 }
 
@@ -53,24 +54,24 @@ part 'subscriptions.g.dart';
   }
 }
 
-@event getSubscriptionsSuccess(
-    _, { @required Subscriptions subscriptions, @required List<SubredditData> data }) {
+@action getSubscriptionsSuccess(_,
+    { @required Subscriptions subscriptions, @required List<SubredditData> data }) {
 
   subscriptions
     ..refreshing = false
     ..subreddits.clear()
     ..subreddits.addAll(
-        data.map((SubredditData sd) => Subreddit.fromData(sd)))
+        data.map((SubredditData data) => data.toModel()))
     ..subreddits.sort((s1, s2) => s1.name.compareTo(s2.name));
 }
 
-@event getSubscriptionsFailure(_) {
+@action getSubscriptionsFailure(_) {
   // TODO: implement
 }
 
-@event toggleSubscribed(RootAuth root, { @required Subreddit subreddit }) {
+@action toggleSubscribed(AuthOwner owner, { @required Subreddit subreddit }) {
 
-  final User user = root.auth.currentUser;
+  final User user = owner.auth.currentUser;
   assert(user != null);
 
   subreddit.userIsSubscriber = !subreddit.userIsSubscriber;
@@ -92,7 +93,7 @@ part 'subscriptions.g.dart';
 }
 
 
-@event addSubscription(_) {
+@action addSubscription(_) {
   // TODO: implement
 }
 
@@ -100,13 +101,13 @@ part 'subscriptions.g.dart';
   try {
     await context.reddit
         .asUser(user.token)
-        .postSubscribe(makeFullId(subreddit));
+        .postSubscribe(subreddit.fullId);
   } catch (_) {
     // TODO: error handling
   }
 }
 
-@event removeSubscription(_) {
+@action removeSubscription(_) {
  // TODO: Implement
 }
 
@@ -114,7 +115,7 @@ part 'subscriptions.g.dart';
   try {
     await context.reddit
         .asUser(user.token)
-        .postUnsubscribe(makeFullId(subreddit));
+        .postUnsubscribe(subreddit.fullId);
   } catch (_) {
     // TODO: error handling
   }

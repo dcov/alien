@@ -4,8 +4,9 @@ import 'package:meta/meta.dart';
 
 import '../models/theming.dart';
 
-@event
-void updateTheme(_,
+part 'theming.msg.dart';
+
+@action updateTheme(_,
     { @required Theming theming, ThemeType type = ThemeType.light }) {
 
   theming
@@ -20,3 +21,4 @@ void updateTheme(_,
       }()
     ..type  = type;
 }
+

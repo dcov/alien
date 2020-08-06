@@ -3,91 +3,55 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/defaults_model.dart';
+import '../models/defaults.dart';
 
-class LoadDefaults implements Event {
+import 'subreddit.dart' show SubredditDataExtensions;
 
-  LoadDefaults({
-    @required this.defaults
-  });
+part 'defaults.msg.dart';
 
-  final Defaults defaults;
+@action loadDefaults(_, { @required Defaults defaults }) {
+  if (defaults.refreshing)
+    return null;
+  
+  defaults..refreshing = true
+          ..subreddits.clear();
 
-  @override
-  dynamic update(_) {
-    if (defaults.refreshing)
-      return null;
-    
-    defaults..refreshing = true
-            ..subreddits.clear();
-
-    return GetDefaults(defaults: defaults);
-  }
+  return GetDefaults(defaults: defaults);
 }
 
-class GetDefaultsSuccess implements Event {
-
-  GetDefaultsSuccess({
-    @required this.defaults,
-    @required this.subreddits
-  });
-
-  final Defaults defaults;
-
-  final Iterable<SubredditData> subreddits;
-
-  @override
-  dynamic update(_) {
-    // Ensure we're still expecting this.
-    if (!defaults.refreshing)
-      return;
-
-    defaults
-      ..refreshing = false
-      ..subreddits.addAll(
-        this.subreddits.map((data) => Subreddit.fromData(data)))
-      ..subreddits.sort((s1, s2) {
-          return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
+@effect getDefaults(EffectContext context, { @required Defaults defaults }) {
+  return context.reddit
+    .asDevice()
+    .getSubreddits(
+        Subreddits.defaults,
+        Page(limit: Page.kMaxLimit))
+    .then(
+        (ListingData<SubredditData> result) {
+          return GetDefaultsSuccess(
+            defaults: defaults,
+            result: result.things
+          );
+        },
+        onError: (e) {
+          return GetDefaultsFailed(defaults: defaults);
         });
-  }
 }
 
-class GetDefaultsFailed implements Event {
+@action getDefaultsSuccess(_, { @required Defaults defaults, @required Iterable<SubredditData> result }) {
+  // Ensure we're still expecting this.
+  if (!defaults.refreshing)
+    return;
 
-  GetDefaultsFailed({
-    @required this.defaults
-  });
-
-  final Defaults defaults;
-
-  @override
-  dynamic update(_) { }
+  defaults
+    ..refreshing = false
+    ..subreddits.addAll(
+        result.map((SubredditData data) => data.toModel()))
+    ..subreddits.sort((s1, s2) {
+        return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
+      });
 }
 
-class GetDefaults implements Effect {
-
-  GetDefaults({
-    @required this.defaults
-  });
-
-  final Defaults defaults;
-
-  @override
-  Future<Event> perform(EffectContext context) {
-    return context.reddit
-        .asDevice()
-        .getSubreddits(
-            Subreddits.defaults,
-            Page(limit: Page.kMaxLimit))
-        .then(
-            (ListingData<SubredditData> listing) {
-              return GetDefaultsSuccess(
-                defaults: defaults,
-                subreddits: listing.things
-              );
-            },
-            onError: (e) {
-              return GetDefaultsFailed(defaults: defaults);
-            });
-  }
+@action getDefaultsFailed(_, { @required Defaults defaults }) {
+  // TODO: implement
 }
+

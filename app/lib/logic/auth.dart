@@ -4,437 +4,259 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/auth_model.dart';
+import '../models/auth.dart';
 
-class GetPermissions implements Effect {
+part 'auth.msg.dart';
 
-  GetPermissions();
-
-  @override
-  Future<Event> perform(EffectContext context) async {
-    return context.reddit
-      .asDevice()
-      .getScopeDescriptions()
-      .then((Iterable<ScopeData> data) {
-        return GetPermissionsSuccess(data: data);
-      })
-      .catchError((_) {
-        return GetPermissionsFailure();
-      });
-  }
+Future<Map<String, String>> retrieveUsers(EffectContext context) async {
+  final Box box = await context.hive.openBox('auth');
+  Map users = box.get('users');
+  return users?.cast<String, String>() ?? Map<String, String>();
 }
 
-class PostCode implements Effect {
-
-  PostCode({
-    @required this.code
-  });
-
-  final String code;
-
-  @override
-  Future<Event> perform(EffectContext context) async {
-    try {
-      final Reddit reddit = context.reddit;
-      final RefreshTokenData tokenData = await reddit.postCode(code);
-
-      final AccountData accountData = await reddit
-          .asUser(tokenData.refreshToken)
-          .getUserAccount();
-
-      return PostCodeSuccess(
-        token: tokenData,
-        account: accountData 
-      );
-    } catch (_) {
-      return PostCodeFailure();
-    }
-  }
+Future<String> retrieveSignedInUser(EffectContext context) async {
+  final Box box = await context.hive.openBox('auth');
+  return box.get('currentUser');
 }
 
-class StoreUser implements Effect {
-
-  StoreUser({
-    @required this.user
-  });
-
-  final User user;
-
-  @override
-  Future<Event> perform(EffectContext context) async {
-    try {
-      final Box box = await context.hive.openBox('auth');
-      Map users = box.get('users') ?? Map();
-      assert(!users.containsKey(user.name));
-      users[user.name] = user.token;
-      await box.put('users', users);
-    } catch (_) {
-      return StoreUserFail();
-    }
-
-    // Nothing else needs to happen once this succeeds so we return null.
-    return null;
-  }
-}
-
-class StoreSignedInUser implements Effect {
-
-  StoreSignedInUser({
-    this.user
-  });
-
-  final User user;
-
-  @override
-  Future<Event> perform(EffectContext context) async {
-    try {
-      final Box box = await context.hive.openBox('auth');
-      await box.put('currentUser', user?.name);
-    } catch (_) {
-      return StoreSignedInUserFail();
-    }
-
-    return null;
-  }
-}
-
-class RemoveStoredUser implements Effect {
-
-  const RemoveStoredUser({@required this.user });
-
-  final User user;
-
-  @override
-  dynamic perform(EffectContext context) async {
-    try {
-      final Box box = await context.hive.openBox('auth');
-      final Map users = box.get('users');
-      assert(users != null && users.containsKey(user.name));
-      users.remove(user.name);
-      await box.put('users', users);
-    } catch (_) {
-      return RemoveStoredUserFail();
-    }
-  }
-}
-
-mixin RetrieveUsers on Effect {
-
-  @protected
-  Future<Map<String, String>> retrieveUsers(EffectContext context) async {
-    final Box box = await context.hive.openBox('auth');
-    Map users = box.get('users');
-    return users?.cast<String, String>() ?? Map<String, String>();
-  }
-}
-
-mixin RetrieveSignedInUser on Effect {
-
-  @protected
-  Future<String> retrieveSignedInUser(EffectContext context) async {
-    final Box box = await context.hive.openBox('auth');
-    return box.get('currentUser');
-  }
-}
-
-class InitAuth implements Event {
-
-  InitAuth({
-    @required this.users,
-    @required this.signedInUser,
-  });
-
-  final Map<String, String> users;
-
-  final String signedInUser;
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    for (final MapEntry<String, String> entry in users.entries) {
-      final User user = User(
-        name: entry.key,
-        token: entry.value,
-      );
-      auth.users.add(user);
-      if (user.name == signedInUser)
-        auth.currentUser = user;
-    }
-  }
-}
-
-class LoginStart implements Event {
-
-  const LoginStart();
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    assert(!auth.authenticating);
-
-    if (auth.permissionsStatus == PermissionsStatus.notLoaded) {
-      auth.permissionsStatus = PermissionsStatus.loading;
-      return GetPermissions();
-    }
-
-    return <Message>{
-      ResetPermissions(),
-      ResetAuthSession(),
-    };
-  }
-}
-
-class GetPermissionsSuccess implements Event {
-
-  const GetPermissionsSuccess({ @required this.data });
-
-  final Iterable<ScopeData> data;
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    assert(auth.permissionsStatus == PermissionsStatus.loading);
-    auth.permissionsStatus = PermissionsStatus.available;
-    for (final ScopeData sd in data) {
-      auth.permissions.add(Permission(
-        id: sd.id,
-        name: sd.name,
-        description: sd.description,
-        enabled: true,
-      ));
-    }
-    return <Message>{
-      ResetPermissions(),
-      ResetAuthSession(),
-    };
-  }
-}
-
-class GetPermissionsFail implements Event {
-
-  const GetPermissionsFail();
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    auth.permissionsStatus = PermissionsStatus.notLoaded;
-  }
-}
-
-class ResetAuthSession implements Event {
-
-  const ResetAuthSession();
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    auth.session = AuthSession(
-      auth.appId,
-      auth.appRedirect,
-      auth.permissions
-        .where((Permission permission) => permission.enabled)
-        .map((Permission permission) => permission.id),
+@action initAuth(AuthOwner owner, { @required Map<String, String> users, @required String signedInUser }) {
+  final Auth auth = owner.auth;
+  for (final MapEntry<String, String> entry in users.entries) {
+    final User user = User(
+      name: entry.key,
+      token: entry.value,
     );
+    auth.users.add(user);
+    if (user.name == signedInUser)
+      auth.currentUser = user;
   }
 }
 
-class ResetPermissions implements Event {
+@action loginStart(AuthOwner owner) {
+  final Auth auth = owner.auth;
+  assert(!auth.authenticating);
 
-  const ResetPermissions();
+  if (auth.permissionsStatus == PermissionsStatus.notLoaded) {
+    auth.permissionsStatus = PermissionsStatus.loading;
+    return GetPermissions();
+  }
 
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    for (final Permission permission in auth.permissions) {
-      permission.enabled = true;
+  return <Message>{
+    ResetPermissions(),
+    ResetAuthSession(),
+  };
+}
+
+@effect getPermissions(EffectContext context) async {
+  return context.reddit
+    .asDevice()
+    .getScopeDescriptions()
+    .then((Iterable<ScopeData> result) {
+      return GetPermissionsSuccess(result: result);
+    })
+    .catchError((_) {
+      return GetPermissionsFailure();
+    });
+}
+
+@action getPermissionsSuccess(AuthOwner owner, { @required Iterable<ScopeData> result }) {
+  final Auth auth = owner.auth;
+  assert(auth.permissionsStatus == PermissionsStatus.loading);
+  auth.permissionsStatus = PermissionsStatus.available;
+  for (final ScopeData data in result) {
+    auth.permissions.add(Permission(
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      enabled: true,
+    ));
+  }
+  return <Message>{
+    ResetPermissions(),
+    ResetAuthSession(),
+  };
+}
+
+@action getPermissionsFailure(AuthOwner owner) {
+  final Auth auth = root.auth;
+  auth.permissionsStatus = PermissionsStatus.notLoaded;
+}
+
+@action resetAuthSession(AuthOwner owner) {
+  final Auth auth = owner.auth;
+  auth.session = AuthSession(
+    auth.appId,
+    auth.appRedirect,
+    auth.permissions
+      .where((Permission permission) => permission.enabled)
+      .map((Permission permission) => permission.id),
+  );
+}
+
+@action resetPermissions(AuthOwner owner) {
+  final Auth auth = owner.auth;
+  for (final Permission permission in auth.permissions) {
+    permission.enabled = true;
+  }
+}
+
+@action togglePermission(_, { @required Permission permission }) {
+  permission.enabled = !permission.enabled;
+}
+
+@action checkUrl(AuthOwner owner) {
+  final Auth auth = owner.auth;
+  if (auth.authenticating)
+    return;
+
+  final Uri uri = Uri.parse(url);
+  final String code = uri.queryParameters['code'];
+  if (code != null) {
+    if (uri.queryParameters['state'] == auth.session.state) {
+      return LoginSuccess(code: code);
     }
+    return LoginError();
+  }
+
+  final String error = uri.queryParameters['error'];
+  if (error != null) {
+    return LoginError();
   }
 }
 
-class TogglePermission implements Event {
+@action loginSuccess(AuthOwner owner, { @required String code }) {
+  final Auth auth = owner.auth;
+  auth.authenticating = true;
+  return PostCode(code: code);
+}
 
-  TogglePermission({ @required this.permission });
+@action loginError(_) {
+  // TODO: implement
+}
 
-  final Permission permission;
+@effect postCode(EffectContext context, { @required String code }) async {
+  try {
+    final Reddit reddit = context.reddit;
+    final RefreshTokenData tokenData = await reddit.postCode(code);
 
-  @override
-  dynamic update(_) {
-    permission.enabled = !permission.enabled;
+    final AccountData accountData = await reddit
+        .asUser(tokenData.refreshToken)
+        .getUserAccount();
+
+    return PostCodeSuccess(
+      token: tokenData,
+      account: accountData 
+    );
+  } catch (_) {
+    return PostCodeFailure();
   }
 }
 
-class CheckUrl implements Event {
+@action postCodeSuccess(AuthOwner owner, { @required RefreshTokenData token, @required AccountData account }) {
+  final Auth auth = owner.auth;
 
-  CheckUrl({ @required this.url });
+  final User oldCurrentUser = auth.currentUser;
+  bool isNewUser = false;
+  auth..authenticating = false
+      ..currentUser = auth.users.singleWhere(
+          (User user) => (user.name == account.username),
+          orElse: () {
+            final User user = User(
+              token: token.refreshToken,
+              name: account.username,
+            );
+            auth.users.add(user);
+            isNewUser = true;
+            return user;
+          }
+        );
 
-  final String url;
+  return <Message>{
+    if (isNewUser)
+      StoreUser(user: auth.currentUser),
+    // TODO: Find a different way of implementing this instead of a ProxyEvent
+    // if (oldCurrentUser != auth.currentUser)
+      // UserChanged(),
+    StoreSignedInUser(user: auth.currentUser),
+  };
+}
 
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    if (auth.authenticating)
-      return;
+@action postCodeFailure(AuthOwner owner) {
+  owner.auth.authenticating = false;
+}
 
-    final Uri uri = Uri.parse(url);
-    final String code = uri.queryParameters['code'];
-    if (code != null) {
-      if (uri.queryParameters['state'] == auth.session.state) {
-        return LoginSuccess(code: code);
-      }
-      return LoginError();
-    }
-
-    final String error = uri.queryParameters['error'];
-    if (error != null) {
-      return LoginError();
-    }
+@effect storeUser(EffectContext context, { @required User user }) async {
+  try {
+    final Box box = await context.hive.openBox('auth');
+    Map users = box.get('users') ?? Map();
+    assert(!users.containsKey(user.name));
+    users[user.name] = user.token;
+    await box.put('users', users);
+  } catch (_) {
+    return StoreUserFail();
   }
 }
 
-class LoginSuccess implements Event {
+@action storeUserFail(_) {
+  // TODO: implement
+}
 
-  LoginSuccess({ @required this.code });
-
-  final String code;
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    auth.authenticating = true;
-    return PostCode(code: code);
+@effect storeSignedInUser(EffectContext context, { User user }) async {
+  try {
+    final Box box = await context.hive.openBox('auth');
+    await box.put('currentUser', user?.name);
+  } catch (_) {
+    return StoreSignedInUserFailure();
   }
 }
 
-class LoginError implements Event {
-
-  const LoginError();
-
-  /// TODO: Implement
-  @override
-  dynamic update(RootAuth root) { }
+@action storeSignedInUserFailure(_) {
+  // TODO: Implement
 }
 
-class PostCodeSuccess implements Event {
+@action logOutUser(AuthOwner owner, { @required User user }) {
+  final Auth auth = owner.auth;
+  assert(auth.users.contains(user));
+  auth.users.remove(user);
+  final bool wasSignedIn = (auth.currentUser == user);
+  if (wasSignedIn)
+    auth.currentUser = null;
 
-  PostCodeSuccess({
-    @required this.token,
-    @required this.account,
-  });
-
-  final RefreshTokenData token;
-
-  final AccountData account;
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-
-    final User oldCurrentUser = auth.currentUser;
-    bool isNewUser = false;
-    auth..authenticating = false
-        ..currentUser = auth.users.singleWhere(
-            (User user) => (user.name == account.username),
-            orElse: () {
-              final User user = User(
-                token: token.refreshToken,
-                name: account.username,
-              );
-              auth.users.add(user);
-              isNewUser = true;
-              return user;
-            }
-          );
-
-    return <Message>{
-      if (isNewUser)
-        StoreUser(user: auth.currentUser),
-      if (oldCurrentUser != auth.currentUser)
-        UserChanged(),
-      StoreSignedInUser(user: auth.currentUser),
-    };
-  }
-}
-
-class PostCodeFail implements Event {
-
-  const PostCodeFail();
-
-  /// TODO: Implement
-  @override
-  dynamic update(RootAuth root) {
-    root.auth.authenticating = false;
-  }
-}
-
-class StoreUserFail implements Event {
-
-  const StoreUserFail();
-
-  /// TODO: Implement
-  @override
-  dynamic update(_) {}
-}
-
-class StoreSignedInUserFail implements Event {
-
-  const StoreSignedInUserFail();
-
-  /// TODO: Implement
-  @override
-  dynamic update(_) { }
-}
-
-class LogOutUser implements Event {
-
-  const LogOutUser({ @required this.user });
-
-  final User user;
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    assert(auth.users.contains(user));
-    auth.users.remove(user);
-    final bool wasSignedIn = (auth.currentUser == user);
+  return <Message>{
     if (wasSignedIn)
-      auth.currentUser = null;
+      ...{
+        /// TODO: Find a different way of implement this instead of a ProxyEvent
+        /// UserChanged(),
+        StoreSignedInUser(),
+      },
+    RemoveStoredUser(user: user)
+  };
+}
 
-    return <Message>{
-      if (wasSignedIn)
-        ...{
-          UserChanged(),
-          StoreSignedInUser(),
-        },
-      RemoveStoredUser(user: user)
-    };
+@effect removeStoredUser(EffectContext context, { @required User user) async {
+  try {
+    final Box box = await context.hive.openBox('auth');
+    final Map users = box.get('users');
+    assert(users != null && users.containsKey(user.name));
+    users.remove(user.name);
+    await box.put('users', users);
+  } catch (_) {
+    return RemoveStoredUserFailure();
   }
 }
 
-class RemoveStoredUserFail implements Event {
-
-  /// TODO: Implement
-  @override
-  dynamic update(_) { }
+@action removeStoredUserFailure(_) {
+  // TODO: Implement
 }
 
-class LogInUser extends Event {
-
-  const LogInUser({ @required this.user });
-
-  final User user;
-
-  @override
-  dynamic update(RootAuth root) {
-    final Auth auth = root.auth;
-    assert(auth.users.contains(user));
-    final bool changedUser = (auth.currentUser != user);
-    auth.currentUser = user;
-    if (changedUser)
-      return UserChanged();
+@action logInUser(AuthOwner owner, { @required User user }) {
+  final Auth auth = owner.auth;
+  assert(auth.users.contains(user));
+  final bool changedUser = (auth.currentUser != user);
+  auth.currentUser = user;
+  if (changedUser) {
+    /// TODO: Find a different way of implementing this instead of a ProxyEvent
+    /// return UserChanged();
   }
-}
-
-class UserChanged implements ProxyEvent {
-  const UserChanged();
 }
 
