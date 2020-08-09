@@ -3,8 +3,8 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../logic/media_logic.dart';
-import '../models/media_model.dart';
+import '../logic/media.dart';
+import '../models/media.dart';
 
 class MediaThumbnail extends StatelessWidget {
 

@@ -34,8 +34,7 @@ part 'init.msg.dart';
 
     return InitResourcesSuccess(
       users: await retrieveUsers(context),
-      signedInUser: await retrieveSignedInUser(context),
-    );
+      signedInUser: await retrieveSignedInUser(context));
   } catch (_) {
     return InitResourcesFail();
   }
@@ -47,8 +46,7 @@ part 'init.msg.dart';
   return <Message>{
     InitAuth(
       users: users,
-      signedInUser: signedInUser,
-    ),
+      signedInUser: signedInUser),
     InitBrowse(),
     UpdateTheme(theming: app.theming),
   };

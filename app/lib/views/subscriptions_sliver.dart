@@ -1,7 +1,7 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../models/subscriptions_model.dart';
+import '../models/subscriptions.dart';
 
 import 'subreddit_tile.dart';
 

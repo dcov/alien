@@ -1,10 +1,9 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
+import '../models/subreddit.dart';
 import '../widgets/icons.dart';
 import '../widgets/tile.dart';
-
-import '../models/subreddit_model.dart';
 
 class SubredditTile extends StatelessWidget {
 

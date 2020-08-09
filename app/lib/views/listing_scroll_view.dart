@@ -1,8 +1,7 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../models/listing_model.dart';
-import '../models/thing_model.dart';
+import '../models/listing.dart';
 import '../widgets/padded_scroll_view.dart';
 
 

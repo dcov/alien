@@ -2,10 +2,10 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../logic/home_logic.dart';
-import '../models/home_model.dart';
-import '../models/listing_model.dart';
-import '../models/post_model.dart';
+import '../logic/home.dart';
+import '../models/home.dart';
+import '../models/listing.dart';
+import '../models/post.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'listing_scroll_view.dart';

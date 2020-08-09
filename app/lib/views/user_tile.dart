@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/user_model.dart';
+import '../models/user.dart';
 import '../widgets/pressable.dart';
 import '../widgets/tile.dart';
 

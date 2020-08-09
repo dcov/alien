@@ -11,9 +11,7 @@ import 'post.dart' show PostDataExtensions;
 
 part 'subreddit_posts.msg.dart';
 
-@action transitionSubredditPosts(_,
-    { @required Subreddit subreddit, @required ListingStatus to }) {
-
+@action transitionSubredditPosts(_, { @required Subreddit subreddit, @required ListingStatus to }) {
   return TransitionListing(
     listing: subreddit.posts,
     to: to,
@@ -23,9 +21,7 @@ part 'subreddit_posts.msg.dart';
       page: page));
 }
 
-@effect getSubredditPosts(EffectContext context,
-    { @required Subreddit subreddit, @required ListingStatus to, @required Page page }) {
-
+@effect getSubredditPosts(EffectContext context, { @required Subreddit subreddit, @required ListingStatus to, @required Page page }) {
   return context.reddit
     .asDevice()
     .getSubredditPosts(

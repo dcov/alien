@@ -2,7 +2,7 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart' show VoteDir;
 
-import '../models/post_model.dart';
+import '../models/post.dart';
 import '../widgets/formatting.dart';
 import '../widgets/pressable.dart';
 import '../widgets/tile.dart';

@@ -2,22 +2,22 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../models/app_model.dart';
+import '../models/app.dart';
 import '../widgets/scroll_configuration.dart';
 import '../widgets/splash_screen.dart';
 
-import 'app_screen.dart';
+import 'app_controller.dart';
 import 'themer.dart';
 
-/// The root widget in the tree.
+/// The root view in the tree.
 ///
 /// It handles the one-off configuration of the application, and the initial
 /// phase between when the [App] state has yet to be initialized, in which it
 /// renders a graphic, and after it's been initialized, in which it renders the
 /// initialized [App] state and doesn't rebuild anymore.
-class AppView extends StatelessWidget {
+class InitView extends StatelessWidget {
 
-  AppView({ Key key })
+  InitView({ Key key })
     : super(key: key);
 
   @override
@@ -33,9 +33,9 @@ class AppView extends StatelessWidget {
         final App app = context.state;
 
         /// This check does two things: It checks whether the state has been
-        /// initialized and returns [_Splash] if it hasn't, but more importantly
-        /// it let's [Tracker] know that the only value we depend on is
-        /// the [app.initialized] value. This means we'll only rebuild once -
+        /// initialized and returns a splash graphic if it hasn't, but more importantly
+        /// it let's [Connector] know that the only value we depend on is
+        /// the [app.initialized] value. This means we'll only rebuild once:
         /// when the [app.initialized] value is set to [true].
         if (!app.initialized)
           return SplashScreen();
@@ -49,7 +49,7 @@ class AppView extends StatelessWidget {
           },
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
-            child: AppScreen(app: app)));
+            child: AppController(app: app)));
       });
   }
 }

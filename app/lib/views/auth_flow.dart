@@ -2,8 +2,8 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../logic/auth_logic.dart';
-import '../models/auth_model.dart';
+import '../logic/auth.dart';
+import '../models/auth.dart';
 import '../widgets/padded_scroll_view.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';

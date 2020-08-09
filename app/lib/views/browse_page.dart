@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Page;
 
-import '../models/browse_model.dart';
+import '../models/browse.dart';
 import '../widgets/page.dart';
 import '../widgets/widget_extensions.dart';
 

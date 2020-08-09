@@ -10,7 +10,6 @@ void runLoopWithEffects({
   @required String appId,
   @required String appRedirect,
   @required Initial initial,
-  Set<ProxyUpdate> proxies,
   @required Widget view,
 }) {
   final GlobalKey<EffectRendererState> rendererKey = GlobalKey<EffectRendererState>();
@@ -20,7 +19,6 @@ void runLoopWithEffects({
       appId: appId,
       appRedirect: appRedirect,
       rendererKey: rendererKey),
-    proxies: proxies,
     view: EffectRenderer(
       key: rendererKey,
       child: view));

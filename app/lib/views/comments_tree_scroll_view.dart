@@ -1,9 +1,9 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../logic/comments_tree_logic.dart';
-import '../models/comment_model.dart';
-import '../models/comments_tree_model.dart';
+import '../logic/comments_tree.dart';
+import '../models/comment.dart';
+import '../models/comments_tree.dart';
 import '../widgets/padded_scroll_view.dart';
 
 import 'comment_tile.dart';
