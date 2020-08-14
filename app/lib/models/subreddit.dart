@@ -14,10 +14,6 @@ mixin $Subreddit implements Thing {
 
   String get name;
 
-  $Listing<$Post> posts;
-
-  SubredditSort sortBy;
-
   bool userIsSubscriber;
 }
 

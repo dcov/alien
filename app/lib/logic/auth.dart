@@ -78,7 +78,7 @@ Future<String> retrieveSignedInUser(EffectContext context) async {
 }
 
 @action getPermissionsFailure(AuthOwner owner) {
-  final Auth auth = root.auth;
+  final Auth auth = owner.auth;
   auth.permissionsStatus = PermissionsStatus.notLoaded;
 }
 
@@ -104,7 +104,7 @@ Future<String> retrieveSignedInUser(EffectContext context) async {
   permission.enabled = !permission.enabled;
 }
 
-@action checkUrl(AuthOwner owner) {
+@action checkUrl(AuthOwner owner, { @required String url }) {
   final Auth auth = owner.auth;
   if (auth.authenticating)
     return;
@@ -233,7 +233,7 @@ Future<String> retrieveSignedInUser(EffectContext context) async {
   };
 }
 
-@effect removeStoredUser(EffectContext context, { @required User user) async {
+@effect removeStoredUser(EffectContext context, { @required User user }) async {
   try {
     final Box box = await context.hive.openBox('auth');
     final Map users = box.get('users');

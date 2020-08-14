@@ -10,12 +10,11 @@ import '../models/app.dart';
 import '../models/auth.dart';
 
 import 'auth.dart';
-import 'browse.dart';
 import 'theming.dart';
 
 part 'init.msg.dart';
 
-@initial initApp({ @required String appId, @required String appRedirect }) {
+@initial init({ @required String appId, @required String appRedirect }) {
   return InitialResult(
     state: App(
       initialized: false,
@@ -47,7 +46,6 @@ part 'init.msg.dart';
     InitAuth(
       users: users,
       signedInUser: signedInUser),
-    InitBrowse(),
     UpdateTheme(theming: app.theming),
   };
 }

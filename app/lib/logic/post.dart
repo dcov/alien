@@ -2,27 +2,9 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart' show PostData;
 
-import '../models/comments_tree.dart';
 import '../models/post.dart';
 
-import 'comments_tree.dart';
-import 'thing.dart' show ThingExtensions;
-
 part 'post.msg.dart';
-
-@action initPostComments(_, { @required Post post }) {
-  post.comments = CommentsTree(
-    fullPostId: post.fullId,
-    permalink: post.permalink,
-  );
-  return LoadCommentsTree(
-    commentsTree: post.comments
-  );
-}
-
-@action disposePostComments(_, { @required Post post }) {
-  post.comments = null;
-}
 
 extension PostDataExtensions on PostData {
 

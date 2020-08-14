@@ -21,7 +21,12 @@ part 'subreddit_posts.msg.dart';
       page: page));
 }
 
-@effect getSubredditPosts(EffectContext context, { @required Subreddit subreddit, @required ListingStatus to, @required Page page }) {
+@effect getSubredditPosts(
+      EffectContext context, {
+      @required Subreddit subreddit,
+      @required ListingStatus to, @required
+      Page page
+    }) {
   return context.reddit
     .asDevice()
     .getSubredditPosts(

@@ -6,12 +6,6 @@ import 'saveable.dart';
 import 'snudown.dart';
 import 'votable.dart';
 
-export 'comments_tree.dart';
-export 'media.dart';
-export 'saveable.dart';
-export 'snudown.dart';
-export 'votable.dart';
-
 part 'post.mdl.dart';
 
 @model
@@ -42,6 +36,4 @@ mixin $Post implements Saveable, Votable {
   String get title;
 
   String get url;
-
-  $CommentsTree comments;
 }
