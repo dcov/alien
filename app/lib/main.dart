@@ -8,7 +8,7 @@ void main() {
   runLoopWithEffects(
     appId: config.kAppId,
     appRedirect: config.kAppRedirect,
-    initial: InitApp(
+    initializer: Init(
       appId: config.kAppId,
       appRedirect: config.kAppRedirect),
     view: InitView());

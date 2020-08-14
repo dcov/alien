@@ -14,8 +14,8 @@ import 'theming.dart';
 
 part 'init.msg.dart';
 
-@initial init({ @required String appId, @required String appRedirect }) {
-  return InitialResult(
+@initializer init({ @required String appId, @required String appRedirect }) {
+  return Initialization(
     state: App(
       initialized: false,
       auth: Auth(
