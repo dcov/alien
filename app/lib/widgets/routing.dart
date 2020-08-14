@@ -133,13 +133,7 @@ class _RoutingState extends State<Routing> {
   }
 
   void pop([String name]) {
-    setState(() {
-      final poppedIndex = _currentStack.removeLast();
-      _entries.removeAt(poppedIndex);
-    });
-  }
 
-  void detach([String name]) {
   }
 
   void _handlePopPage(Route route, dynamic result) {
@@ -152,14 +146,15 @@ class _RoutingState extends State<Routing> {
   @override
   void initState() {
     super.initState();
+    final initialRouteName = '/' + widget.initialRouteName;
     _entries = <_RoutingEntry>[
       _RoutingEntry(
         depth: 0,
         page: CustomBuilderPage(
-          key: ValueKey('/'),
-          name: '/',
+          key: ValueKey(initialRouteName),
+          name: initialRouteName,
           routeBuilder: widget.initialRouteBuilder),
-        name: widget.initialRouteName,
+        name: initialRouteName,
         routeBuilder: widget.initialRouteBuilder)
     ];
     // The current stack only contains the first entry
