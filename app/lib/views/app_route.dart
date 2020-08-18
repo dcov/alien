@@ -82,7 +82,6 @@ class _AppBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entryNames = context.routingData.entryNames;
     return CustomScrollView(
       slivers: <Widget>[
       ]);

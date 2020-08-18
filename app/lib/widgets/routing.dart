@@ -1,29 +1,16 @@
 import 'package:flutter/widgets.dart';
 
-abstract class EntryRoute<T> extends PageRoute<T> {
+class _RoutingEntry {
 
-  EntryRoute({
-    @required RouteSettings settings,
-    bool fullscreenDialog = false
-  }) : assert(settings != null),
-       assert(settings is Page),
-       super(settings: settings, fullscreenDialog: fullscreenDialog);
+  _RoutingEntry({
+    this.depth,
+    this.page,
+    RouteBuilder routeBuilder
+  });
 
+  final int depth;
 
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 300);
-
-  @override
-  bool get maintainState => true;
-
-  @override
-  Color get barrierColor => null;
-
-  @override
-  String get barrierLabel => null;
-
-  @override
-  bool canTransitionTo(TransitionRoute nextRoute) => true;
+  final Page page;
 }
 
 class RoutingData {
@@ -47,21 +34,6 @@ class _RoutingDataScope extends InheritedWidget {
   bool updateShouldNotify(_RoutingDataScope oldWidget) {
     return oldWidget.data != data;
   }
-}
-
-class _RoutingEntry {
-
-  _RoutingEntry({
-    this.depth,
-    this.page,
-    this.routeBuilder
-  });
-
-  int depth;
-
-  Page page;
-
-  RouteBuilder routeBuilder;
 }
 
 class Routing extends StatefulWidget {
@@ -210,5 +182,31 @@ extension RoutingContextExtensions on BuildContext {
   void push(String name, RouteBuilder routeBuilder) => _state.push(name, routeBuilder);
 
   void pop() => _state.pop();
+}
+
+abstract class EntryRoute<T> extends PageRoute<T> {
+
+  EntryRoute({
+    @required RouteSettings settings,
+    bool fullscreenDialog = false
+  }) : assert(settings != null),
+       assert(settings is Page),
+       super(settings: settings, fullscreenDialog: fullscreenDialog);
+
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 300);
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  Color get barrierColor => null;
+
+  @override
+  String get barrierLabel => null;
+
+  @override
+  bool canTransitionTo(TransitionRoute nextRoute) => true;
 }
 

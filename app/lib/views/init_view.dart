@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/app.dart';
+import '../widgets/routing.dart';
 import '../widgets/scroll_configuration.dart';
 import '../widgets/splash_screen.dart';
 
-import 'app_controller.dart';
+import 'app_route.dart';
 import 'themer.dart';
 
 /// The root view in the tree.
@@ -49,7 +50,11 @@ class InitView extends StatelessWidget {
           },
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
-            child: AppController(app: app)));
+            child: Routing(
+              initialRouteName: 'app',
+              initialRouteBuilder: (_, RouteSettings settings) {
+                return AppRoute(app: app, settings: settings);
+              })));
       });
   }
 }
