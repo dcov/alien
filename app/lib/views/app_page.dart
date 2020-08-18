@@ -6,24 +6,28 @@ import '../models/app.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
-class AppRoute extends EntryRoute {
+class AppPage extends EntryPage {
 
-  AppRoute({
+  AppPage({
     @required this.app,
-    @required RouteSettings settings
-  }) : super(settings: settings);
+    @required String name
+  }) : super(name: name);
 
   final App app;
 
   @override
-  Widget buildPage(BuildContext context, _, __) {
-    return _AppPage(app: app);
+  Route createRoute(_) {
+    return PageRouteBuilder(
+      settings: this,
+      pageBuilder: (BuildContext context, Animation<double> _, Animation<double> __) {
+        return _AppPageView(app: app);
+      });
   }
 }
 
-class _AppPage extends StatelessWidget {
+class _AppPageView extends StatelessWidget {
 
-  _AppPage({
+  _AppPageView({
     Key key,
     @required this.app
   }) : super(key: key);

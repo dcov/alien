@@ -1,11 +1,10 @@
 import 'package:flutter/widgets.dart';
 
-class _RoutingEntry {
+class RoutingEntry {
 
-  _RoutingEntry({
-    this.depth,
-    this.page,
-    RouteBuilder routeBuilder
+  RoutingEntry({
+    @required this.depth,
+    @required this.page,
   });
 
   final int depth;
@@ -15,9 +14,9 @@ class _RoutingEntry {
 
 class RoutingData {
 
-  RoutingData(this.entryNames);
+  RoutingData(this.entries);
   
-  final List<String> entryNames;
+  final List<Page> entries;
 }
 
 class _RoutingDataScope extends InheritedWidget {
@@ -36,17 +35,19 @@ class _RoutingDataScope extends InheritedWidget {
   }
 }
 
+typedef RoutingPageBuilder = Page Function(String name);
+
 class Routing extends StatefulWidget {
 
   Routing({
     Key key,
-    this.initialRouteName = 'app',
-    @required this.initialRouteBuilder
+    this.initialPageName = 'app',
+    @required this.initialPageBuilder
   }) : super(key: key);
 
-  final String initialRouteName;
+  final String initialPageName;
 
-  final RouteBuilder initialRouteBuilder;
+  final RoutingPageBuilder initialPageBuilder;
 
   @override
   _RoutingState createState() => _RoutingState();
@@ -54,10 +55,10 @@ class Routing extends StatefulWidget {
 
 class _RoutingState extends State<Routing> {
 
-  List<_RoutingEntry> _entries;
+  List<RoutingEntry> _entries;
   List<int> _currentStack;
 
-  void push(String name, RouteBuilder routeBuilder) {
+  void push(String name, RoutingPageBuilder pageBuilder) {
     final currentIndex = _currentStack.last;
     final currentEntry = _entries[currentIndex];
     final newRouteName = currentEntry.page.name + '/' + name;
@@ -81,14 +82,16 @@ class _RoutingState extends State<Routing> {
     if (indexOf != null) {
       _currentStack.add(indexOf);
     } else {
+      // Build the new page
+      final newPage = pageBuilder(newRouteName);
+      assert(newPage.name == newRouteName);
+      assert(newPage.key == ValueKey(newRouteName));
+
       // Insert the new entry just ahead of the current entry.
       _entries.insert(
         currentIndex + 1,
-        _RoutingEntry(
-          page: CustomBuilderPage(
-            key: ValueKey(newRouteName),
-            name: newRouteName,
-            routeBuilder: routeBuilder),
+        RoutingEntry(
+          page: newPage,
           depth: currentEntry.depth + 1));
 
       // Mark the new entry as the top of the stack.
@@ -137,16 +140,17 @@ class _RoutingState extends State<Routing> {
   @override
   void initState() {
     super.initState();
-    final initialRouteName = '/' + widget.initialRouteName;
-    _entries = <_RoutingEntry>[
-      _RoutingEntry(
+    final initialPageName = '/' + widget.initialPageName;
+    final initialPage = widget.initialPageBuilder(initialPageName);
+    assert(initialPage.name == initialPageName);
+    assert(initialPage.key == ValueKey(initialPageName));
+
+    _entries = <RoutingEntry>[
+      RoutingEntry(
         depth: 0,
-        page: CustomBuilderPage(
-          key: ValueKey(initialRouteName),
-          name: initialRouteName,
-          routeBuilder: widget.initialRouteBuilder),
-        routeBuilder: widget.initialRouteBuilder)
+        page: initialPage)
     ];
+
     // The current stack only contains the first entry
     _currentStack = <int>[0];
   }
@@ -179,34 +183,17 @@ extension RoutingContextExtensions on BuildContext {
     return context.findAncestorStateOfType<_RoutingState>();
   }
 
-  void push(String name, RouteBuilder routeBuilder) => _state.push(name, routeBuilder);
+  void push(String name, RoutingPageBuilder pageBuilder) => _state.push(name, pageBuilder);
 
   void pop() => _state.pop();
 }
 
-abstract class EntryRoute<T> extends PageRoute<T> {
+abstract class EntryPage<T> extends Page<T> {
 
-  EntryRoute({
-    @required RouteSettings settings,
-    bool fullscreenDialog = false
-  }) : assert(settings != null),
-       assert(settings is Page),
-       super(settings: settings, fullscreenDialog: fullscreenDialog);
-
-
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 300);
-
-  @override
-  bool get maintainState => true;
-
-  @override
-  Color get barrierColor => null;
-
-  @override
-  String get barrierLabel => null;
-
-  @override
-  bool canTransitionTo(TransitionRoute nextRoute) => true;
+  EntryPage({
+    @required String name,
+    Object arguments
+  }) : assert(name != null),
+       super(key: ValueKey(name), name: name, arguments: arguments);
 }
 
