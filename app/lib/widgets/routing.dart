@@ -29,7 +29,7 @@ abstract class EntryRoute<T> extends PageRoute<T> {
 class RoutingData {
 
   RoutingData(this.entryNames);
-
+  
   final List<String> entryNames;
 }
 
@@ -52,13 +52,10 @@ class _RoutingDataScope extends InheritedWidget {
 class _RoutingEntry {
 
   _RoutingEntry({
-    this.name,
     this.depth,
     this.page,
     this.routeBuilder
   });
-
-  String name;
 
   int depth;
 
@@ -86,7 +83,6 @@ class Routing extends StatefulWidget {
 class _RoutingState extends State<Routing> {
 
   List<_RoutingEntry> _entries;
-
   List<int> _currentStack;
 
   void push(String name, RouteBuilder routeBuilder) {
@@ -111,29 +107,52 @@ class _RoutingState extends State<Routing> {
     }
 
     if (indexOf != null) {
-      setState(() {
-        _currentStack.add(indexOf);
-      });
+      _currentStack.add(indexOf);
     } else {
-      setState(() {
-        // Insert an the new entry just ahead of the current entry.
-        _entries.insert(
-          currentIndex + 1,
-          _RoutingEntry(
-            page: CustomBuilderPage(
-              key: ValueKey(newRouteName),
-              name: newRouteName,
-              routeBuilder: routeBuilder),
-            depth: currentEntry.depth + 1));
+      // Insert the new entry just ahead of the current entry.
+      _entries.insert(
+        currentIndex + 1,
+        _RoutingEntry(
+          page: CustomBuilderPage(
+            key: ValueKey(newRouteName),
+            name: newRouteName,
+            routeBuilder: routeBuilder),
+          depth: currentEntry.depth + 1));
 
-        // Mark the new entry as the top of the stack.
-        _currentStack.add(currentIndex + 1);
-      });
+      // Mark the new entry as the top of the stack.
+      _currentStack.add(currentIndex + 1);
     }
+
+    setState(() {
+      // Update the widget tree
+    });
   }
 
   void pop([String name]) {
+    if (name == null) {
+      _popAt(_currentStack.last);
+      _currentStack.removeLast();
+    } else {
+      final popIndex = _entries.indexWhere((entry) => entry.page.name == name);
+      assert(popIndex != -1);
+      _popAt(popIndex);
 
+      /// Check if the entry we popped was in the current page stack.
+      final stackPopIndex = _currentStack.indexOf(popIndex);
+      if (stackPopIndex != -1) {
+        _currentStack.removeRange(stackPopIndex, _currentStack.length);
+      }
+    }
+    setState(() {
+      // Update the widget tree
+    });
+  }
+
+  void _popAt(int popIndex) {
+    final poppedEntry = _entries.removeAt(popIndex);
+    while (_entries[popIndex].depth > poppedEntry.depth) {
+      _entries.removeAt(popIndex);
+    }
   }
 
   void _handlePopPage(Route route, dynamic result) {
@@ -154,7 +173,6 @@ class _RoutingState extends State<Routing> {
           key: ValueKey(initialRouteName),
           name: initialRouteName,
           routeBuilder: widget.initialRouteBuilder),
-        name: initialRouteName,
         routeBuilder: widget.initialRouteBuilder)
     ];
     // The current stack only contains the first entry
