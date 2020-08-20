@@ -9,12 +9,12 @@ import 'package:scraper/scraper.dart';
 void runLoopWithEffects({
   @required String appId,
   @required String appRedirect,
-  @required Initializer initializer,
+  @required Initial initial,
   @required Widget view,
 }) {
-  final GlobalKey<EffectRendererState> rendererKey = GlobalKey<EffectRendererState>();
+  final rendererKey = GlobalKey<EffectRendererState>();
   runLoop(
-    initializer: initializer,
+    initial: initial,
     container: EffectContext(
       appId: appId,
       appRedirect: appRedirect,
