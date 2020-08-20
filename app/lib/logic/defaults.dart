@@ -7,51 +7,92 @@ import '../models/defaults.dart';
 
 import 'subreddit.dart' show SubredditDataExtensions;
 
-part 'defaults.msg.dart';
+class LoadDefaults extends Action {
 
-@action loadDefaults(_, { @required Defaults defaults }) {
-  if (defaults.refreshing)
-    return null;
-  
-  defaults..refreshing = true
-          ..subreddits.clear();
+  LoadDefaults({
+    @required this.defaults
+  });
 
-  return GetDefaults(defaults: defaults);
+  final Defaults defaults;
+
+  @override
+  dynamic update(_) {
+    if (defaults.refreshing)
+      return null;
+    
+    defaults..refreshing = true
+            ..subreddits.clear();
+
+    return GetDefaults(defaults: defaults);
+  }
 }
 
-@effect getDefaults(EffectContext context, { @required Defaults defaults }) {
-  return context.reddit
-    .asDevice()
-    .getSubreddits(
-        Subreddits.defaults,
-        Page(limit: Page.kMaxLimit))
-    .then(
-        (ListingData<SubredditData> result) {
-          return GetDefaultsSuccess(
-            defaults: defaults,
-            result: result.things
-          );
-        },
-        onError: (e) {
-          return GetDefaultsFailed(defaults: defaults);
+class GetDefaults extends Effect {
+
+  GetDefaults({
+    @required this.defaults
+  });
+
+  final Defaults defaults;
+
+  @override
+  dynamic perform(EffectContext context) {
+    return context.reddit
+      .asDevice()
+      .getSubreddits(
+          Subreddits.defaults,
+          Page(limit: Page.kMaxLimit))
+      .then(
+          (ListingData<SubredditData> result) {
+            return GetDefaultsSuccess(
+              defaults: defaults,
+              result: result.things
+            );
+          },
+          onError: (e) {
+            return GetDefaultsFailure(defaults: defaults);
+          });
+  }
+}
+
+class GetDefaultsSuccess extends Action {
+
+  GetDefaultsSuccess({
+    @required this.defaults,
+    @required this.result
+  });
+
+  final Defaults defaults;
+
+  final Iterable<SubredditData> result;
+
+  @override
+  dynamic update(_) {
+    // Ensure we're still expecting this.
+    if (!defaults.refreshing)
+      return;
+
+    defaults
+      ..refreshing = false
+      ..subreddits.addAll(
+          result.map((SubredditData data) => data.toModel()))
+      ..subreddits.sort((s1, s2) {
+          return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
         });
+  }
 }
 
-@action getDefaultsSuccess(_, { @required Defaults defaults, @required Iterable<SubredditData> result }) {
-  // Ensure we're still expecting this.
-  if (!defaults.refreshing)
-    return;
+class GetDefaultsFailure extends Action {
 
-  defaults
-    ..refreshing = false
-    ..subreddits.addAll(
-        result.map((SubredditData data) => data.toModel()))
-    ..subreddits.sort((s1, s2) {
-        return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
-      });
-}
+  GetDefaultsFailure({
+    @required this.defaults
+  });
 
-@action getDefaultsFailed(_, { @required Defaults defaults }) {
-  // TODO: implement
+  final Defaults defaults;
+
+  @override
+  dynamic update(_) {
+    // TODO: implement
+  }
 }
 

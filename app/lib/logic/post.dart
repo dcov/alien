@@ -4,8 +4,6 @@ import 'package:reddit/reddit.dart' show PostData;
 
 import '../models/post.dart';
 
-part 'post.msg.dart';
-
 extension PostDataExtensions on PostData {
 
   Post toModel() {

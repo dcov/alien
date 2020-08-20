@@ -3,89 +3,177 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/comment.dart';
 import '../models/comments_tree.dart';
+import '../models/thing.dart';
 
 import 'comment.dart';
 
-part 'comments_tree.msg.dart';
+class LoadCommentsTree extends Action {
 
-@action loadCommentsTree(_, { @required CommentsTree commentsTree }) {
-  if (commentsTree.isRefreshing)
-    return null;
+  LoadCommentsTree({
+    @required this.commentsTree
+  });
 
-  commentsTree..isRefreshing = true
-      ..things.clear();
-  
-  return GetPostComments(commentsTree: commentsTree);
+  final CommentsTree commentsTree;
+
+  @override
+  dynamic update(_) {
+    if (commentsTree.isRefreshing)
+      return null;
+
+    commentsTree
+        ..isRefreshing = true
+        ..things.clear();
+    
+    return GetPostComments(commentsTree: commentsTree);
+  }
 }
 
-@effect getPostComments(EffectContext context, { @required CommentsTree commentsTree }) {
-  return context.reddit
-    .asDevice()
-    .getPostComments(
-      commentsTree.permalink,
-      commentsTree.sort)
-    .then(
-      (ListingData<ThingData> result) {
-        return GetPostCommentsSuccess(
-          commentsTree: commentsTree,
-          result: result.things
-        );
-      },
-      onError: (_) {
-        return GetPostCommentsFail();
-      });
+class GetPostComments extends Effect {
+
+  GetPostComments({
+    @required this.commentsTree
+  });
+
+  final CommentsTree commentsTree;
+
+  @override
+  dynamic perform(EffectContext context) {
+    return context.reddit
+      .asDevice()
+      .getPostComments(
+        commentsTree.permalink,
+        commentsTree.sortBy)
+      .then(
+        (ListingData<ThingData> result) {
+          return GetPostCommentsSuccess(
+            commentsTree: commentsTree,
+            result: result.things
+          );
+        },
+        onError: (_) {
+          return GetPostCommentsFailure();
+        });
+  }
 }
 
-@action getPostCommentsSuccess(_, { @required CommentsTree commentsTree, @required Iterable<ThingData> result }) {
-  assert(commentsTree.isRefreshing);
-  commentsTree..isRefreshing = false
-      ..things.addAll(_flattenTree(result).map(_mapThing));
+class GetPostCommentsSuccess extends Action {
+
+  GetPostCommentsSuccess({
+    @required this.commentsTree,
+    @required this.result
+  });
+
+  final CommentsTree commentsTree;
+
+  final Iterable<ThingData> result;
+
+  @override
+  dynamic update(_) {
+    assert(commentsTree.isRefreshing);
+    commentsTree..isRefreshing = false
+        ..things.addAll(_flattenTree(result).map(_mapThing));
+  }
 }
 
-@action getPostCommentsFail(_) {
+class GetPostCommentsFailure extends Action {
+
+  GetPostCommentsFailure();
+
+  @override
+  dynamic update(_) {
+    // TODO: implement
+  }
 }
 
-@action loadMoreComments(_, { @required CommentsTree commentsTree, @required More more }) {
-  if (more.isLoading)
-    return null;
-  
-  more.isLoading = true;
-  return GetMoreComments(
-    commentsTree: commentsTree,
-    more: more,
-  );
+class LoadMoreComments extends Action {
+
+  LoadMoreComments({
+    @required this.commentsTree,
+    @required this.more
+  });
+
+  final CommentsTree commentsTree;
+
+  final More more;
+
+  @override
+  dynamic update(_) {
+    if (more.isLoading)
+      return null;
+    
+    more.isLoading = true;
+    return GetMoreComments(
+      commentsTree: commentsTree,
+      more: more,
+    );
+  }
 }
 
-@effect getMoreComments(EffectContext context, { @required CommentsTree commentsTree, @required More more }) {
-  return context.reddit
-    .asDevice()
-    .getMoreComments(
-      commentsTree.fullPostId,
-      more.id,
-      more.thingIds)
-    .then((ListingData<ThingData> result) {
-        return GetMoreCommentsSuccess(
-          commentsTree: commentsTree,
-          more: more,
-          result: result.things
-        );
-      },
-      onError: (e) {
-        return GetPostCommentsFail();
-      });
+class GetMoreComments extends Effect {
+
+  GetMoreComments({
+    @required this.commentsTree,
+    @required this.more
+  });
+
+  final CommentsTree commentsTree;
+
+  final More more;
+
+  @override
+  dynamic perform(EffectContext context) {
+    return context.reddit
+      .asDevice()
+      .getMoreComments(
+        commentsTree.fullPostId,
+        more.id,
+        more.thingIds)
+      .then((ListingData<ThingData> result) {
+          return GetMoreCommentsSuccess(
+            commentsTree: commentsTree,
+            more: more,
+            result: result.things
+          );
+        },
+        onError: (e) {
+          return GetMoreCommentsFailure();
+        });
+  }
 }
 
-@action getMoreCommentsSuccess(_, { @required CommentsTree commentsTree, @required More more, @required Iterable<ThingData> result }) {
-  assert(more.isLoading);
-  more.isLoading = false;
-  final int insertIndex = commentsTree.things.indexOf(more);
-  final Iterable<Thing> newThings = _flattenTree(result).map(_mapThing);
-  commentsTree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
+class GetMoreCommentsSuccess extends Action {
+
+  GetMoreCommentsSuccess({
+    @required this.commentsTree,
+    @required this.more,
+    @required this.result
+  });
+
+  final CommentsTree commentsTree;
+
+  final More more;
+
+  final Iterable<ThingData> result ;
+
+  @override
+  dynamic update(_) {
+    assert(more.isLoading);
+    more.isLoading = false;
+    final int insertIndex = commentsTree.things.indexOf(more);
+    final Iterable<Thing> newThings = _flattenTree(result).map(_mapThing);
+    commentsTree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
+  }
 }
 
-@action getMoreCommentsFail(_) {
+class GetMoreCommentsFailure extends Action {
+
+  GetMoreCommentsFailure();
+
+  @override
+  dynamic update(_) {
+    // TODO: implement
+  }
 }
 
 //// HELPER FUNCTIONS

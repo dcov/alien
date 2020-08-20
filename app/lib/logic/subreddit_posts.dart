@@ -4,45 +4,75 @@ import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/listing.dart';
+import '../models/post.dart';
 import '../models/subreddit.dart';
 
 import 'listing.dart';
 import 'post.dart' show PostDataExtensions;
 
-part 'subreddit_posts.msg.dart';
+class TransitionSubredditPosts extends Action {
 
-@action transitionSubredditPosts(_, { @required Subreddit subreddit, @required ListingStatus to }) {
-  return TransitionListing(
-    listing: subreddit.posts,
-    to: to,
-    effectFactory: (Page page) => GetSubredditPosts(
-      subreddit: subreddit,
+  TransitionSubredditPosts({
+    @required this.subreddit,
+    @required this.posts,
+    @required this.to
+  });
+
+  final Subreddit subreddit;
+
+  final Listing<Post> posts;
+
+  final ListingStatus to;
+
+  @override
+  dynamic update(_) {
+    return TransitionListing(
+      listing: posts,
       to: to,
-      page: page));
+      effectFactory: (Page page) => GetSubredditPosts(
+        subreddit: subreddit,
+        posts: posts,
+        to: to,
+        page: page));
+  }
 }
 
-@effect getSubredditPosts(
-      EffectContext context, {
-      @required Subreddit subreddit,
-      @required ListingStatus to, @required
-      Page page
-    }) {
-  return context.reddit
-    .asDevice()
-    .getSubredditPosts(
-      subreddit.name, subreddit.sortBy, page)
-    .then(
-      (ListingData<PostData> data) {
-        return TransitionListingSuccess(
-          listing: subreddit.posts,
-          to: to,
-          data: data,
-          thingFactory: (PostData data) {
-            return data.toModel();
-          });
-      },
-      onError: (_) {
-        // TODO: error handling
-      });
+class GetSubredditPosts extends Effect {
+
+  GetSubredditPosts({
+    @required this.subreddit,
+    @required this.posts,
+    @required this.to,
+    @required this.page
+  });
+
+  final Subreddit subreddit;
+
+  final Listing<Post> posts;
+
+  final ListingStatus to;
+
+  final Page page;
+
+  @override
+  dynamic perform(EffectContext context) {
+    return context.reddit
+      .asDevice()
+      .getSubredditPosts(
+        subreddit.name, SubredditSort.hot, page)
+      .then(
+        (ListingData<PostData> data) {
+          return TransitionListingSuccess(
+            listing: posts,
+            to: to,
+            data: data,
+            thingFactory: (PostData data) {
+              return data.toModel();
+            });
+        },
+        onError: (_) {
+          // TODO: error handling
+        });
+  }
 }
 

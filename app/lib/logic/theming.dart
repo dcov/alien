@@ -4,21 +4,30 @@ import 'package:meta/meta.dart';
 
 import '../models/theming.dart';
 
-part 'theming.msg.dart';
+class UpdateTheme extends Action {
 
-@action updateTheme(_,
-    { @required Theming theming, ThemeType type = ThemeType.light }) {
+  UpdateTheme({
+    @required this.theming,
+    this.type = ThemeType.light
+  });
 
-  theming
-    ..data = () {
-        switch (type) {
-          case ThemeType.light:
-            return ThemeData.light();
-          case ThemeType.dark:
-            return ThemeData.dark();
-        }
-        return null;
-      }()
-    ..type  = type;
+  final Theming theming;
+
+  final ThemeType type;
+
+  @override
+  dynamic update(_) {
+    theming
+      ..data = () {
+          switch (type) {
+            case ThemeType.light:
+              return ThemeData.light();
+            case ThemeType.dark:
+              return ThemeData.dark();
+          }
+          return null;
+        }()
+      ..type  = type;
+  }
 }
 

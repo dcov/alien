@@ -12,44 +12,81 @@ import '../models/auth.dart';
 import 'auth.dart';
 import 'theming.dart';
 
-part 'init.msg.dart';
+class InitApp extends Initial {
+  
+  InitApp({
+    @required this.appId,
+    @required this.appRedirect
+  });
 
-@initializer init({ @required String appId, @required String appRedirect }) {
-  return Initialization(
-    state: App(
-      initialized: false,
-      auth: Auth(
-        appId: appId,
-        appRedirect: appRedirect)),
-    then: InitResources());
-}
+  final String appId;
 
-@effect initResources(EffectContext context) async {
-  try {
-    await context.scraper.init();
+  final String appRedirect;
 
-    final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
-    context.hive.init(path.join(appDir.path, 'data'));
-
-    return InitResourcesSuccess(
-      users: await retrieveUsers(context),
-      signedInUser: await retrieveSignedInUser(context));
-  } catch (_) {
-    return InitResourcesFail();
+  @override
+  Init init() {
+    return Init(
+      state: App(
+        initialized: false,
+        auth: Auth(
+          appId: appId,
+          appRedirect: appRedirect)),
+      then: InitResources());
   }
 }
 
-@action initResourcesSuccess(App app, { @required Map<String, String> users, @required String signedInUser }) {
-  app.initialized = true;
+class InitResources extends Effect {
 
-  return <Message>{
-    InitAuth(
-      users: users,
-      signedInUser: signedInUser),
-    UpdateTheme(theming: app.theming),
-  };
+  InitResources();
+
+  @override
+  dynamic perform(EffectContext context) async {
+    try {
+      await context.scraper.init();
+
+      final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
+      context.hive.init(path.join(appDir.path, 'data'));
+
+      return InitResourcesSuccess(
+        users: await retrieveUsers(context),
+        signedInUser: await retrieveSignedInUser(context));
+    } catch (_) {
+      return InitResourcesFailure();
+    }
+  }
 }
 
-@action initResourcesFail(_) {
-  // TODO: implement
+class InitResourcesSuccess extends Action {
+
+  InitResourcesSuccess({
+    @required this.users,
+    @required this.signedInUser
+  });
+
+  final Map<String, String> users;
+
+  final String signedInUser;
+
+  @override
+  dynamic update(App app) {
+    app.initialized = true;
+
+    return <Message>{
+      InitAuth(
+        users: users,
+        signedInUser: signedInUser),
+      UpdateTheme(theming: app.theming),
+    };
+  }
 }
+
+class InitResourcesFailure extends Action {
+
+  InitResourcesFailure();
+
+  @override
+  dynamic update(_) {
+    // TODO: implement
+  }
+}
+
