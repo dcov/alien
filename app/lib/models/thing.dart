@@ -1,6 +1,5 @@
-import 'package:elmer/elmer.dart';
 
-mixin Thing {
+abstract class Thing {
 
   String get id;
 

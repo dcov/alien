@@ -1,16 +1,17 @@
 import 'package:elmer/elmer.dart';
-import 'package:reddit/reddit.dart' show SubredditSort;
 
-import 'listing.dart';
-import 'post.dart';
+import 'thing.dart';
 
-export 'listing.dart';
-export 'post.dart';
+part 'subreddit.g.dart';
 
-part 'subreddit.mdl.dart';
+abstract class Subreddit extends Model implements Thing {
 
-@model
-mixin $Subreddit implements Thing {
+  factory Subreddit({
+    bool userIsSubscriber,
+    String name,
+    String id,
+    String kind,
+  }) = _$Subreddit;
 
   String get name;
 

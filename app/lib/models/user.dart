@@ -1,9 +1,13 @@
 import 'package:elmer/elmer.dart';
 
-part 'user.mdl.dart';
+part 'user.g.dart';
 
-@model
-mixin $User {
+abstract class User extends Model {
+
+  factory User({
+    String token,
+    String name
+  }) = _$User;
 
   String get token;
 

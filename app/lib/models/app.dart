@@ -1,18 +1,19 @@
 import 'package:elmer/elmer.dart';
 
 import 'auth.dart';
-import 'browse.dart';
+import 'subscriptions.dart';
 import 'theming.dart';
 
-// These are part of the model so we export them as well.
-export 'auth.dart';
-export 'browse.dart';
-export 'theming.dart';
+part 'app.g.dart';
 
-part 'app.mdl.dart';
+abstract class App extends Model implements AuthOwner, SubscriptionsOwner, ThemingOwner {
 
-@model
-mixin $App implements AuthOwner, BrowseOwner, ThemingOwner {
+  factory App({
+    bool initialized,
+    Auth auth,
+    Subscriptions subscriptions,
+    Theming theming,
+  }) = _$App;
 
   bool initialized;
 }

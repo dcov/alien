@@ -2,15 +2,17 @@ import 'package:elmer/elmer.dart';
 
 import 'subreddit.dart';
 
-export 'subreddit.dart';
+part 'defaults.g.dart';
 
-part 'defaults.mdl.dart';
+abstract class Defaults extends Model {
 
-@model
-mixin $Defaults {
+  factory Defaults({
+    bool refreshing,
+    List<Subreddit> subreddits
+  }) = _$Defaults;
 
   bool refreshing;
 
-  List<$Subreddit> get subreddits;
+  List<Subreddit> get subreddits;
 }
 

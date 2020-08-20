@@ -3,12 +3,18 @@ import 'package:reddit/reddit.dart';
 
 import 'thing.dart';
 
-export 'thing.dart';
+part 'comments_tree.g.dart';
 
-part 'comments_tree.mdl.dart';
+abstract class More extends Model implements Thing {
 
-@model
-mixin $More implements Thing {
+  factory More({
+    bool isLoading,
+    int count,
+    int depth,
+    List<String> thingIds,
+    String id,
+    String kind,
+  }) = _$More;
 
   int get count;
 
@@ -19,8 +25,15 @@ mixin $More implements Thing {
   List<String> get thingIds;
 }
 
-@model
-mixin $CommentsTree {
+abstract class CommentsTree extends Model {
+
+  factory CommentsTree({
+    bool isRefreshing,
+    CommentsSort sortBy,
+    String fullPostId,
+    String permalink,
+    List<Thing> things,
+  }) = _$CommentsTree;
 
   String get fullPostId;
 
@@ -28,7 +41,7 @@ mixin $CommentsTree {
 
   String get permalink;
 
-  CommentsSort sort;
+  CommentsSort sortBy;
 
   List<Thing> get things;
 }

@@ -1,15 +1,34 @@
 import 'package:elmer/elmer.dart';
+import 'package:reddit/reddit.dart' show VoteDir;
 
-import 'comments_tree.dart';
 import 'media.dart';
 import 'saveable.dart';
 import 'snudown.dart';
 import 'votable.dart';
 
-part 'post.mdl.dart';
+part 'post.g.dart';
 
-@model
-mixin $Post implements Saveable, Votable {
+abstract class Post extends Model implements Saveable, Votable {
+
+  factory Post({
+    int commentCount,
+    bool isNSFW,
+    String authorName,
+    int createdAtUtc,
+    String domainName,
+    bool isSelf,
+    Media media,
+    String permalink,
+    Snudown selfText,
+    String subredditName,
+    String title,
+    String url,
+    bool isSaved,
+    String id,
+    String kind,
+    int score,
+    VoteDir voteDir,
+  }) = _$Post;
 
   String get authorName;
 
@@ -23,15 +42,13 @@ mixin $Post implements Saveable, Votable {
 
   bool get isSelf;
 
-  $Media get media;
+  Media get media;
 
   String get permalink;
 
-  $Snudown get selfText;
+  Snudown get selfText;
 
   String get subredditName;
-
-  String get thumbnailUrl;
 
   String get title;
 

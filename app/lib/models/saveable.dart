@@ -1,8 +1,6 @@
 import 'thing.dart';
 
-export 'thing.dart';
-
-mixin Saveable implements Thing {
+abstract class Saveable implements Thing {
 
   bool isSaved;
 }

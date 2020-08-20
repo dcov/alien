@@ -3,12 +3,16 @@ import 'package:reddit/reddit.dart' show AuthSession;
 
 import 'user.dart';
 
-export 'user.dart';
+part 'auth.g.dart';
 
-part 'auth.mdl.dart';
+abstract class Permission extends Model {
 
-@model
-mixin $Permission {
+  factory Permission({
+    String id,
+    String name,
+    String description,
+    bool enabled
+  }) = _$Permission;
 
   String get id;
 
@@ -25,27 +29,37 @@ enum PermissionsStatus {
   available
 }
 
-@model
-mixin $Auth {
+abstract class Auth extends Model {
+
+  factory Auth({
+    String appId,
+    String appRedirect,
+    List<User> users,
+    List<Permission> permissions,
+    bool authenticating,
+    AuthSession session,
+    User currentUser,
+    PermissionsStatus permissionsStatus
+  }) = _$Auth;
 
   String get appId;
 
   String get appRedirect;
 
-  List<$User> get users;
+  List<User> get users;
 
-  List<$Permission> get permissions;
+  List<Permission> get permissions;
 
   bool authenticating;
 
   AuthSession session;
 
-  $User currentUser;
+  User currentUser;
 
   PermissionsStatus permissionsStatus;
 }
 
 mixin AuthOwner {
-  $Auth get auth;
+  Auth get auth;
 }
 

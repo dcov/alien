@@ -1,23 +1,34 @@
 import 'package:elmer/elmer.dart';
+import 'package:reddit/reddit.dart' show VoteDir;
 
 import 'saveable.dart';
 import 'snudown.dart';
 import 'votable.dart';
 
-export 'saveable.dart';
-export 'snudown.dart';
-export 'votable.dart';
+part 'comment.g.dart';
 
-part 'comment.mdl.dart';
+abstract class Comment extends Model implements Saveable, Votable {
 
-@model
-mixin $Comment implements Saveable, Votable {
+  factory Comment({
+    String authorFlairText,
+    String authorName,
+    Snudown body,
+    int createdAtUtc,
+    int depth,
+    int editedAtUtc,
+    bool isSubmitter,
+    bool isSaved,
+    String id,
+    String kind,
+    int score,
+    VoteDir voteDir,
+  }) = _$Comment;
 
   String get authorFlairText;
 
   String get authorName;
 
-  $Snudown get body;
+  Snudown get body;
 
   int get createdAtUtc;
 

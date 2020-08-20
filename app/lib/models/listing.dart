@@ -3,9 +3,7 @@ import 'package:reddit/reddit.dart';
 
 import 'thing.dart';
 
-export 'thing.dart';
-
-part 'listing.mdl.dart';
+part 'listing.g.dart';
 
 enum ListingStatus {
   idle,
@@ -13,8 +11,13 @@ enum ListingStatus {
   loadingMore,
 }
 
-@model
-mixin $Listing<T extends Thing> {
+abstract class Listing<T extends Thing> extends Model {
+
+  factory Listing({
+    ListingStatus status,
+    List<T> things,
+    Pagination pagination
+  }) = _$Listing;
 
   ListingStatus status;
 
