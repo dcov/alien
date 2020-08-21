@@ -7,7 +7,7 @@ import '../widgets/routing.dart';
 import '../widgets/scroll_configuration.dart';
 import '../widgets/splash_screen.dart';
 
-import 'app_route.dart';
+import 'app_page.dart';
 import 'themer.dart';
 
 /// The root view in the tree.
@@ -51,9 +51,9 @@ class InitView extends StatelessWidget {
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
             child: Routing(
-              initialRouteName: 'app',
-              initialRouteBuilder: (_, RouteSettings settings) {
-                return AppRoute(app: app, settings: settings);
+              initialPageName: 'app',
+              initialPageBuilder: (String name) {
+                return AppPage(app: app, name: name);
               })));
       });
   }

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/widgets.dart';
 
 class RoutingEntry {
@@ -10,29 +12,26 @@ class RoutingEntry {
   final int depth;
 
   final Page page;
+
+  RoutingEntry get parent => _parent;
+  RoutingEntry _parent;
+
+  UnmodifiableListView<RoutingEntry> get childEntries => UnmodifiableListView(_childEntries);
+  final _childEntries = List<RoutingEntry>();
 }
 
-class RoutingData {
+class _RoutingStateScope extends InheritedWidget {
 
-  RoutingData(this.entries);
-  
-  final List<Page> entries;
-}
-
-class _RoutingDataScope extends InheritedWidget {
-
-  _RoutingDataScope({
+  _RoutingStateScope({
     Key key,
-    @required this.data,
+    @required this.rootEntry,
     Widget child
   }) : super(key: key, child: child);
 
-  final RoutingData data;
+  final RoutingEntry rootEntry;
 
   @override
-  bool updateShouldNotify(_RoutingDataScope oldWidget) {
-    return oldWidget.data != data;
-  }
+  bool updateShouldNotify(_RoutingStateScope oldWidget) => true;
 }
 
 typedef RoutingPageBuilder = Page Function(String name);
@@ -55,25 +54,29 @@ class Routing extends StatefulWidget {
 
 class _RoutingState extends State<Routing> {
 
-  List<RoutingEntry> _entries;
+  /// The root entry in the tree
+  RoutingEntry _rootEntry;
+
+  /// This is the path of the child entries that make up the current navigation stack.
   List<int> _currentStack;
 
+  RoutingEntry get _currentEntry {
+    var entry = _rootEntry;
+    for (final i in _currentStack) {
+      entry = entry.childEntries[i];
+    }
+    return entry;
+  }
+
   void push(String name, RoutingPageBuilder pageBuilder) {
-    final currentIndex = _currentStack.last;
-    final currentEntry = _entries[currentIndex];
+    final currentEntry = _currentEntry;
+    final childEntries = currentEntry._childEntries;
     final newRouteName = currentEntry.page.name + '/' + name;
 
     /// Check if [newRouteName] already exists. If it does [indexOf] will be set.
     int indexOf;
-    for (var i = currentIndex + 1; i < _entries.length; i++) {
-      final entry = _entries[i];
-      if (entry.depth <= currentEntry.depth) {
-        /// We are past any child entries of [currentEntry].
-        break;
-      }
-
-      if ((entry.depth == (currentEntry.depth + 1)) &&
-          entry.page.name == newRouteName) {
+    for (var i = 0; i < childEntries.length; i++) {
+      if (childEntries[i].page.name == newRouteName) {
         indexOf = i;
         break;
       }
@@ -88,14 +91,15 @@ class _RoutingState extends State<Routing> {
       assert(newPage.key == ValueKey(newRouteName));
 
       // Insert the new entry just ahead of the current entry.
-      _entries.insert(
-        currentIndex + 1,
+      final insertIndex = childEntries.length;
+      childEntries.insert(
+        insertIndex,
         RoutingEntry(
           page: newPage,
           depth: currentEntry.depth + 1));
 
       // Mark the new entry as the top of the stack.
-      _currentStack.add(currentIndex + 1);
+      _currentStack.add(insertIndex);
     }
 
     setState(() {
@@ -121,13 +125,6 @@ class _RoutingState extends State<Routing> {
     setState(() {
       // Update the widget tree
     });
-  }
-
-  void _popAt(int popIndex) {
-    final poppedEntry = _entries.removeAt(popIndex);
-    while (_entries[popIndex].depth > poppedEntry.depth) {
-      _entries.removeAt(popIndex);
-    }
   }
 
   void _handlePopPage(Route route, dynamic result) {
@@ -158,14 +155,26 @@ class _RoutingState extends State<Routing> {
   @override
   void dispose() {
     super.dispose();
-    _entries.clear();
+  }
+
+  List<Page> get _currentPages {
+    final pages = <Page>[_rootEntry.page];
+    var parent = _rootEntry;
+    for (final i in _currentStack) {
+      final child = parent.childEntries[i];
+      pages.add(child.page);
+      parent = child;
+    }
+    return pages;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
-      pages: _currentStack.map((int index) => _entries[index].page).toList(),
-      onPopPage: _handlePopPage);
+    return _RoutingStateScope(
+      rootEntry: _rootEntry,
+      child: Navigator(
+        pages: _currentPages,
+        onPopPage: _handlePopPage));
   }
 }
 

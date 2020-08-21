@@ -2,7 +2,10 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../logic/subscriptions.dart';
 import '../models/app.dart';
+import '../models/auth.dart';
+import '../models/subscriptions.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
@@ -47,7 +50,7 @@ class _AppPageView extends StatelessWidget {
                 children: <Widget>[
                   _AuthHeader(auth: app.auth),
                 ])))),
-        _AppBody(app: app),
+        _AppPageBody(app: app),
       ]);
   }
 }
@@ -75,9 +78,9 @@ class _AuthHeader extends StatelessWidget {
   }
 }
 
-class _AppBody extends StatelessWidget {
+class _AppPageBody extends StatelessWidget {
 
-  _AppBody({
+  _AppPageBody({
     Key key,
     @required this.app,
   }) : super(key: key);
@@ -86,9 +89,40 @@ class _AppBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final entries = context.routingData.entries;
+    final slivers = List<Widget>();
+    if (app.auth.currentUser != null) {
+      slivers.add(_HomeTile());
+    }
+
     return CustomScrollView(
       slivers: <Widget>[
+        if (app.auth.currentUser != null)
+          ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text('Subscriptions'))),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                },
+              childCount: app.subscriptions.subreddits.length))
+          ]
+        else
+          ...[
+          ]
       ]);
+  }
+}
+
+class _HomeTile extends StatelessWidget {
+
+  _HomeTile({ Key key })
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
   }
 }
 
