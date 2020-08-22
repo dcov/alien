@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/widgets.dart';
 
 class RoutingEntry {
@@ -12,26 +10,29 @@ class RoutingEntry {
   final int depth;
 
   final Page page;
-
-  RoutingEntry get parent => _parent;
-  RoutingEntry _parent;
-
-  UnmodifiableListView<RoutingEntry> get childEntries => UnmodifiableListView(_childEntries);
-  final _childEntries = List<RoutingEntry>();
 }
 
-class _RoutingStateScope extends InheritedWidget {
+class _RoutingData {
 
-  _RoutingStateScope({
+  _RoutingData(this.entries);
+
+  final List<RoutingEntry> entries;
+}
+
+class _RoutingDataScope extends InheritedWidget {
+
+  _RoutingDataScope({
     Key key,
-    @required this.rootEntry,
+    @required this.data,
     Widget child
   }) : super(key: key, child: child);
 
-  final RoutingEntry rootEntry;
+  final _RoutingData data;
 
   @override
-  bool updateShouldNotify(_RoutingStateScope oldWidget) => true;
+  bool updateShouldNotify(_RoutingDataScope oldWidget) {
+    return oldWidget.data != data;
+  }
 }
 
 typedef RoutingPageBuilder = Page Function(String name);
@@ -40,7 +41,7 @@ class Routing extends StatefulWidget {
 
   Routing({
     Key key,
-    this.initialPageName = 'app',
+    @required this.initialPageName,
     @required this.initialPageBuilder
   }) : super(key: key);
 
@@ -48,35 +49,36 @@ class Routing extends StatefulWidget {
 
   final RoutingPageBuilder initialPageBuilder;
 
+  static String joinPageNames(List<String> names) {
+    return names.join('/');
+  }
+
   @override
   _RoutingState createState() => _RoutingState();
 }
 
 class _RoutingState extends State<Routing> {
 
-  /// The root entry in the tree
-  RoutingEntry _rootEntry;
-
-  /// This is the path of the child entries that make up the current navigation stack.
+  List<RoutingEntry> _entries;
   List<int> _currentStack;
-
-  RoutingEntry get _currentEntry {
-    var entry = _rootEntry;
-    for (final i in _currentStack) {
-      entry = entry.childEntries[i];
-    }
-    return entry;
-  }
+  _RoutingData _data;
 
   void push(String name, RoutingPageBuilder pageBuilder) {
-    final currentEntry = _currentEntry;
-    final childEntries = currentEntry._childEntries;
-    final newRouteName = currentEntry.page.name + '/' + name;
+    final currentIndex = _currentStack.last;
+    final currentEntry = _entries[currentIndex];
+    final newRouteName = Routing.joinPageNames([currentEntry.page.name, name]);
 
     /// Check if [newRouteName] already exists. If it does [indexOf] will be set.
     int indexOf;
-    for (var i = 0; i < childEntries.length; i++) {
-      if (childEntries[i].page.name == newRouteName) {
+    for (var i = currentIndex + 1; i < _entries.length; i++) {
+      final entry = _entries[i];
+      if (entry.depth <= currentEntry.depth) {
+        /// We are past any child entries of [currentEntry].
+        break;
+      }
+
+      if ((entry.depth == (currentEntry.depth + 1)) &&
+          entry.page.name == newRouteName) {
         indexOf = i;
         break;
       }
@@ -91,19 +93,19 @@ class _RoutingState extends State<Routing> {
       assert(newPage.key == ValueKey(newRouteName));
 
       // Insert the new entry just ahead of the current entry.
-      final insertIndex = childEntries.length;
-      childEntries.insert(
-        insertIndex,
+      _entries.insert(
+        currentIndex + 1,
         RoutingEntry(
           page: newPage,
           depth: currentEntry.depth + 1));
 
       // Mark the new entry as the top of the stack.
-      _currentStack.add(insertIndex);
+      _currentStack.add(currentIndex + 1);
     }
 
     setState(() {
       // Update the widget tree
+      _data = _RoutingData(_entries);
     });
   }
 
@@ -124,7 +126,15 @@ class _RoutingState extends State<Routing> {
     }
     setState(() {
       // Update the widget tree
+      _data = _RoutingData(_entries);
     });
+  }
+
+  void _popAt(int popIndex) {
+    final poppedEntry = _entries.removeAt(popIndex);
+    while (_entries[popIndex].depth > poppedEntry.depth) {
+      _entries.removeAt(popIndex);
+    }
   }
 
   void _handlePopPage(Route route, dynamic result) {
@@ -137,10 +147,9 @@ class _RoutingState extends State<Routing> {
   @override
   void initState() {
     super.initState();
-    final initialPageName = '/' + widget.initialPageName;
-    final initialPage = widget.initialPageBuilder(initialPageName);
-    assert(initialPage.name == initialPageName);
-    assert(initialPage.key == ValueKey(initialPageName));
+    final initialPage = widget.initialPageBuilder(widget.initialPageName);
+    assert(initialPage.name == widget.initialPageName);
+    assert(initialPage.key == ValueKey(widget.initialPageName));
 
     _entries = <RoutingEntry>[
       RoutingEntry(
@@ -150,38 +159,30 @@ class _RoutingState extends State<Routing> {
 
     // The current stack only contains the first entry
     _currentStack = <int>[0];
+
+    _data = _RoutingData(_entries);
   }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  List<Page> get _currentPages {
-    final pages = <Page>[_rootEntry.page];
-    var parent = _rootEntry;
-    for (final i in _currentStack) {
-      final child = parent.childEntries[i];
-      pages.add(child.page);
-      parent = child;
-    }
-    return pages;
+    _entries.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _RoutingStateScope(
-      rootEntry: _rootEntry,
+    return _RoutingDataScope(
+      data: _data,
       child: Navigator(
-        pages: _currentPages,
+        pages: _currentStack.map((int index) => _entries[index].page).toList(),
         onPopPage: _handlePopPage));
   }
 }
 
 extension RoutingContextExtensions on BuildContext {
 
-  RoutingData get routingData {
-    return dependOnInheritedWidgetOfExactType<_RoutingDataScope>().data;
+  List<RoutingEntry> get routingEntries {
+    return dependOnInheritedWidgetOfExactType<_RoutingDataScope>().data.entries;
   }
 
   _RoutingState get _state {

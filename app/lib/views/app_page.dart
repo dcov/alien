@@ -18,6 +18,8 @@ class AppPage extends EntryPage {
 
   final App app;
 
+  static const pageName = 'app';
+
   @override
   Route createRoute(_) {
     return PageRouteBuilder(
@@ -50,7 +52,7 @@ class _AppPageView extends StatelessWidget {
                 children: <Widget>[
                   _AuthHeader(auth: app.auth),
                 ])))),
-        _AppPageBody(app: app),
+        _AppBody(app: app),
       ]);
   }
 }
@@ -78,9 +80,9 @@ class _AuthHeader extends StatelessWidget {
   }
 }
 
-class _AppPageBody extends StatelessWidget {
+class _AppBody extends StatefulWidget {
 
-  _AppPageBody({
+  _AppBody({
     Key key,
     @required this.app,
   }) : super(key: key);
@@ -88,8 +90,26 @@ class _AppPageBody extends StatelessWidget {
   final App app;
 
   @override
+  _AppBodyState createState() => _AppBodyState();
+}
+class _AppBodyState extends State<_AppBody> {
+
+  final _entries = Map<String, List<RoutingEntry>>();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Clear the entries map
+    _entries.clear();
+
+    for (final entry in context.routingEntries) {
+
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final entries = context.routingData.entries;
+    final app = widget.app;
     final slivers = List<Widget>();
     if (app.auth.currentUser != null) {
       slivers.add(_HomeTile());

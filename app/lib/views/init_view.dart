@@ -29,6 +29,8 @@ class InitView extends StatelessWidget {
       DeviceOrientation.portraitUp,
     ]);
 
+    Colors.black;
+
     return Connector(
       builder: (BuildContext context) {
         final App app = context.state;
@@ -51,7 +53,7 @@ class InitView extends StatelessWidget {
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
             child: Routing(
-              initialPageName: 'app',
+              initialPageName: AppPage.pageName,
               initialPageBuilder: (String name) {
                 return AppPage(app: app, name: name);
               })));
