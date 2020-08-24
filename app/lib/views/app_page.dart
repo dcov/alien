@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../logic/subscriptions.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
+import '../models/feed.dart';
 import '../models/subscriptions.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
@@ -140,18 +141,15 @@ class _AppBodyState extends State<_AppBody> {
 
     return Connector(
       builder: (BuildContext context) {
-        final app = widget.app;
-        final children  = List<Widget>();
-        if (app.auth.currentUser != null) {
-          children.add(_FeedTile(feedName: 'Home'));
-        }
+        final feeds = widget.app.feeds;
+        final subscriptions = widget.app.subscriptions;
+        final children = List<Widget>();
 
-        children..add(_FeedTile(feedName: 'Popular'))
-                ..add(_FeedTile(feedName: 'All'));
+        children.addAll(feeds.map((Feed feed) => FeedTile(feed: feed)));
 
-        if (app.subscriptions != null) {
+        if (subscriptions != null) {
           children.add(_SubscriptionsHeader());
-          for (final subreddit in app.subscriptions.subreddits) {
+          for (final subreddit in subscriptions.subreddits) {
             final pageName = Routing.joinPageNames([AppPage.pageName, SubredditPage.pageNameFrom(subreddit, subscriptionsPrefix)]);
             final childEntries = _entries[pageName];
             for (final entry in childEntries) {
