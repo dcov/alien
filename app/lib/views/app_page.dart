@@ -9,6 +9,9 @@ import '../models/subscriptions.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
+import 'subreddit_page.dart';
+import 'subreddit_tile.dart';
+
 class AppPage extends EntryPage {
 
   AppPage({
@@ -92,57 +95,112 @@ class _AppBody extends StatefulWidget {
   @override
   _AppBodyState createState() => _AppBodyState();
 }
+
 class _AppBodyState extends State<_AppBody> {
 
   final _entries = Map<String, List<RoutingEntry>>();
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void _updateEntries() {
     // Clear the entries map
     _entries.clear();
 
+    String parentName;
+    List<RoutingEntry> childEntries;
     for (final entry in context.routingEntries) {
+      if (entry.depth == 0) {
+        assert(entry.page.name == AppPage.pageName);
+        continue;
+      }
 
+      if (entry.depth == 1) {
+        if (childEntries != null) {
+          assert(parentName != null);
+          _entries[parentName] = childEntries;
+          childEntries = null;
+        }
+        
+        parentName = entry.page.name;
+      } else {
+        childEntries ??= List<RoutingEntry>();
+        childEntries.add(entry);
+      }
     }
+
+    if (childEntries != null) {
+      assert(parentName != null);
+      _entries[parentName] = childEntries;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateEntries();
   }
 
   @override
   Widget build(BuildContext context) {
-    final app = widget.app;
-    final slivers = List<Widget>();
-    if (app.auth.currentUser != null) {
-      slivers.add(_HomeTile());
-    }
+    const subscriptionsPrefix = 'subscriptions:';
 
-    return CustomScrollView(
-      slivers: <Widget>[
-        if (app.auth.currentUser != null)
-          ...[
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('Subscriptions'))),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                },
-              childCount: app.subscriptions.subreddits.length))
-          ]
-        else
-          ...[
-          ]
-      ]);
+    return Connector(
+      builder: (BuildContext context) {
+        final app = widget.app;
+        final children  = List<Widget>();
+        if (app.auth.currentUser != null) {
+          children.add(_FeedTile(feedName: 'Home'));
+        }
+
+        children..add(_FeedTile(feedName: 'Popular'))
+                ..add(_FeedTile(feedName: 'All'));
+
+        if (app.subscriptions != null) {
+          children.add(_SubscriptionsHeader());
+          for (final subreddit in app.subscriptions.subreddits) {
+            final pageName = Routing.joinPageNames([AppPage.pageName, SubredditPage.pageNameFrom(subreddit, subscriptionsPrefix)]);
+            final childEntries = _entries[pageName];
+          }
+        }
+
+        return ListView(children: children);
+      });
   }
 }
 
-class _HomeTile extends StatelessWidget {
+class _FeedTile extends StatelessWidget {
 
-  _HomeTile({ Key key })
+  _FeedTile({
+    Key key,
+    @required this.feedName
+  }) : super(key: key);
+
+  final String feedName;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile();
+  }
+}
+
+class _SubredditTile extends StatelessWidget {
+
+  _SubredditTile({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile();
+  }
+}
+
+class _SubscriptionsHeader extends StatelessWidget {
+
+  _SubscriptionsHeader({ Key key })
     : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    return ListTile();
   }
 }
 
