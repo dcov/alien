@@ -1,6 +1,7 @@
 import 'package:elmer/elmer.dart';
 
 import 'auth.dart';
+import 'feed.dart';
 import 'subscriptions.dart';
 import 'theming.dart';
 
@@ -10,11 +11,14 @@ abstract class App extends Model implements AuthOwner, SubscriptionsOwner, Themi
 
   factory App({
     bool initialized,
+    List<Feed> feeds,
     Auth auth,
     Subscriptions subscriptions,
     Theming theming,
   }) = _$App;
 
   bool initialized;
+
+  List<Feed> get feeds;
 }
 

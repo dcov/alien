@@ -4,10 +4,12 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
+import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
+import '../models/feed.dart';
 
 import 'auth.dart';
 import 'theming.dart';
@@ -70,12 +72,12 @@ class InitResourcesSuccess extends Action {
   @override
   dynamic update(App app) {
     app.initialized = true;
-
     return <Message>{
       InitAuth(
         users: users,
         signedInUser: signedInUser),
       UpdateTheme(theming: app.theming),
+      ResetState()
     };
   }
 }
@@ -87,6 +89,29 @@ class InitResourcesFailure extends Action {
   @override
   dynamic update(_) {
     // TODO: implement
+  }
+}
+
+class ResetState extends Action {
+
+  ResetState();
+
+  @override
+  dynamic update(App app) {
+    app.feeds
+      ..clear()
+      ..addAll([
+        if (app.auth.currentUser != null)
+          Feed(
+            type: FeedType.home,
+            sortBy: HomeSort.best),
+        Feed(
+          type: FeedType.popular,
+          sortBy: SubredditSort.hot),
+        Feed(
+          type: FeedType.all,
+          sortBy: SubredditSort.hot)
+      ]);
   }
 }
 
