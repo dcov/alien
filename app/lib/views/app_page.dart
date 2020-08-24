@@ -9,8 +9,8 @@ import '../models/subscriptions.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
+import 'feed_page.dart';
 import 'subreddit_page.dart';
-import 'subreddit_tile.dart';
 
 class AppPage extends EntryPage {
 
@@ -113,22 +113,13 @@ class _AppBodyState extends State<_AppBody> {
       }
 
       if (entry.depth == 1) {
-        if (childEntries != null) {
-          assert(parentName != null);
-          _entries[parentName] = childEntries;
-          childEntries = null;
-        }
-        
         parentName = entry.page.name;
+        childEntries = List<RoutingEntry>();
+        _entries[parentName] = childEntries;
       } else {
         childEntries ??= List<RoutingEntry>();
         childEntries.add(entry);
       }
-    }
-
-    if (childEntries != null) {
-      assert(parentName != null);
-      _entries[parentName] = childEntries;
     }
   }
 
@@ -136,6 +127,11 @@ class _AppBodyState extends State<_AppBody> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateEntries();
+  }
+
+  Widget _mapEntryToTile(RoutingEntry entry) {
+    // TODO: implement
+    return const SizedBox();
   }
 
   @override
@@ -158,38 +154,14 @@ class _AppBodyState extends State<_AppBody> {
           for (final subreddit in app.subscriptions.subreddits) {
             final pageName = Routing.joinPageNames([AppPage.pageName, SubredditPage.pageNameFrom(subreddit, subscriptionsPrefix)]);
             final childEntries = _entries[pageName];
+            for (final entry in childEntries) {
+              children.add(_mapEntryToTile(entry));
+            }
           }
         }
 
         return ListView(children: children);
       });
-  }
-}
-
-class _FeedTile extends StatelessWidget {
-
-  _FeedTile({
-    Key key,
-    @required this.feedName
-  }) : super(key: key);
-
-  final String feedName;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile();
-  }
-}
-
-class _SubredditTile extends StatelessWidget {
-
-  _SubredditTile({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile();
   }
 }
 
