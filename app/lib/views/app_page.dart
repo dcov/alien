@@ -6,6 +6,7 @@ import '../logic/subscriptions.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
 import '../models/feed.dart';
+import '../models/subreddit.dart';
 import '../models/subscriptions.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
@@ -137,25 +138,42 @@ class _AppBodyState extends State<_AppBody> {
 
   @override
   Widget build(BuildContext context) {
-    const subscriptionsPrefix = 'subscriptions:';
-
     return Connector(
       builder: (BuildContext context) {
-        final feeds = widget.app.feeds;
-        final subscriptions = widget.app.subscriptions;
         final children = List<Widget>();
-
-        children.addAll(feeds.map((Feed feed) => FeedTile(feed: feed)));
-
-        if (subscriptions != null) {
-          children.add(_SubscriptionsHeader());
-          for (final subreddit in subscriptions.subreddits) {
-            final pageName = Routing.joinPageNames([AppPage.pageName, SubredditPage.pageNameFrom(subreddit, subscriptionsPrefix)]);
+        void mapValues<T>(List<T> values, Widget mapToWidget(T value), String mapToPageName(T value)) {
+          for (final value in values) {
+            children.add(mapToWidget(value));
+            final pageName = Routing.joinPageNames([AppPage.pageName, mapToPageName(value)]);
             final childEntries = _entries[pageName];
-            for (final entry in childEntries) {
-              children.add(_mapEntryToTile(entry));
+            if (childEntries != null) {
+              for (final entry in childEntries) {
+                children.add(_mapEntryToTile(entry));
+              }
             }
           }
+        }
+
+        final app = widget.app;
+        mapValues(
+          app.feeds,
+          (Feed feed) => FeedTile(feed: feed),
+          FeedPage.pageNameFrom);
+
+        if (app.defaults != null) {
+          assert(app.subscriptions == null);
+          children.add(_SublistHeader(name: 'Defaults'));
+          mapValues(
+            app.defaults.subreddits,
+            (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
+            SubredditPage.pageNameFrom);
+        } else {
+          assert(app.subscriptions != null);
+          children.add(_SublistHeader(name: 'Subscriptions'));
+          mapValues(
+            app.subscriptions.subreddits,
+            (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
+            SubredditPage.pageNameFrom);
         }
 
         return ListView(children: children);
@@ -163,14 +181,18 @@ class _AppBodyState extends State<_AppBody> {
   }
 }
 
-class _SubscriptionsHeader extends StatelessWidget {
+class _SublistHeader extends StatelessWidget {
 
-  _SubscriptionsHeader({ Key key })
-    : super(key: key);
+  _SublistHeader({
+    Key key,
+    @required this.name
+  }) : super(key: key);
+
+  final String name;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile();
+    return ListTile(title: Text(name));
   }
 }
 
