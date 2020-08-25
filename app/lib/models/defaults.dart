@@ -16,3 +16,8 @@ abstract class Defaults extends Model {
   List<Subreddit> get subreddits;
 }
 
+abstract class DefaultsOwner {
+
+  Defaults defaults;
+}
+

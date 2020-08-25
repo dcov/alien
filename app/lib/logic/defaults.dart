@@ -9,31 +9,24 @@ import 'subreddit.dart' show SubredditDataExtensions;
 
 class LoadDefaults extends Action {
 
-  LoadDefaults({
-    @required this.defaults
-  });
-
-  final Defaults defaults;
+  LoadDefaults();
 
   @override
-  dynamic update(_) {
+  dynamic update(DefaultsOwner owner) {
+    final defaults = owner.defaults;
     if (defaults.refreshing)
       return null;
     
     defaults..refreshing = true
             ..subreddits.clear();
 
-    return GetDefaults(defaults: defaults);
+    return GetDefaults();
   }
 }
 
 class GetDefaults extends Effect {
 
-  GetDefaults({
-    @required this.defaults
-  });
-
-  final Defaults defaults;
+  GetDefaults();
 
   @override
   dynamic perform(EffectContext context) {
@@ -45,12 +38,10 @@ class GetDefaults extends Effect {
       .then(
           (ListingData<SubredditData> result) {
             return GetDefaultsSuccess(
-              defaults: defaults,
-              result: result.things
-            );
+              result: result.things);
           },
           onError: (e) {
-            return GetDefaultsFailure(defaults: defaults);
+            return GetDefaultsFailure();
           });
   }
 }
@@ -58,16 +49,14 @@ class GetDefaults extends Effect {
 class GetDefaultsSuccess extends Action {
 
   GetDefaultsSuccess({
-    @required this.defaults,
     @required this.result
   });
-
-  final Defaults defaults;
 
   final Iterable<SubredditData> result;
 
   @override
-  dynamic update(_) {
+  dynamic update(DefaultsOwner owner) {
+    final defaults = owner.defaults;
     // Ensure we're still expecting this.
     if (!defaults.refreshing)
       return;
@@ -84,11 +73,7 @@ class GetDefaultsSuccess extends Action {
 
 class GetDefaultsFailure extends Action {
 
-  GetDefaultsFailure({
-    @required this.defaults
-  });
-
-  final Defaults defaults;
+  GetDefaultsFailure();
 
   @override
   dynamic update(_) {
