@@ -7,9 +7,13 @@ import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
+import '../logic/defaults.dart';
+import '../logic/subscriptions.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
+import '../models/defaults.dart';
 import '../models/feed.dart';
+import '../models/subscriptions.dart';
 
 import 'auth.dart';
 import 'theming.dart';
@@ -73,9 +77,9 @@ class InitResourcesSuccess extends Action {
   dynamic update(App app) {
     app.initialized = true;
     return <Message>{
-      InitAuth(
-        users: users,
-        signedInUser: signedInUser),
+      // InitAuth(
+      // users: users,
+      // signedInUser: signedInUser),
       UpdateTheme(theming: app.theming),
       ResetState()
     };
@@ -100,18 +104,19 @@ class ResetState extends Action {
   dynamic update(App app) {
     app.feeds
       ..clear()
-      ..addAll([
-        if (app.auth.currentUser != null)
-          Feed(
-            type: FeedType.home,
-            sortBy: HomeSort.best),
-        Feed(
-          type: FeedType.popular,
-          sortBy: SubredditSort.hot),
-        Feed(
-          type: FeedType.all,
-          sortBy: SubredditSort.hot)
-      ]);
+      ..add(Feed(type: FeedType.popular, sortBy: SubredditSort.hot))
+      ..add(Feed(type: FeedType.all, sortBy: SubredditSort.hot));
+
+    if (app.auth.currentUser != null) {
+      app..subscriptions = null
+         ..defaults = Defaults()
+         ..feeds.insert(0, Feed(type: FeedType.home, sortBy: HomeSort.best));
+      return RefreshDefaults();
+    } else {
+      app..defaults = null
+         ..subscriptions = Subscriptions();
+      return RefreshSubscriptions(); 
+    }
   }
 }
 

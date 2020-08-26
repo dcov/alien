@@ -13,14 +13,15 @@ import 'thing.dart' show ThingExtensions;
 
 class RefreshSubscriptions extends Action {
 
-  RefreshSubscriptions({
-    @required this.subscriptions
-  });
-
-  final Subscriptions subscriptions;
+  RefreshSubscriptions();
 
   @override
-  dynamic update(AuthOwner owner) {
+  dynamic update(Object owner) {
+    assert(owner is AuthOwner);
+    assert(owner is SubscriptionsOwner);
+
+    final auth = (owner as AuthOwner).auth;
+    final subscriptions = (owner as SubscriptionsOwner).subscriptions;
     // If it's already refreshing we don't need to do anything.
     if (subscriptions.refreshing)
       return;
@@ -28,7 +29,7 @@ class RefreshSubscriptions extends Action {
     subscriptions.refreshing = true;
     return GetSubscriptions(
       subscriptions: subscriptions,
-      user: owner.auth.currentUser
+      user: auth.currentUser
     );
   }
 }
@@ -36,11 +37,8 @@ class RefreshSubscriptions extends Action {
 class GetSubscriptions extends Effect {
 
   GetSubscriptions({
-    @required this.subscriptions,
     @required this.user
   });
-
-  final Subscriptions subscriptions;
 
   final User user;
 
@@ -59,12 +57,10 @@ class GetSubscriptions extends Effect {
           false);
         result.addAll(listing.things);
         pagination = pagination.forward(listing);
-      } while(pagination.nextPageExists);
+      } while (pagination.nextPageExists);
 
       return GetSubscriptionsSuccess(
-        subscriptions: subscriptions,
-        result: result
-      );
+        result: result);
     } catch (e) {
       print(e);
       return GetSubscriptionsFailure();
@@ -75,17 +71,14 @@ class GetSubscriptions extends Effect {
 class GetSubscriptionsSuccess extends Action {
 
   GetSubscriptionsSuccess({
-    @required this.subscriptions,
     @required this.result
   });
-
-  final Subscriptions subscriptions;
 
   final List<SubredditData> result;
 
   @override
-  dynamic update(_) {
-    subscriptions
+  dynamic update(SubscriptionsOwner owner) {
+    owner.subscriptions
       ..refreshing = false
       ..subreddits.clear()
       ..subreddits.addAll(

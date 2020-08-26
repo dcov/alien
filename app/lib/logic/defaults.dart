@@ -7,9 +7,9 @@ import '../models/defaults.dart';
 
 import 'subreddit.dart' show SubredditDataExtensions;
 
-class LoadDefaults extends Action {
+class RefreshDefaults extends Action {
 
-  LoadDefaults();
+  RefreshDefaults();
 
   @override
   dynamic update(DefaultsOwner owner) {

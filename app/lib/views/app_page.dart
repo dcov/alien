@@ -57,7 +57,8 @@ class _AppPageView extends StatelessWidget {
                 children: <Widget>[
                   _AuthHeader(auth: app.auth),
                 ])))),
-        _AppBody(app: app),
+        Expanded(
+          child: _AppBody(app: app)),
       ]);
   }
 }
