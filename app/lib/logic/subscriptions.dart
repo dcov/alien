@@ -28,7 +28,6 @@ class RefreshSubscriptions extends Action {
 
     subscriptions.refreshing = true;
     return GetSubscriptions(
-      subscriptions: subscriptions,
       user: auth.currentUser
     );
   }
