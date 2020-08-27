@@ -1,9 +1,10 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../logic/feed.dart';
+import '../logic/feeds.dart';
 import '../models/feed.dart';
 import '../widgets/routing.dart';
+import '../widgets/tile.dart';
 
 class FeedTile extends StatelessWidget {
 
@@ -22,10 +23,24 @@ class FeedTile extends StatelessWidget {
         name: pageName));
   }
 
+  IconData get _feedTypeIcon {
+    switch (feed.type) {
+      case FeedType.home:
+        return Icons.home;
+      case FeedType.popular:
+        return Icons.trending_up;
+      case FeedType.all:
+        return Icons.all_inclusive;
+    }
+    throw ArgumentError('Invalid Feed.type value');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: () => _pushPage(context));
+    return CustomTile(
+      onTap: () => _pushPage(context),
+      title: Text(feed.displayName),
+      icon: Icon(_feedTypeIcon));
   }
 }
 

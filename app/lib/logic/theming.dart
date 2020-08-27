@@ -25,7 +25,6 @@ class UpdateTheme extends Action {
             case ThemeType.dark:
               return ThemeData.dark();
           }
-          return null;
         }()
       ..type  = type;
   }

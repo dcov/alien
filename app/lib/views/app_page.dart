@@ -49,6 +49,7 @@ class _AppPageView extends StatelessWidget {
     return Column(
       children: <Widget>[
         Material(
+          elevation: 2.0,
           child: Padding(
             padding: EdgeInsets.only(top: context.mediaPadding.top),
             child: SizedBox(

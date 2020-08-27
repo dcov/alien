@@ -137,11 +137,13 @@ class _RoutingState extends State<Routing> {
     }
   }
 
-  void _handlePopPage(Route route, dynamic result) {
+  bool _handlePopPage(Route route, dynamic result) {
     assert(route.settings == _entries[_currentStack.last].page);
     if (route.didPop(result)) {
       pop();
+      return true;
     }
+    return false;
   }
 
   @override
@@ -159,7 +161,6 @@ class _RoutingState extends State<Routing> {
 
     // The current stack only contains the first entry
     _currentStack = <int>[0];
-
     _data = _RoutingData(_entries);
   }
 
@@ -171,6 +172,7 @@ class _RoutingState extends State<Routing> {
 
   @override
   Widget build(BuildContext context) {
+    print(_entries.length);
     return _RoutingDataScope(
       data: _data,
       child: Navigator(
