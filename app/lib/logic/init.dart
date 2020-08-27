@@ -14,6 +14,7 @@ import '../models/auth.dart';
 import '../models/defaults.dart';
 import '../models/feed.dart';
 import '../models/subscriptions.dart';
+import '../models/theming.dart';
 
 import 'auth.dart';
 import 'theming.dart';
@@ -31,12 +32,14 @@ class InitApp extends Initial {
 
   @override
   Init init() {
+    print('InitApp');
     return Init(
       state: App(
         initialized: false,
         auth: Auth(
           appId: appId,
-          appRedirect: appRedirect)),
+          appRedirect: appRedirect),
+        theming: Theming()),
       then: InitResources());
   }
 }
@@ -47,15 +50,16 @@ class InitResources extends Effect {
 
   @override
   dynamic perform(EffectContext context) async {
+    print('InitResources');
     try {
       await context.scraper.init();
 
-      final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
-      context.hive.init(path.join(appDir.path, 'data'));
+      //final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
+      //context.hive.init(path.join(appDir.path, 'data'));
 
       return InitResourcesSuccess(
-        users: await retrieveUsers(context),
-        signedInUser: await retrieveSignedInUser(context));
+        users: null, //await retrieveUsers(context),
+        signedInUser: null);//await retrieveSignedInUser(context));
     } catch (_) {
       return InitResourcesFailure();
     }
@@ -107,14 +111,14 @@ class ResetState extends Action {
       ..add(Feed(type: FeedType.popular, sortBy: SubredditSort.hot))
       ..add(Feed(type: FeedType.all, sortBy: SubredditSort.hot));
 
-    if (app.auth.currentUser != null) {
+    if (app.auth.currentUser == null) {
       app..subscriptions = null
-         ..defaults = Defaults()
+         ..defaults = Defaults(refreshing: false)
          ..feeds.insert(0, Feed(type: FeedType.home, sortBy: HomeSort.best));
       return RefreshDefaults();
     } else {
       app..defaults = null
-         ..subscriptions = Subscriptions();
+         ..subscriptions = Subscriptions(refreshing: false);
       return RefreshSubscriptions(); 
     }
   }
