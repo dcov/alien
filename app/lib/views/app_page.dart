@@ -2,12 +2,10 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../logic/subscriptions.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
 import '../models/feed.dart';
 import '../models/subreddit.dart';
-import '../models/subscriptions.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
@@ -166,14 +164,14 @@ class _AppBodyState extends State<_AppBody> {
           assert(app.subscriptions == null);
           children.add(_SublistHeader(name: 'Defaults'));
           mapValues(
-            app.defaults.subreddits,
+            app.defaults.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
             SubredditPage.pageNameFrom);
         } else {
           assert(app.subscriptions != null);
           children.add(_SublistHeader(name: 'Subscriptions'));
           mapValues(
-            app.subscriptions.subreddits,
+            app.subscriptions.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
             SubredditPage.pageNameFrom);
         }

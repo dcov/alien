@@ -11,9 +11,8 @@ import '../logic/defaults.dart';
 import '../logic/subscriptions.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
-import '../models/defaults.dart';
 import '../models/feed.dart';
-import '../models/subscriptions.dart';
+import '../models/refreshable.dart';
 import '../models/theming.dart';
 
 import 'auth.dart';
@@ -32,7 +31,6 @@ class InitApp extends Initial {
 
   @override
   Init init() {
-    print('InitApp');
     return Init(
       state: App(
         initialized: false,
@@ -50,7 +48,6 @@ class InitResources extends Effect {
 
   @override
   dynamic perform(EffectContext context) async {
-    print('InitResources');
     try {
       await context.scraper.init();
 
@@ -113,13 +110,13 @@ class ResetState extends Action {
 
     if (app.auth.currentUser == null) {
       app..subscriptions = null
-         ..defaults = Defaults(refreshing: false)
+         ..defaults = Refreshable(refreshing: false)
          ..feeds.insert(0, Feed(type: FeedType.home, sortBy: HomeSort.best));
-      return RefreshDefaults();
+      return RefreshDefaults(defaults: app.defaults);
     } else {
       app..defaults = null
-         ..subscriptions = Subscriptions(refreshing: false);
-      return RefreshSubscriptions(); 
+         ..subscriptions = Refreshable(refreshing: false);
+      return RefreshSubscriptions(subscriptions: app.subscriptions); 
     }
   }
 }
