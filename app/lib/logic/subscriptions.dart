@@ -4,8 +4,8 @@ import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/auth.dart';
+import '../models/refreshable.dart';
 import '../models/subreddit.dart';
-import '../models/subscriptions.dart';
 import '../models/user.dart';
 
 import 'subreddit.dart' show SubredditDataExtensions;
@@ -13,31 +13,34 @@ import 'thing.dart' show ThingExtensions;
 
 class RefreshSubscriptions extends Action {
 
-  RefreshSubscriptions();
+  RefreshSubscriptions({
+    @required this.subscriptions
+  });
+
+  final Refreshable<Subreddit> subscriptions;
 
   @override
-  dynamic update(Object owner) {
-    assert(owner is AuthOwner);
-    assert(owner is SubscriptionsOwner);
-
-    final auth = (owner as AuthOwner).auth;
-    final subscriptions = (owner as SubscriptionsOwner).subscriptions;
+  dynamic update(AuthOwner owner) {
     // If it's already refreshing we don't need to do anything.
     if (subscriptions.refreshing)
       return;
 
     subscriptions.refreshing = true;
+
     return GetSubscriptions(
-      user: auth.currentUser
-    );
+      subscriptions: subscriptions,
+      user: owner.auth.currentUser);
   }
 }
 
 class GetSubscriptions extends Effect {
 
   GetSubscriptions({
+    @required this.subscriptions,
     @required this.user
   });
+
+  final Refreshable<Subreddit> subscriptions;
 
   final User user;
 
@@ -59,10 +62,11 @@ class GetSubscriptions extends Effect {
       } while (pagination.nextPageExists);
 
       return GetSubscriptionsSuccess(
+        subscriptions: subscriptions,
         result: result);
     } catch (e) {
       print(e);
-      return GetSubscriptionsFailure();
+      return GetSubscriptionsFailure(subscriptions: subscriptions);
     }
   }
 }
@@ -70,29 +74,36 @@ class GetSubscriptions extends Effect {
 class GetSubscriptionsSuccess extends Action {
 
   GetSubscriptionsSuccess({
+    @required this.subscriptions,
     @required this.result
   });
+
+  final Refreshable<Subreddit> subscriptions;
 
   final List<SubredditData> result;
 
   @override
-  dynamic update(SubscriptionsOwner owner) {
-    owner.subscriptions
+  dynamic update(_) {
+    subscriptions
       ..refreshing = false
-      ..subreddits.clear()
-      ..subreddits.addAll(
-          result.map((SubredditData data) => data.toModel()))
-      ..subreddits.sort((s1, s2) => s1.name.compareTo(s2.name));
+      ..items.clear()
+      ..items.addAll(result.map((SubredditData data) => data.toModel()))
+      ..items.sort((s1, s2) => s1.name.compareTo(s2.name));
   }
 }
 
 class GetSubscriptionsFailure extends Action {
 
-  GetSubscriptionsFailure();
+  GetSubscriptionsFailure({
+    @required this.subscriptions,
+  });
+
+  final Refreshable<Subreddit> subscriptions;
 
   @override
   dynamic update(_) {
-    // TODO: implement
+    // TODO: implement better error handling
+    subscriptions.refreshing = false;
   }
 }
 
