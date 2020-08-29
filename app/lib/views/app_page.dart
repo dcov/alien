@@ -7,6 +7,7 @@ import '../models/auth.dart';
 import '../models/feed.dart';
 import '../models/subreddit.dart';
 import '../widgets/routing.dart';
+import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'feed_page.dart';
@@ -75,12 +76,14 @@ class _AuthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Connector(
       builder: (_) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(auth.currentUser?.name ?? 'Sign in'),
-            Icon(Icons.arrow_downward)
-          ]);
+        return Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(auth.currentUser?.name ?? 'Sign in'),
+              Icon(Icons.arrow_drop_down)
+            ]));
       });
   }
 }
@@ -176,7 +179,9 @@ class _AppBodyState extends State<_AppBody> {
             SubredditPage.pageNameFrom);
         }
 
-        return ListView(children: children);
+        return ListView(
+          padding: EdgeInsets.only(bottom: 24.0),
+          children: children);
       });
   }
 }
@@ -192,7 +197,16 @@ class _SublistHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(title: Text(name));
+    return DecoratedBox(
+      decoration: BoxDecoration(color: Colors.grey.shade200),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Text(
+          name,
+          style: const TextStyle(
+            letterSpacing: 0.5,
+            fontSize: 12.0,
+            fontWeight: FontWeight.w700))));
   }
 }
 
