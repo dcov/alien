@@ -10,7 +10,7 @@ import '../widgets/routing.dart';
 import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
 
-import 'auth_bottom_sheet.dart';
+import 'accounts_bottom_sheet.dart';
 import 'feed_page.dart';
 import 'subreddit_page.dart';
 
@@ -56,7 +56,7 @@ class _AppPageView extends StatelessWidget {
               height: 48.0,
               child: Row(
                 children: <Widget>[
-                  _AuthHeader(auth: app.auth),
+                  _AccountHeader(app: app),
                 ])))),
         Expanded(
           child: _AppBody(app: app)),
@@ -64,27 +64,31 @@ class _AppPageView extends StatelessWidget {
   }
 }
 
-class _AuthHeader extends StatelessWidget {
+class _AccountHeader extends StatelessWidget {
 
-  _AuthHeader({
+  _AccountHeader({
     Key key,
-    @required this.auth
-  }) : super(key: key);
+    @required this.app
+  }) : assert(app != null),
+       super(key: key);
 
-  final Auth auth;
+  final App app;
 
   @override
   Widget build(_) {
     return Connector(
       builder: (BuildContext context) {
         return GestureDetector(
-          onTap: () => showAuthBottomSheet(context: context, auth: auth),
+          onTap: () => showAccountsBottomSheet(
+            context: context,
+            accounts: app.accounts,
+            auth: app.auth),
           child: Padding(
             padding: EdgeInsets.all(12.0),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text(auth.currentUser?.name ?? 'Sign in'),
+                Text(app.accounts.currentUser?.name ?? 'Sign in'),
                 Icon(Icons.arrow_drop_down)
               ])));
       });

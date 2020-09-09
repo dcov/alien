@@ -12,6 +12,7 @@ import '../models/auth.dart';
 import '../models/feed.dart';
 import '../models/refreshable.dart';
 import '../models/theming.dart';
+import '../models/user.dart';
 
 import 'accounts.dart';
 import 'theming.dart';
@@ -72,8 +73,8 @@ class InitResourcesSuccess extends Action {
   dynamic update(App app) {
     return <Message>{
       InitAccounts(
-        onInitialized: () => InitMainState(),
-        onFailed: () => InitMainState()),
+        onInitialized: () => ResetMainState(),
+        onFailed: () => ResetMainState()),
       UpdateTheme(theming: app.theming),
     };
   }
@@ -90,9 +91,26 @@ class InitResourcesFailure extends Action {
   }
 }
 
-class InitMainState extends Action {
+/// Switches the currently signed in user, and resets the main state of the application.
+class SwitchUser extends Action {
 
-  InitMainState();
+  SwitchUser({ this.to });
+
+  final User to;
+
+  @override
+  dynamic update(App app) {
+    return {
+      SetCurrentUser(to: to),
+      ResetMainState()
+    };
+  }
+}
+
+@visibleForTesting
+class ResetMainState extends Action {
+
+  ResetMainState();
 
   @override
   dynamic update(App app) {

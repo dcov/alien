@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/auth.dart';
+import '../models/accounts.dart';
 import '../models/feed.dart';
 import '../models/listing.dart';
 import '../models/user.dart';
@@ -23,8 +23,8 @@ class TransitionFeedPosts extends Action {
   final ListingStatus to;
 
   @override
-  dynamic update(AuthOwner owner) {
-    assert(feed.type != FeedType.home || owner.auth.currentUser != null);
+  dynamic update(AccountsOwner owner) {
+    assert(feed.type != FeedType.home || owner.accounts.currentUser != null);
     return TransitionListing(
       listing: feed.posts,
       to: to,
@@ -33,7 +33,7 @@ class TransitionFeedPosts extends Action {
           feed: feed,
           to: to,
           page: page,
-          user: owner.auth.currentUser);
+          user: owner.accounts.currentUser);
       });
   }
 }

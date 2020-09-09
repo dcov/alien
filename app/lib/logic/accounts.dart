@@ -104,6 +104,52 @@ class UnpackAccountsData extends Action {
   }
 }
 
+class AddUser extends Action {
+
+  AddUser({
+    @required this.user,
+  }) : assert(user != null);
+
+  final User user;
+
+  @override
+  dynamic update(AccountsOwner owner) {
+    final accounts = owner.accounts;
+    assert(() {
+        for (final existingUser in accounts.users) {
+          if (existingUser.name == user.name) {
+            return false;
+          }
+        }
+        return true;
+      }(),
+      'AddUser dispatched with an existing user');
+
+    accounts.users.add(user);
+
+    return PutPackedAccountsData(
+      usersData: packUsersList(accounts.users),
+      currentUserData: accounts.currentUser?.name);
+  }
+}
+
+class SetCurrentUser extends Action {
+  
+  SetCurrentUser({ this.to });
+
+  final User to;
+
+  @override
+  dynamic update(AccountsOwner owner) {
+    final accounts = owner.accounts;
+    accounts.currentUser = to;
+
+    return PutPackedAccountsData(
+      usersData: packUsersList(accounts.users),
+      currentUserData: accounts.currentUser?.name);
+  }
+}
+
 @visibleForTesting
 class PutPackedAccountsData extends Effect {
 

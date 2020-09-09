@@ -1,7 +1,8 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../logic/auth.dart';
+import '../logic/accounts.dart';
+import '../models/accounts.dart';
 import '../models/auth.dart';
 import '../models/user.dart';
 import '../widgets/tile.dart';
@@ -31,11 +32,13 @@ class _AccountTile extends StatelessWidget {
   }
 }
 
-void showAuthBottomSheet({
+void showAccountsBottomSheet({
     @required BuildContext context,
-    @required Auth auth,
+    @required Accounts accounts,
+    @required Auth auth
   }) {
   assert(context != null);
+  assert(accounts != null);
   assert(auth != null);
   showModalBottomSheet(
     context: context,
@@ -54,16 +57,16 @@ void showAuthBottomSheet({
                 child: ListView(
                   controller: controller,
                   children: <Widget>[
-                    ...auth.users.map((User user) {
+                    ...accounts.users.map((User user) {
                          return _AccountTile(
                            user: user,
-                           isCurrentAccount: auth.currentUser == user,
+                           isCurrentAccount: accounts.currentUser == user,
                            onTap: () {
 
                            });
                        }),
                     _AccountTile(
-                      isCurrentAccount: auth.currentUser == null,
+                      isCurrentAccount: accounts.currentUser == null,
                       onTap: () {
                       }),
                   ]))

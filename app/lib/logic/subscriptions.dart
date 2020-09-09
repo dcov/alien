@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/auth.dart';
+import '../models/accounts.dart';
 import '../models/refreshable.dart';
 import '../models/subreddit.dart';
 import '../models/user.dart';
@@ -20,7 +20,7 @@ class RefreshSubscriptions extends Action {
   final Refreshable<Subreddit> subscriptions;
 
   @override
-  dynamic update(AuthOwner owner) {
+  dynamic update(AccountsOwner owner) {
     // If it's already refreshing we don't need to do anything.
     if (subscriptions.refreshing)
       return;
@@ -29,7 +29,7 @@ class RefreshSubscriptions extends Action {
 
     return GetSubscriptions(
       subscriptions: subscriptions,
-      user: owner.auth.currentUser);
+      user: owner.accounts.currentUser);
   }
 }
 
@@ -116,8 +116,8 @@ class ToggleSubscribed extends Action {
   final Subreddit subreddit;
 
   @override
-  dynamic update(AuthOwner owner) {
-    final User user = owner.auth.currentUser;
+  dynamic update(AccountsOwner owner) {
+    final User user = owner.accounts.currentUser;
     assert(user != null);
 
     subreddit.userIsSubscriber = !subreddit.userIsSubscriber;
