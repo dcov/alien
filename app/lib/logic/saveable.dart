@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/auth.dart';
+import '../models/accounts.dart';
 import '../models/saveable.dart';
 import '../models/user.dart';
 
@@ -21,11 +21,11 @@ class ToggleSaved extends Action {
   final User user;
 
   @override
-  dynamic update(AuthOwner owner) {
+  dynamic update(AccountsOwner owner) {
     saveable.isSaved = !saveable.isSaved;
     return PostSaved(
       saveable: saveable,
-      user: user ?? owner.auth.currentUser,
+      user: user ?? owner.accounts.currentUser,
     );
   }
 }

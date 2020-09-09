@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/auth.dart';
+import '../models/accounts.dart';
 import '../models/user.dart';
 import '../models/votable.dart';
 
@@ -21,7 +21,7 @@ class Upvote extends Action {
   final User user;
 
   @override
-  dynamic update(AuthOwner owner) {
+  dynamic update(AccountsOwner owner) {
     final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.up) {
@@ -34,7 +34,7 @@ class Upvote extends Action {
 
     return PostVote(
       votable: votable,
-      user: user ?? owner.auth.currentUser,
+      user: user ?? owner.accounts.currentUser,
       oldVoteDir: oldVoteDir);
   }
 }
@@ -51,7 +51,7 @@ class Downvote extends Action {
   final User user;
 
   @override
-  dynamic update(AuthOwner owner) {
+  dynamic update(AccountsOwner owner) {
     final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.down) {
@@ -64,7 +64,7 @@ class Downvote extends Action {
 
     return PostVote(
       votable: votable,
-      user: user ?? owner.auth.currentUser,
+      user: user ?? owner.accounts.currentUser,
       oldVoteDir: oldVoteDir);
   }
 }
