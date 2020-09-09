@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -15,7 +13,7 @@ import '../models/feed.dart';
 import '../models/refreshable.dart';
 import '../models/theming.dart';
 
-import 'auth.dart';
+import 'accounts.dart';
 import 'theming.dart';
 
 class InitApp extends Initial {
@@ -42,6 +40,7 @@ class InitApp extends Initial {
   }
 }
 
+@visibleForTesting
 class InitResources extends Effect {
 
   InitResources();
@@ -49,44 +48,38 @@ class InitResources extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     try {
+      /// Initialize the scraper
       await context.scraper.init();
 
-      //final Directory appDir = await pathProvider.getApplicationDocumentsDirectory();
-      //context.hive.init(path.join(appDir.path, 'data'));
+      /// Initialize the hive db instance
+      final appDir = await pathProvider.getApplicationDocumentsDirectory();
+      final appHivePath = path.join(appDir.path, 'data');
+      context.hive.init(appHivePath);
 
-      return InitResourcesSuccess(
-        users: null, //await retrieveUsers(context),
-        signedInUser: null);//await retrieveSignedInUser(context));
+      return InitResourcesSuccess();
     } catch (_) {
       return InitResourcesFailure();
     }
   }
 }
 
+@visibleForTesting
 class InitResourcesSuccess extends Action {
 
-  InitResourcesSuccess({
-    @required this.users,
-    @required this.signedInUser
-  });
-
-  final Map<String, String> users;
-
-  final String signedInUser;
+  InitResourcesSuccess();
 
   @override
   dynamic update(App app) {
-    app.initialized = true;
     return <Message>{
-      // InitAuth(
-      // users: users,
-      // signedInUser: signedInUser),
+      InitAccounts(
+        onInitialized: () => InitMainState(),
+        onFailed: () => InitMainState()),
       UpdateTheme(theming: app.theming),
-      ResetState()
     };
   }
 }
 
+@visibleForTesting
 class InitResourcesFailure extends Action {
 
   InitResourcesFailure();
@@ -97,18 +90,20 @@ class InitResourcesFailure extends Action {
   }
 }
 
-class ResetState extends Action {
+class InitMainState extends Action {
 
-  ResetState();
+  InitMainState();
 
   @override
   dynamic update(App app) {
+    app.initialized = true;
+
     app.feeds
       ..clear()
       ..add(Feed(type: FeedType.popular, sortBy: SubredditSort.hot))
       ..add(Feed(type: FeedType.all, sortBy: SubredditSort.hot));
 
-    if (app.auth.currentUser == null) {
+    if (app.accounts.currentUser == null) {
       app..subscriptions = null
          ..defaults = Refreshable(refreshing: false)
          ..feeds.insert(0, Feed(type: FeedType.home, sortBy: HomeSort.best));
