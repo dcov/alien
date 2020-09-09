@@ -18,32 +18,6 @@ Future<String> retrieveSignedInUser(EffectContext context) async {
   return box.get('currentUser');
 }
 
-class InitAuth extends Action {
-
-  InitAuth({
-    @required this.users,
-    @required this.signedInUser
-  });
-
-  final Map<String, String> users;
-
-  final String signedInUser;
-
-  @override
-  dynamic update(AuthOwner owner) {
-    final Auth auth = owner.auth;
-    for (final MapEntry<String, String> entry in users.entries) {
-      final User user = User(
-        name: entry.key,
-        token: entry.value,
-      );
-      auth.users.add(user);
-      if (user.name == signedInUser)
-        auth.currentUser = user;
-    }
-  }
-}
-
 class LoginStart extends Action {
 
   LoginStart();
