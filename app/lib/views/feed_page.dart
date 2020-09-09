@@ -39,8 +39,12 @@ class FeedTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomTile(
       onTap: () => _pushPage(context),
-      title: Text(feed.displayName),
-      icon: Icon(_feedTypeIcon));
+      icon: Icon(_feedTypeIcon),
+      title: Text(
+        feed.displayName,
+        style: TextStyle(
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500)));
   }
 }
 

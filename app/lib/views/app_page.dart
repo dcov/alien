@@ -150,7 +150,7 @@ class _AppBodyState extends State<_AppBody> {
   Widget build(BuildContext context) {
     return Connector(
       builder: (BuildContext context) {
-
+        final app = widget.app;
         final children = List<Widget>();
         void mapValues<T>(List<T> values, Widget mapToWidget(T value), String mapToPageName(T value)) {
           for (final value in values) {
@@ -165,7 +165,7 @@ class _AppBodyState extends State<_AppBody> {
           }
         }
 
-        final app = widget.app;
+        children.add(_SublistHeader(name: 'FEEDS'));
         mapValues(
           app.feeds,
           (Feed feed) => FeedTile(feed: feed),
@@ -173,14 +173,14 @@ class _AppBodyState extends State<_AppBody> {
 
         if (app.defaults != null) {
           assert(app.subscriptions == null);
-          children.add(_SublistHeader(name: 'Defaults'));
+          children.add(_SublistHeader(name: 'DEFAULTS'));
           mapValues(
             app.defaults.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
             SubredditPage.pageNameFrom);
         } else {
           assert(app.subscriptions != null);
-          children.add(_SublistHeader(name: 'Subscriptions'));
+          children.add(_SublistHeader(name: 'SUBSCRIPTIONS'));
           mapValues(
             app.subscriptions.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
@@ -211,9 +211,10 @@ class _SublistHeader extends StatelessWidget {
         padding: const EdgeInsets.all(12.0),
         child: Text(
           name,
-          style: const TextStyle(
-            letterSpacing: 0.5,
-            fontSize: 12.0,
+          style: TextStyle(
+            color: Colors.grey.shade700,
+            letterSpacing: 1.0,
+            fontSize: 10.0,
             fontWeight: FontWeight.w700))));
   }
 }

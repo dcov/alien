@@ -170,13 +170,28 @@ class _RoutingState extends State<Routing> {
     _entries.clear();
   }
 
+  final _navigatorKey = GlobalKey<NavigatorState>();
+
+  NavigatorState get _navigator => _navigatorKey.currentState;
+
+  Future<bool> _handleWillPop() {
+    if (_navigator.canPop()) {
+      _navigator.pop();
+      return Future.value(true);
+    }
+    return Future.value(false);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return _RoutingDataScope(
-      data: _data,
-      child: Navigator(
-        pages: _currentStack.map((int index) => _entries[index].page).toList(),
-        onPopPage: _handlePopPage));
+    return WillPopScope(
+      onWillPop: _handleWillPop,
+      child: _RoutingDataScope(
+        data: _data,
+        child: Navigator(
+          key: _navigatorKey,
+          pages: _currentStack.map((int index) => _entries[index].page).toList(),
+          onPopPage: _handlePopPage)));
   }
 }
 

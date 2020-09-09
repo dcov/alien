@@ -45,6 +45,9 @@ class SubredditTile extends StatelessWidget {
           subreddit.name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 14.0,
+            fontWeight: FontWeight.w500),
         ),
       );
     },

@@ -28,7 +28,12 @@ class _AccountTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomTile(
       onTap: onTap,
-      title: Text(user != null ? user.name : 'Anonymous'));
+      icon: Icon(Icons.person),
+      title: Text(
+        user != null ? user.name : 'Anonymous',
+        style: TextStyle(
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500)));
   }
 }
 
@@ -40,6 +45,7 @@ void showAccountsBottomSheet({
   assert(context != null);
   assert(accounts != null);
   assert(auth != null);
+  final dividerColor = Colors.grey.shade700;
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -51,8 +57,21 @@ void showAccountsBottomSheet({
           return Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('Accounts')),
+                padding: const EdgeInsets.all(12.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'ACCOUNTS',
+                    style: TextStyle(
+                      fontSize: 10.0,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                      color: dividerColor)))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Divider(
+                  height: 2.0,
+                  color: dividerColor)),
               Expanded(
                 child: ListView(
                   controller: controller,
@@ -62,13 +81,16 @@ void showAccountsBottomSheet({
                            user: user,
                            isCurrentAccount: accounts.currentUser == user,
                            onTap: () {
-
                            });
                        }),
                     _AccountTile(
                       isCurrentAccount: accounts.currentUser == null,
                       onTap: () {
                       }),
+                    CustomTile(
+                      onTap: () { },
+                      icon: Icon(Icons.add),
+                      title: Text('Add account')),
                   ]))
             ]);
         });
