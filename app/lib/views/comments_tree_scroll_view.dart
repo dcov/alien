@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../logic/comments_tree.dart';
 import '../models/comment.dart';
 import '../models/comments_tree.dart';
+import '../models/thing.dart';
 import '../widgets/padded_scroll_view.dart';
 
 import 'comment_tile.dart';
