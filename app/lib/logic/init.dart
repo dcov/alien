@@ -7,6 +7,7 @@ import 'package:reddit/reddit.dart';
 import '../effects.dart';
 import '../logic/defaults.dart';
 import '../logic/subscriptions.dart';
+import '../models/accounts.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
 import '../models/feed.dart';
@@ -33,6 +34,7 @@ class InitApp extends Initial {
     return Init(
       state: App(
         initialized: false,
+        accounts: Accounts(),
         auth: Auth(
           appId: appId,
           appRedirect: appRedirect),
@@ -72,10 +74,10 @@ class InitResourcesSuccess extends Action {
   @override
   dynamic update(App app) {
     return <Message>{
+      UpdateTheme(theming: app.theming),
       InitAccounts(
         onInitialized: () => ResetMainState(),
         onFailed: () => ResetMainState()),
-      UpdateTheme(theming: app.theming),
     };
   }
 }

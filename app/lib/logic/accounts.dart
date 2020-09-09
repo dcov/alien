@@ -86,18 +86,15 @@ class UnpackAccountsData extends Action {
 
   @override
   dynamic update(AccountsOwner owner) {
-    if (usersData == null) {
-      assert(currentUserData == null, 'There was no stored usersData, but there was a currentUserData value stored');
-      return;
-    }
-
-    final accounts = owner.accounts;
-    accounts.users.addAll(unpackUsersList(usersData));
-    
-    if (currentUserData != null) {
-      accounts.currentUser = accounts.users.firstWhere(
-          (User user) => user.name == currentUserData,
-          orElse: () => null);
+    if (usersData != null) {
+      final accounts = owner.accounts;
+      accounts.users.addAll(unpackUsersList(usersData));
+      
+      if (currentUserData != null) {
+        accounts.currentUser = accounts.users.firstWhere(
+            (User user) => user.name == currentUserData,
+            orElse: () => null);
+      }
     }
 
     return onInitialized();
