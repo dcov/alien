@@ -10,6 +10,7 @@ import '../widgets/routing.dart';
 import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
 
+import 'auth_bottom_sheet.dart';
 import 'feed_page.dart';
 import 'subreddit_page.dart';
 
@@ -73,17 +74,19 @@ class _AuthHeader extends StatelessWidget {
   final Auth auth;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(_) {
     return Connector(
-      builder: (_) {
-        return Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(auth.currentUser?.name ?? 'Sign in'),
-              Icon(Icons.arrow_drop_down)
-            ]));
+      builder: (BuildContext context) {
+        return GestureDetector(
+          onTap: () => showAuthBottomSheet(context: context, auth: auth),
+          child: Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(auth.currentUser?.name ?? 'Sign in'),
+                Icon(Icons.arrow_drop_down)
+              ])));
       });
   }
 }
@@ -143,6 +146,7 @@ class _AppBodyState extends State<_AppBody> {
   Widget build(BuildContext context) {
     return Connector(
       builder: (BuildContext context) {
+
         final children = List<Widget>();
         void mapValues<T>(List<T> values, Widget mapToWidget(T value), String mapToPageName(T value)) {
           for (final value in values) {
