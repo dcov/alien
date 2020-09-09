@@ -34,11 +34,7 @@ abstract class Auth extends Model {
   factory Auth({
     String appId,
     String appRedirect,
-    List<User> users,
     List<Permission> permissions,
-    bool authenticating,
-    AuthSession session,
-    User currentUser,
     PermissionsStatus permissionsStatus
   }) = _$Auth;
 
@@ -46,20 +42,24 @@ abstract class Auth extends Model {
 
   String get appRedirect;
 
-  List<User> get users;
-
   List<Permission> get permissions;
-
-  bool authenticating;
-
-  AuthSession session;
-
-  User currentUser;
 
   PermissionsStatus permissionsStatus;
 }
 
-mixin AuthOwner {
+abstract class AuthOwner {
   Auth get auth;
+}
+
+abstract class Login extends Model {
+
+  factory Login({
+    bool authenticating,
+    AuthSession session
+  }) = _$Login;
+
+  bool authenticating;
+
+  AuthSession session;
 }
 
