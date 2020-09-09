@@ -172,7 +172,6 @@ class _RoutingState extends State<Routing> {
 
   @override
   Widget build(BuildContext context) {
-    print(_entries.length);
     return _RoutingDataScope(
       data: _data,
       child: Navigator(
