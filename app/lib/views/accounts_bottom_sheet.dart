@@ -90,7 +90,11 @@ void showAccountsBottomSheet({
                     CustomTile(
                       onTap: () { },
                       icon: Icon(Icons.add),
-                      title: Text('Add account')),
+                      title: Text(
+                        'Add account',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.w500))),
                   ]))
             ]);
         });

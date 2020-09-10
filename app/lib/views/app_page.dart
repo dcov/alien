@@ -88,7 +88,11 @@ class _AccountHeader extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text(app.accounts.currentUser?.name ?? 'Sign in'),
+                Text(
+                  app.accounts.currentUser?.name ?? 'Sign in',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w500)),
                 Icon(Icons.arrow_drop_down)
               ])));
       });
