@@ -58,6 +58,3 @@ dev_dependencies:
       url: git://github.com/dcov/elmer.git
       path: elmer_gen
 
-dependency_overrides:
-  analyzer: 0.39.14
-
