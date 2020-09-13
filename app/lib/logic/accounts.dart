@@ -34,16 +34,15 @@ class InitAccounts extends Action {
   @override
   dynamic update(AccountsOwner owner) {
     // The only work we do right now is kick off a side effect to retrieve any stored data.
-    return GetPackedAccountsData(
+    return _GetPackedAccountsData(
       onInitialized: onInitialized,
       onFailed: onFailed);
   }
 }
 
-@visibleForTesting
-class GetPackedAccountsData extends Effect {
+class _GetPackedAccountsData extends Effect {
 
-  GetPackedAccountsData({
+  _GetPackedAccountsData({
     @required this.onInitialized,
     @required this.onFailed
   }) : assert(onInitialized != null),
@@ -59,7 +58,7 @@ class GetPackedAccountsData extends Effect {
       final accountsBox = await context.hive.openBox<String>(_kAccountsBoxKey);
       final usersData = accountsBox.get(_kUsersDataKey);
       final currentUserData = accountsBox.get(_kCurrentUserDataKey);
-      return UnpackAccountsData(
+      return _UnpackAccountsData(
         usersData: usersData,
         currentUserData: currentUserData,
         onInitialized: onInitialized);
@@ -69,14 +68,13 @@ class GetPackedAccountsData extends Effect {
   }
 }
 
-@visibleForTesting
-class UnpackAccountsData extends Action {
+class _UnpackAccountsData extends Action {
 
-  UnpackAccountsData({
+  _UnpackAccountsData({
     this.usersData,
     this.currentUserData,
     @required this.onInitialized,
-  });
+  }) : assert(onInitialized != null);
 
   final String usersData;
 
@@ -124,7 +122,7 @@ class AddUser extends Action {
 
     accounts.users.add(user);
 
-    return PutPackedAccountsData(
+    return _PutPackedAccountsData(
       usersData: packUsersList(accounts.users),
       currentUserData: accounts.currentUser?.name);
   }
@@ -141,16 +139,15 @@ class SetCurrentUser extends Action {
     final accounts = owner.accounts;
     accounts.currentUser = to;
 
-    return PutPackedAccountsData(
+    return _PutPackedAccountsData(
       usersData: packUsersList(accounts.users),
       currentUserData: accounts.currentUser?.name);
   }
 }
 
-@visibleForTesting
-class PutPackedAccountsData extends Effect {
+class _PutPackedAccountsData extends Effect {
 
-  PutPackedAccountsData({
+  _PutPackedAccountsData({
     @required this.usersData,
     this.currentUserData,
   }) : assert(usersData != null);
@@ -162,13 +159,14 @@ class PutPackedAccountsData extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     try {
-      final box = await context.hive.openBox('accounts');
+      final box = await context.hive.openBox<String>(_kAccountsBoxKey);
       await box.putAll({
         _kUsersDataKey : usersData,
         _kCurrentUserDataKey : currentUserData
       });
+
     } catch (_) {
-      // TODO: handle this error case better
+      // TODO: better handle this error case
     }
   }
 }

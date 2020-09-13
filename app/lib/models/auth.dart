@@ -19,24 +19,3 @@ abstract class AuthOwner {
   Auth get auth;
 }
 
-enum LoginStatus {
-  idle,
-  fetchingPermissions,
-  awaitingCode,
-  authenticating,
-  succeeded,
-  failed
-}
-
-abstract class Login extends Model {
-
-  factory Login({
-    LoginStatus status,
-    AuthSession session
-  }) = _$Login;
-
-  LoginStatus status;
-
-  AuthSession session;
-}
-
