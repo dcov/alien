@@ -7,6 +7,8 @@ import '../models/auth.dart';
 import '../models/user.dart';
 import '../widgets/tile.dart';
 
+import 'login_screen.dart';
+
 class _AccountTile extends StatelessWidget {
 
   _AccountTile({
@@ -48,12 +50,13 @@ void showAccountsBottomSheet({
   final dividerColor = Colors.grey.shade700;
   showModalBottomSheet(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     builder: (_) {
       return DraggableScrollableSheet(
         expand: false,
         maxChildSize: 0.5,
-        builder: (_, ScrollController controller) {
+        builder: (BuildContext context, ScrollController controller) {
           return Column(
             children: <Widget>[
               Padding(
@@ -88,7 +91,7 @@ void showAccountsBottomSheet({
                       onTap: () {
                       }),
                     CustomTile(
-                      onTap: () { },
+                      onTap: () => showLoginScreen(context: context, auth: auth),
                       icon: Icon(Icons.add),
                       title: Text(
                         'Add account',

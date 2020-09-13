@@ -1,46 +1,36 @@
 import 'package:elmer/elmer.dart';
-import 'package:hive/hive.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/accounts.dart';
 import '../models/auth.dart';
+import '../models/login.dart';
 import '../models/user.dart';
 
 import 'accounts.dart';
 import 'init.dart';
 
-extension AuthExtensions on Auth {
+class StartLogin extends Action {
 
-  Login createLogin() {
-    return Login(
-      status: LoginStatus.idle,
-      session: null);
-  }
-}
-
-class StartLoginSession extends Action {
-
-  StartLoginSession({
+  StartLogin({
     @required this.login
   }) : assert(login != null);
 
   final Login login;
 
   @override
-  dynamic update(AuthOwner owner) {
+  dynamic update(_) {
     assert(login.status == LoginStatus.idle);
-    login.status = LoginStatus.fetchingPermissions;
-    return GetPermissions(
+    login.status = LoginStatus.settingUp;
+    return _GetScopes(
       login: login);
   }
 }
 
-@visibleForTesting
-class GetPermissions extends Effect {
+class _GetScopes extends Effect {
 
-  GetPermissions({
+  _GetScopes({
     @required this.login
   }) : assert(login != null);
 
@@ -52,20 +42,19 @@ class GetPermissions extends Effect {
       .asDevice()
       .getScopeDescriptions()
       .then((Iterable<ScopeData> result) {
-        return GetPermissionsSuccess(
+        return _InitializeAuthSession(
           login: login,
           result: result);
       })
       .catchError((_) {
-        return GetPermissionsFailure(login: login);
+        return _GetScopesFailed(login: login);
       });
   }
 }
 
-@visibleForTesting
-class GetPermissionsSuccess extends Action {
+class _InitializeAuthSession extends Action {
 
-  GetPermissionsSuccess({
+  _InitializeAuthSession({
     @required this.login,
     @required this.result
   }) : assert(login != null),
@@ -90,10 +79,9 @@ class GetPermissionsSuccess extends Action {
   }
 }
 
-@visibleForTesting
-class GetPermissionsFailure extends Action {
+class _GetScopesFailed extends Action {
 
-  GetPermissionsFailure({
+  _GetScopesFailed({
     @required this.login,
   }) : assert(login != null);
 
@@ -123,25 +111,28 @@ class TryAuthenticating extends Action {
       return;
 
     final queryParameters = Uri.parse(url).queryParameters;
-    if (queryParameters['state'] != login.session.state ||
-        queryParameters['error'] != null) {
-      return AuthenticationFailed(
+    if (queryParameters['error'] != null) {
+      return _AuthenticationFailed(
         login: login);
     }
 
     if (queryParameters['code'] != null) {
+      if (queryParameters['state'] != login.session.state) {
+        return _AuthenticationFailed(
+          login: login);
+      }
+
       login.status = LoginStatus.authenticating;
-      return PostCode(
+      return _PostCode(
         login: login,
         code: queryParameters['code']);
     }
   }
 }
 
-@visibleForTesting
-class AuthenticationFailed extends Action {
+class _AuthenticationFailed extends Action {
 
-  AuthenticationFailed({
+  _AuthenticationFailed({
     @required this.login
   }) : assert(login != null);
 
@@ -153,10 +144,9 @@ class AuthenticationFailed extends Action {
   }
 }
 
-@visibleForTesting
-class PostCode extends Effect {
+class _PostCode extends Effect {
 
-  PostCode({
+  _PostCode({
     @required this.login,
     @required this.code
   }) : assert(login != null),
@@ -175,21 +165,20 @@ class PostCode extends Effect {
           .asUser(tokenData.refreshToken)
           .getUserAccount();
 
-      return PostCodeSuccess(
+      return _FinishLogin(
+        login: login,
         tokenData: tokenData,
-        accountData: accountData 
-      );
+        accountData: accountData);
     } catch (_) {
-      return PostCodeFailure(
+      return _PostCodeFailed(
         login: login);
     }
   }
 }
 
-@visibleForTesting
-class PostCodeSuccess extends Action {
+class _FinishLogin extends Action {
   
-  PostCodeSuccess({
+  _FinishLogin({
     @required this.login,
     @required this.tokenData,
     @required this.accountData
@@ -205,8 +194,9 @@ class PostCodeSuccess extends Action {
 
   @override
   dynamic update(AccountsOwner owner) {
-    final Accounts accounts = owner.accounts;
+    login.status = LoginStatus.succeeded;
 
+    final Accounts accounts = owner.accounts;
     User existingUser;
     for (final user in accounts.users) {
       if (user.name == accountData.username) {
@@ -236,10 +226,9 @@ class PostCodeSuccess extends Action {
   }
 }
 
-@visibleForTesting
-class PostCodeFailure extends Action {
+class _PostCodeFailed extends Action {
 
-  PostCodeFailure({
+  _PostCodeFailed({
     @required this.login
   }) : assert(login != null);
 

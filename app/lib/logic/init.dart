@@ -39,57 +39,38 @@ class InitApp extends Initial {
           appId: appId,
           appRedirect: appRedirect),
         theming: Theming()),
-      then: InitResources());
+      then: _InitEffectContext());
   }
 }
 
-@visibleForTesting
-class InitResources extends Effect {
+class _InitEffectContext extends Effect {
 
-  InitResources();
+  _InitEffectContext();
 
   @override
   dynamic perform(EffectContext context) async {
-    try {
-      /// Initialize the scraper
-      await context.scraper.init();
+    /// Initialize the scraper
+    await context.scraper.init();
 
-      /// Initialize the hive db instance
-      final appDir = await pathProvider.getApplicationDocumentsDirectory();
-      final appHivePath = path.join(appDir.path, 'data');
-      context.hive.init(appHivePath);
+    /// Initialize the hive db instance
+    context.hive.init(path.join((await pathProvider.getApplicationSupportDirectory()).path, 'hive'));
 
-      return InitResourcesSuccess();
-    } catch (_) {
-      return InitResourcesFailure();
-    }
+    return _InitCoreState();
   }
 }
 
-@visibleForTesting
-class InitResourcesSuccess extends Action {
+class _InitCoreState extends Action {
 
-  InitResourcesSuccess();
+  _InitCoreState();
 
   @override
   dynamic update(App app) {
-    return <Message>{
+    return {
       UpdateTheme(theming: app.theming),
       InitAccounts(
-        onInitialized: () => ResetMainState(),
-        onFailed: () => ResetMainState()),
+        onInitialized: () => _ResetUserState(),
+        onFailed: () => _ResetUserState()),
     };
-  }
-}
-
-@visibleForTesting
-class InitResourcesFailure extends Action {
-
-  InitResourcesFailure();
-
-  @override
-  dynamic update(_) {
-    // TODO: implement
   }
 }
 
@@ -104,15 +85,14 @@ class SwitchUser extends Action {
   dynamic update(App app) {
     return {
       SetCurrentUser(to: to),
-      ResetMainState()
+      _ResetUserState()
     };
   }
 }
 
-@visibleForTesting
-class ResetMainState extends Action {
+class _ResetUserState extends Action {
 
-  ResetMainState();
+  _ResetUserState();
 
   @override
   dynamic update(App app) {
@@ -125,12 +105,12 @@ class ResetMainState extends Action {
 
     if (app.accounts.currentUser == null) {
       app..subscriptions = null
-         ..defaults = Refreshable(refreshing: false)
-         ..feeds.insert(0, Feed(type: FeedType.home, sortBy: HomeSort.best));
+         ..defaults = Refreshable(refreshing: false);
       return RefreshDefaults(defaults: app.defaults);
     } else {
       app..defaults = null
-         ..subscriptions = Refreshable(refreshing: false);
+         ..subscriptions = Refreshable(refreshing: false)
+         ..feeds.insert(0, Feed(type: FeedType.home, sortBy: HomeSort.best));
       return RefreshSubscriptions(subscriptions: app.subscriptions); 
     }
   }
