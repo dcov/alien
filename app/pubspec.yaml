@@ -31,7 +31,7 @@ dependencies:
       url: git://github.com/dcov/flutter_markdown.git
       ref: alien
 
-  hive: ^1.4.1+1
+  hive: ^1.4.4
 
   markdown: ^2.1.3
 
