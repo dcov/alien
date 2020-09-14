@@ -6,31 +6,77 @@ import '../effects.dart';
 import '../models/accounts.dart';
 import '../models/feed.dart';
 import '../models/listing.dart';
+import '../models/post.dart';
 import '../models/user.dart';
 
 import 'listing.dart';
 import 'post.dart' show PostDataExtensions;
 
+extension FeedExtensions on Feed {
+
+  String get _name {
+    switch (this) {
+      case Feed.home:
+        return 'home';
+      case Feed.popular:
+        return 'popular';
+      case Feed.all:
+        return 'all';
+    }
+    throw ArgumentError('Invalid Feed.type value');
+  }
+
+  String get displayName {
+    switch (this) {
+      case Feed.home:
+        return 'Home';
+      case Feed.popular:
+        return 'Popular';
+      case Feed.all:
+        return 'All';
+    }
+    throw ArgumentError('Invalid Feed.type value');
+  }
+
+  FeedPosts toPosts() {
+    Object sortBy;
+    switch (this) {
+      case Feed.home:
+        sortBy = HomeSort.best;
+        break;
+      case Feed.popular:
+      case Feed.all:
+        sortBy = SubredditSort.hot;
+    }
+
+    return FeedPosts(
+      type: this,
+      sortBy: sortBy,
+      listing: Listing(
+        status: ListingStatus.idle));
+  }
+}
+
 class TransitionFeedPosts extends Action {
 
   TransitionFeedPosts({
-    @required this.feed,
+    @required this.posts,
     @required this.to
   });
 
-  final Feed feed;
+  final FeedPosts posts;
 
   final ListingStatus to;
 
   @override
   dynamic update(AccountsOwner owner) {
-    assert(feed.type != FeedType.home || owner.accounts.currentUser != null);
+    assert(posts.type != Feed.home || owner.accounts.currentUser != null);
     return TransitionListing(
-      listing: feed.posts,
+      listing: posts.listing,
       to: to,
       effectFactory: (Page page) {
         return GetFeedPosts(
-          feed: feed,
+          posts: posts,
           to: to,
           page: page,
           user: owner.accounts.currentUser);
@@ -41,13 +87,13 @@ class TransitionFeedPosts extends Action {
 class GetFeedPosts extends Effect {
 
   GetFeedPosts({
-    @required this.feed,
+    @required this.posts,
     @required this.to,
     @required this.page,
     this.user
   });
 
-  final Feed feed;
+  final FeedPosts posts;
 
   final ListingStatus to;
 
@@ -57,54 +103,27 @@ class GetFeedPosts extends Effect {
 
   @override
   dynamic perform(EffectContext context) async {
-    assert(feed.type != FeedType.home || user != null);
+    assert(posts.type != Feed.home || user != null);
     final client = user != null ? context.reddit.asUser(user.token) : context.reddit.asDevice();
     ListingData<PostData> result;
     try {
-      if (feed.type == FeedType.home) {
-        assert(feed.sortBy is HomeSort);
-        result = await client.getHomePosts(feed.sortBy, page);
+      if (posts.type == Feed.home) {
+        assert(posts.sortBy is HomeSort);
+        result = await client.getHomePosts(posts.sortBy, page);
       } else {
-        assert(feed.sortBy is SubredditSort);
-        final subredditName = feed.name;
-        result = await client.getSubredditPosts(subredditName, feed.sortBy, page);
+        assert(posts.sortBy is SubredditSort);
+        final subredditName = posts.type._name;
+        result = await client.getSubredditPosts(subredditName, posts.sortBy, page);
       }
     } catch (_) {
       return TransitionListingFailure();
     }
 
     return TransitionListingSuccess(
-      listing: feed.posts,
+      listing: posts.listing,
       to: to,
       data: result,
-      thingFactory: (PostData postData) => postData.toModel());
-  }
-}
-
-extension FeedExtensions on Feed {
-
-  String get name {
-    switch (this.type) {
-      case FeedType.home:
-        return 'home';
-      case FeedType.popular:
-        return 'popular';
-      case FeedType.all:
-        return 'all';
-    }
-    throw ArgumentError('Invalid Feed.type value');
-  }
-
-  String get displayName {
-    switch (this.type) {
-      case FeedType.home:
-        return 'Home';
-      case FeedType.popular:
-        return 'Popular';
-      case FeedType.all:
-        return 'All';
-    }
-    throw ArgumentError('Invalid Feed.type value');
+      thingFactory: (PostData data) => data.toModel());
   }
 }
 

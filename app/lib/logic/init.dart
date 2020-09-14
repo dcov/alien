@@ -2,7 +2,6 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
-import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../logic/defaults.dart';
@@ -100,8 +99,8 @@ class _ResetUserState extends Action {
 
     app.feeds
       ..clear()
-      ..add(Feed(type: FeedType.popular, sortBy: SubredditSort.hot))
-      ..add(Feed(type: FeedType.all, sortBy: SubredditSort.hot));
+      ..add(Feed.popular)
+      ..add(Feed.all);
 
     if (app.accounts.currentUser == null) {
       app..subscriptions = null
@@ -110,7 +109,7 @@ class _ResetUserState extends Action {
     } else {
       app..defaults = null
          ..subscriptions = Refreshable(refreshing: false)
-         ..feeds.insert(0, Feed(type: FeedType.home, sortBy: HomeSort.best));
+         ..feeds.insert(0, Feed.home);
       return RefreshSubscriptions(subscriptions: app.subscriptions); 
     }
   }
