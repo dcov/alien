@@ -6,7 +6,6 @@ import '../effects.dart';
 import '../models/accounts.dart';
 import '../models/feed.dart';
 import '../models/listing.dart';
-import '../models/post.dart';
 import '../models/user.dart';
 
 import 'listing.dart';

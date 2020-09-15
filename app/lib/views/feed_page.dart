@@ -65,12 +65,10 @@ class FeedTile extends StatelessWidget {
 
 class FeedPage extends EntryPage {
 
-
   FeedPage({
     @required this.posts,
     @required String name,
   }) : super(name: name);
-
 
   final FeedPosts posts;
 

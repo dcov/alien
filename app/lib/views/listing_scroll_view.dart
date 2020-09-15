@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../models/listing.dart';
 import '../models/thing.dart';
-
 
 typedef ThingWidgetBuilder<T extends Thing> = Widget Function(BuildContext context, T thing);
 
@@ -57,27 +59,53 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
                    listing.pagination?.nextPageExists == true;
   }
 
+  Completer<void> _refreshCompleter;
+
+  Future<void> _handleRefresh() {
+    if (_refreshCompleter == null) {
+      _refreshCompleter = Completer<void>();
+      widget.onTransitionListing(ListingStatus.refreshing);
+    }
+    return _refreshCompleter.future;
+  }
+
+  void _checkShouldFinishRefresh(Listing<T> listing) {
+    if (_refreshCompleter != null) {
+      assert(listing.status != ListingStatus.loadingMore);
+      if (listing.status == ListingStatus.idle) {
+        _refreshCompleter.complete();
+        _refreshCompleter = null;
+      }
+    }
+  }
+
   @override
   Widget build(_) {
     return Connector(
       builder: (BuildContext context) {
         final Listing<T> listing = widget.listing;
         _checkShouldHandlePositionChange(listing);
+        _checkShouldFinishRefresh(listing);
         return CustomScrollView(
           controller: _controller,
           slivers: <Widget>[
-            if (listing.status == ListingStatus.refreshing)
-              SliverToBoxAdapter(child: CircularProgressIndicator()),
+            CupertinoSliverRefreshControl(
+              onRefresh: _handleRefresh),
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
                   return widget.builder(context, listing.things[index]);
                 },
                 childCount: listing.things.length)),
-            if (listing.status == ListingStatus.loadingMore)
-              SliverToBoxAdapter(child: CircularProgressIndicator()),
           ]);
       });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _refreshCompleter?.complete();
+    super.dispose();
   }
 }
 

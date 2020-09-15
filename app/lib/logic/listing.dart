@@ -33,21 +33,17 @@ class TransitionListing extends Action {
         if (listing.status == ListingStatus.refreshing)
           return;
 
-        listing..status = ListingStatus.refreshing
-               ..pagination = Pagination()
-               ..things.clear();
-
-        return effectFactory(listing.pagination.nextPage);
+        listing.pagination = Pagination();
+        break;
       case ListingStatus.loadingMore:
         assert(listing.pagination != null);
         assert(listing.pagination.nextPageExists);
-        if (listing.status != ListingStatus.idle)
-          return null;
-        
-        listing.status = ListingStatus.loadingMore;
-        
-        return effectFactory(listing.pagination.nextPage);
+        if (listing.status != ListingStatus.idle) return null;
+        break;
     }
+
+    listing.status = to;
+    return effectFactory(listing.pagination.nextPage);
   }
 }
 
@@ -77,17 +73,25 @@ class TransitionListingSuccess<TD extends ThingData, T extends Thing> extends Ac
     if (listing.status != to)
       return;
     
-    Iterable<TD> things = data.things;
-    if (listing.status == ListingStatus.loadingMore) {
-      /// Filter out any [Thing] items from [things] that are already in
-      /// [listing.things] by comparing their [Thing.id] values.
-      things = things.where((TD td) {
-        for (final Thing t in listing.things) {
-          if (t.id == td.id)
-            return false;
-        }
-        return true;
-      });
+    Iterable<TD> things;
+    switch (listing.status) {
+      case ListingStatus.refreshing:
+        listing.things.clear();
+        things = data.things;
+        break;
+      case ListingStatus.loadingMore:
+        /// Filter out any [Thing] items from [things] that are already in
+        /// [listing.things] by comparing their [Thing.id] values.
+        things = data.things.where((TD td) {
+          for (final Thing t in listing.things) {
+            if (t.id == td.id)
+              return false;
+          }
+          return true;
+        });
+        break;
+      default:
+        break;
     }
 
     listing..pagination = listing.pagination.forward(data)
