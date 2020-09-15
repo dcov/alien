@@ -132,8 +132,10 @@ class _RoutingState extends State<Routing> {
 
   void _popAt(int popIndex) {
     final poppedEntry = _entries.removeAt(popIndex);
-    while (_entries[popIndex].depth > poppedEntry.depth) {
-      _entries.removeAt(popIndex);
+    if (popIndex < _entries.length) {
+      while (_entries[popIndex].depth > poppedEntry.depth) {
+        _entries.removeAt(popIndex);
+      }
     }
   }
 
@@ -177,9 +179,9 @@ class _RoutingState extends State<Routing> {
   Future<bool> _handleWillPop() {
     if (_navigator.canPop()) {
       _navigator.pop();
-      return Future.value(true);
+      return Future.value(false);
     }
-    return Future.value(false);
+    return Future.value(true);
   }
 
   @override

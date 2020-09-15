@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../logic/feeds.dart';
 import '../models/feed.dart';
+import '../models/listing.dart';
+import '../models/post.dart';
+import '../views/listing_scroll_view.dart';
+import '../views/post_tiles.dart';
 import '../widgets/routing.dart';
 import '../widgets/tile.dart';
+import '../widgets/widget_extensions.dart';
 
 class FeedTile extends StatelessWidget {
 
@@ -16,20 +21,30 @@ class FeedTile extends StatelessWidget {
   final Feed feed;
 
   void _pushPage(BuildContext context) {
+
+    final posts = feed.toPosts();
+
+    /// Push the feed posts page
     context.push(
-      FeedPage.pageNameFrom(feed),
-      (String pageName) => FeedPage(
-        feed: feed,
-        name: pageName));
+        FeedPage.pageNameFrom(feed),
+        (String pageName) => FeedPage(
+          posts: posts,
+          name: pageName));
+
+    /// Dispatch a refresh event
+    context.dispatch(
+        TransitionFeedPosts(
+          posts: posts,
+          to: ListingStatus.refreshing));
   }
 
   IconData get _feedTypeIcon {
-    switch (feed.type) {
-      case FeedType.home:
+    switch (feed) {
+      case Feed.home:
         return Icons.home;
-      case FeedType.popular:
+      case Feed.popular:
         return Icons.trending_up;
-      case FeedType.all:
+      case Feed.all:
         return Icons.all_inclusive;
     }
     throw ArgumentError('Invalid Feed.type value');
@@ -51,22 +66,21 @@ class FeedTile extends StatelessWidget {
 class FeedPage extends EntryPage {
 
   FeedPage({
-    @required this.feed,
+    @required this.posts,
     @required String name,
   }) : super(name: name);
 
-  final Feed feed;
+  final FeedPosts posts;
 
-  static String pageNameFrom(Feed feed) {
-    return feed.name;
-  }
+  static String pageNameFrom(Feed feed) => feed.displayName;
 
   @override
-  Route createRoute(BuildContext context) {
+  Route createRoute(_) {
     return PageRouteBuilder(
       settings: this,
-      pageBuilder: (BuildContext _, Animation<double> __, Animation<double> ___) {
-        return _FeedPageView();
+      pageBuilder: (BuildContext context, Animation<double> _, Animation<double> __) {
+        return _FeedPageView(
+          posts: posts);
       });
   }
 }
@@ -74,12 +88,43 @@ class FeedPage extends EntryPage {
 class _FeedPageView extends StatelessWidget {
 
   _FeedPageView({
-    Key key
-  }) : super(key: key);
+    Key key,
+    @required this.posts,
+  }) : assert(posts != null),
+       super(key: key);
+
+  final FeedPosts posts;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox();
+    return Column(
+      children: <Widget>[
+        Material(
+          child: Padding(
+            padding: EdgeInsets.only(top: context.mediaPadding.top),
+            child: SizedBox(
+              height: 48.0,
+              child: NavigationToolbar(
+                leading: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close)),
+                middle: Text(posts.type.displayName))))),
+        Expanded(
+          child: ListingScrollView(
+            listing: posts.listing,
+            onTransitionListing: (ListingStatus to) {
+              context.dispatch(
+                TransitionFeedPosts(
+                  posts: posts,
+                  to: to));
+            },
+            builder: (BuildContext context, Post post) {
+              return PostTile(
+                post: post,
+                layout: PostTileLayout.list,
+                includeSubredditName: true);
+            }))
+      ]);
   }
 }
 

@@ -5,27 +5,27 @@ import 'post.dart';
 
 part 'feed.g.dart';
 
-enum FeedType {
+enum Feed {
   home,
   popular,
   all
 }
 
-abstract class Feed extends Model {
+abstract class FeedPosts extends Model {
 
-  factory Feed({
-    FeedType type,
+  factory FeedPosts({
+    Feed type,
     Object sortBy,
-    Listing<Post> posts
-  }) = _$Feed;
+    Listing<Post> listing,
+  }) = _$FeedPosts;
 
-  FeedType get type;
+  Feed get type;
 
   /// The value to use when sorting the posts.
   /// If [type] is [FeedType.home] this should be a [HomeSort] value; If [type] is [FeedType.popular] or [FeedType.all]
   /// this should be a [SubredditSort] value.
   Object sortBy;
 
-  Listing<Post> posts;
+  Listing<Post> listing;
 }
 

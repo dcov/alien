@@ -26,36 +26,30 @@ class TransitionListing extends Action {
     assert(to != ListingStatus.idle,
         'Can\'t transition a Listing to idle manually, it has to be as a result of a different transition.');
 
+    // ignore: missing_enum_constant_in_switch
     switch(to) {
       case ListingStatus.refreshing:
         // Check if the listing is already refreshing
         if (listing.status == ListingStatus.refreshing)
-          return null;
+          return;
 
-        listing..status = ListingStatus.refreshing
-               ..pagination = Pagination()
-               ..things.clear();
-
-        return effectFactory(listing.pagination.nextPage);
+        listing.pagination = Pagination();
+        break;
       case ListingStatus.loadingMore:
         assert(listing.pagination != null);
         assert(listing.pagination.nextPageExists);
-        if (listing.status != ListingStatus.idle)
-          return null;
-        
-        listing..status = ListingStatus.loadingMore
-               ..things.clear();
-        
-        return effectFactory(listing.pagination.nextPage);
-      default:
-        return null;
+        if (listing.status != ListingStatus.idle) return null;
+        break;
     }
+
+    listing.status = to;
+    return effectFactory(listing.pagination.nextPage);
   }
 }
 
-typedef _ThingFactory<TD extends ThingData> = Thing Function(TD data);
+typedef _ThingFactory<TD extends ThingData, T extends Thing> = T Function(TD data);
 
-class TransitionListingSuccess<TD extends ThingData> extends Action {
+class TransitionListingSuccess<TD extends ThingData, T extends Thing> extends Action {
 
   TransitionListingSuccess({
     @required this.listing,
@@ -64,13 +58,13 @@ class TransitionListingSuccess<TD extends ThingData> extends Action {
     @required this.thingFactory
   });
 
-  final Listing listing;
+  final Listing<T> listing;
 
   final ListingStatus to;
 
   final ListingData<TD> data;
 
-  final _ThingFactory<TD> thingFactory;
+  final _ThingFactory<TD, T> thingFactory;
 
   @override
   dynamic update(_) {
@@ -79,27 +73,30 @@ class TransitionListingSuccess<TD extends ThingData> extends Action {
     if (listing.status != to)
       return;
     
-    Iterable<ThingData> things = data.things;
+    Iterable<TD> things;
     switch (listing.status) {
+      case ListingStatus.refreshing:
+        listing.things.clear();
+        things = data.things;
+        break;
       case ListingStatus.loadingMore:
-        // Filter out any [Thing] items from [newThings] that are already in
-        // [listing.things] by comparing their [Thing.id] values.
-        things = things.where((ThingData td) {
+        /// Filter out any [Thing] items from [things] that are already in
+        /// [listing.things] by comparing their [Thing.id] values.
+        things = data.things.where((TD td) {
           for (final Thing t in listing.things) {
             if (t.id == td.id)
               return false;
           }
           return true;
         });
-
-        continue update;
-      update:
+        break;
       default:
-        listing.pagination = listing.pagination.forward(data);
-        listing.things.addAll(things.map(thingFactory));
+        break;
     }
 
-    listing.status = ListingStatus.idle;
+    listing..pagination = listing.pagination.forward(data)
+           ..things.addAll(things.map(thingFactory))
+           ..status = ListingStatus.idle;
   }
 }
 
