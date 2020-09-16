@@ -10,27 +10,35 @@ import '../models/subreddit.dart';
 import 'listing.dart';
 import 'post.dart' show PostDataExtensions;
 
+extension SubredditToPostsExtension on Subreddit {
+
+  SubredditPosts toPosts() {
+    return SubredditPosts(
+      subreddit: this,
+      sortBy: SubredditSort.hot,
+      listing: Listing<Post>(
+        status: ListingStatus.idle));
+  }
+}
+
 class TransitionSubredditPosts extends Action {
 
   TransitionSubredditPosts({
-    @required this.subreddit,
     @required this.posts,
     @required this.to
-  });
+  }) : assert(posts != null),
+       assert(to != null);
 
-  final Subreddit subreddit;
-
-  final Listing<Post> posts;
+  final SubredditPosts posts;
 
   final ListingStatus to;
 
   @override
   dynamic update(_) {
     return TransitionListing(
-      listing: posts,
+      listing: posts.listing,
       to: to,
       effectFactory: (Page page) => GetSubredditPosts(
-        subreddit: subreddit,
         posts: posts,
         to: to,
         page: page));
@@ -40,15 +48,15 @@ class TransitionSubredditPosts extends Action {
 class GetSubredditPosts extends Effect {
 
   GetSubredditPosts({
-    @required this.subreddit,
     @required this.posts,
     @required this.to,
     @required this.page
-  });
+  }) : assert(posts != null),
+       assert(to != null),
+       assert(page != null);
 
-  final Subreddit subreddit;
 
-  final Listing<Post> posts;
+  final SubredditPosts posts;
 
   final ListingStatus to;
 
@@ -59,11 +67,11 @@ class GetSubredditPosts extends Effect {
     return context.reddit
       .asDevice()
       .getSubredditPosts(
-        subreddit.name, SubredditSort.hot, page)
+        posts.subreddit.name, posts.sortBy, page)
       .then(
         (ListingData<PostData> data) {
           return TransitionListingSuccess(
-            listing: posts,
+            listing: posts.listing,
             to: to,
             data: data,
             thingFactory: (PostData data) {

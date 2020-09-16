@@ -181,14 +181,14 @@ class _AppBodyState extends State<_AppBody> {
           mapValues(
             app.defaults.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
-            SubredditPage.pageNameFrom);
+            subredditPageNameFrom);
         } else {
           assert(app.subscriptions != null);
           children.add(_SublistHeader(name: 'SUBSCRIPTIONS'));
           mapValues(
             app.subscriptions.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
-            SubredditPage.pageNameFrom);
+            subredditPageNameFrom);
         }
 
         return ListView(
