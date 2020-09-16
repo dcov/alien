@@ -3,82 +3,84 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/comments_tree.dart';
+import '../models/more.dart';
+import '../models/post_comments.dart';
 import '../models/thing.dart';
 
 import 'comment.dart';
 
-class LoadCommentsTree extends Action {
+class RefreshPostComments extends Action {
 
-  LoadCommentsTree({
-    @required this.commentsTree
-  });
+  RefreshPostComments({
+    @required this.comments
+  }) : assert(comments != null);
 
-  final CommentsTree commentsTree;
+  final PostComments comments;
 
   @override
   dynamic update(_) {
-    if (commentsTree.isRefreshing)
+    if (comments.isRefreshing)
       return null;
 
-    commentsTree
+    comments
         ..isRefreshing = true
         ..things.clear();
     
-    return GetPostComments(commentsTree: commentsTree);
+    return _GetPostComments(comments: comments);
   }
 }
 
-class GetPostComments extends Effect {
+class _GetPostComments extends Effect {
 
-  GetPostComments({
-    @required this.commentsTree
-  });
+  _GetPostComments({
+    @required this.comments
+  }) : assert(comments != null);
 
-  final CommentsTree commentsTree;
+  final PostComments comments;
 
   @override
   dynamic perform(EffectContext context) {
     return context.reddit
       .asDevice()
       .getPostComments(
-        commentsTree.permalink,
-        commentsTree.sortBy)
+        comments.permalink,
+        comments.sortBy)
       .then(
         (ListingData<ThingData> result) {
-          return GetPostCommentsSuccess(
-            commentsTree: commentsTree,
+          return _FinishRefreshing(
+            comments: comments,
             result: result.things
           );
         },
         onError: (_) {
-          return GetPostCommentsFailure();
+          return _GetPostCommentsFailed();
         });
   }
 }
 
-class GetPostCommentsSuccess extends Action {
+class _FinishRefreshing extends Action {
 
-  GetPostCommentsSuccess({
-    @required this.commentsTree,
+  _FinishRefreshing({
+    @required this.comments,
     @required this.result
-  });
+  }) : assert(comments != null),
+       assert(result != null);
 
-  final CommentsTree commentsTree;
+  final PostComments comments;
 
   final Iterable<ThingData> result;
 
   @override
   dynamic update(_) {
-    assert(commentsTree.isRefreshing);
-    commentsTree..isRefreshing = false
+    assert(comments.isRefreshing);
+    comments..isRefreshing = false
         ..things.addAll(_flattenTree(result).map(_mapThing));
   }
 }
 
-class GetPostCommentsFailure extends Action {
+class _GetPostCommentsFailed extends Action {
 
-  GetPostCommentsFailure();
+  _GetPostCommentsFailed();
 
   @override
   dynamic update(_) {
@@ -89,11 +91,12 @@ class GetPostCommentsFailure extends Action {
 class LoadMoreComments extends Action {
 
   LoadMoreComments({
-    @required this.commentsTree,
+    @required this.comments,
     @required this.more
-  });
+  }) : assert(comments != null),
+       assert(more != null);
 
-  final CommentsTree commentsTree;
+  final PostComments comments;
 
   final More more;
 
@@ -103,21 +106,22 @@ class LoadMoreComments extends Action {
       return null;
     
     more.isLoading = true;
-    return GetMoreComments(
-      commentsTree: commentsTree,
+    return _GetMoreComments(
+      comments: comments,
       more: more,
     );
   }
 }
 
-class GetMoreComments extends Effect {
+class _GetMoreComments extends Effect {
 
-  GetMoreComments({
-    @required this.commentsTree,
+  _GetMoreComments({
+    @required this.comments,
     @required this.more
-  });
+  }) : assert(comments != null),
+       assert(more != null);
 
-  final CommentsTree commentsTree;
+  final PostComments comments;
 
   final More more;
 
@@ -126,31 +130,33 @@ class GetMoreComments extends Effect {
     return context.reddit
       .asDevice()
       .getMoreComments(
-        commentsTree.fullPostId,
+        comments.fullPostId,
         more.id,
         more.thingIds)
       .then((ListingData<ThingData> result) {
-          return GetMoreCommentsSuccess(
-            commentsTree: commentsTree,
+          return _InsertMoreComments(
+            comments: comments,
             more: more,
             result: result.things
           );
         },
         onError: (e) {
-          return GetMoreCommentsFailure();
+          return _GetMoreCommentsFailed();
         });
   }
 }
 
-class GetMoreCommentsSuccess extends Action {
+class _InsertMoreComments extends Action {
 
-  GetMoreCommentsSuccess({
-    @required this.commentsTree,
+  _InsertMoreComments({
+    @required this.comments,
     @required this.more,
     @required this.result
-  });
+  }) : assert(comments != null),
+       assert(more != null),
+       assert(result != null);
 
-  final CommentsTree commentsTree;
+  final PostComments comments;
 
   final More more;
 
@@ -160,15 +166,15 @@ class GetMoreCommentsSuccess extends Action {
   dynamic update(_) {
     assert(more.isLoading);
     more.isLoading = false;
-    final int insertIndex = commentsTree.things.indexOf(more);
+    final int insertIndex = comments.things.indexOf(more);
     final Iterable<Thing> newThings = _flattenTree(result).map(_mapThing);
-    commentsTree.things.replaceRange(insertIndex, insertIndex + 1, newThings);
+    comments.things.replaceRange(insertIndex, insertIndex + 1, newThings);
   }
 }
 
-class GetMoreCommentsFailure extends Action {
+class _GetMoreCommentsFailed extends Action {
 
-  GetMoreCommentsFailure();
+  _GetMoreCommentsFailed();
 
   @override
   dynamic update(_) {
@@ -182,7 +188,13 @@ Thing _mapThing(ThingData data) {
   if (data is CommentData)
     return data.toModel();
   else if (data is MoreData)
-    return data.toModel();
+    return More(
+      isLoading: false,
+      count: data.count,
+      depth: data.depth,
+      thingIds: data.thingIds,
+      id: data.id,
+      kind: data.kind);
   else
     // TODO: Figure out a better way to handle this
     return null;
@@ -194,19 +206,6 @@ Iterable<ThingData> _flattenTree(Iterable<ThingData> data) sync* {
     yield td;
     if (td is CommentData)
       yield* _flattenTree(td.replies);
-  }
-}
-
-extension _MoreDataExtensions on MoreData {
-
-  More toModel() {
-    return More(
-      isLoading: false,
-      count: this.count,
-      depth: this.depth,
-      thingIds: this.thingIds,
-      id: this.id,
-      kind: this.kind);
   }
 }
 
