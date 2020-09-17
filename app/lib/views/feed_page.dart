@@ -77,9 +77,9 @@ class FeedPage extends EntryPage {
 
   @override
   Route createRoute(_) {
-    return PageRouteBuilder(
+    return MaterialPageRoute(
       settings: this,
-      pageBuilder: (BuildContext context, Animation<double> _, Animation<double> __) {
+      builder: (_) {
         return _FeedPageView(
           posts: posts);
       });

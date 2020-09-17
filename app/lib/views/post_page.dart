@@ -54,9 +54,9 @@ class _PostPage extends EntryPage {
 
   @override
   Route createRoute(BuildContext context) {
-    return PageRouteBuilder(
+    return MaterialPageRoute(
       settings: this,
-      pageBuilder: (BuildContext context, _, __) {
+      builder: (BuildContext context) {
         return _PostPageView(comments: comments);
       });
   }
