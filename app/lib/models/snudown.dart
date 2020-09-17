@@ -14,3 +14,4 @@ abstract class Snudown extends Model {
 
   Map<String, Model> get models;
 }
+

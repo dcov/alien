@@ -12,7 +12,7 @@ import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'listing_scroll_view.dart';
-import 'post_tiles.dart';
+import 'post_page.dart';
 
 class _SubredditPageView extends StatelessWidget {
 
@@ -48,7 +48,6 @@ class _SubredditPageView extends StatelessWidget {
               builder: (BuildContext context, Post post) {
                 return PostTile(
                   post: post,
-                  layout: PostTileLayout.list,
                   includeSubredditName: false);
               }))
         ]));

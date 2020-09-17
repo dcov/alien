@@ -1,6 +1,7 @@
 import 'package:elmer/elmer.dart';
 import 'package:reddit/reddit.dart';
 
+import 'post.dart';
 import 'thing.dart';
 
 part 'post_comments.g.dart';
@@ -8,16 +9,19 @@ part 'post_comments.g.dart';
 abstract class PostComments extends Model {
 
   factory PostComments({
-    bool isRefreshing,
+    Post post,
+    bool refreshing,
     CommentsSort sortBy,
     String fullPostId,
     String permalink,
     List<Thing> things,
   }) = _$PostComments;
 
+  Post get post;
+
   String get fullPostId;
 
-  bool isRefreshing;
+  bool refreshing;
 
   String get permalink;
 

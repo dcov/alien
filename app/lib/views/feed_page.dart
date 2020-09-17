@@ -5,11 +5,12 @@ import '../logic/feeds.dart';
 import '../models/feed.dart';
 import '../models/listing.dart';
 import '../models/post.dart';
-import '../views/listing_scroll_view.dart';
-import '../views/post_tiles.dart';
 import '../widgets/routing.dart';
 import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
+
+import 'listing_scroll_view.dart';
+import 'post_page.dart';
 
 class FeedTile extends StatelessWidget {
 
@@ -121,7 +122,6 @@ class _FeedPageView extends StatelessWidget {
             builder: (BuildContext context, Post post) {
               return PostTile(
                 post: post,
-                layout: PostTileLayout.list,
                 includeSubredditName: true);
             }))
       ]);

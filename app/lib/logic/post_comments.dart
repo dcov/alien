@@ -4,10 +4,24 @@ import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/more.dart';
+import '../models/post.dart';
 import '../models/post_comments.dart';
 import '../models/thing.dart';
 
 import 'comment.dart';
+import 'thing.dart';
+
+extension PostToCommentsExtension on Post {
+
+  PostComments toComments() {
+    return PostComments(
+      post: this,
+      refreshing: false,
+      sortBy: CommentsSort.best,
+      fullPostId: this.fullId,
+      permalink: this.permalink);
+  }
+}
 
 class RefreshPostComments extends Action {
 
@@ -19,12 +33,10 @@ class RefreshPostComments extends Action {
 
   @override
   dynamic update(_) {
-    if (comments.isRefreshing)
-      return null;
+    if (comments.refreshing)
+      return;
 
-    comments
-        ..isRefreshing = true
-        ..things.clear();
+    comments.refreshing = true;
     
     return _GetPostComments(comments: comments);
   }
@@ -72,8 +84,10 @@ class _FinishRefreshing extends Action {
 
   @override
   dynamic update(_) {
-    assert(comments.isRefreshing);
-    comments..isRefreshing = false
+    assert(comments.refreshing);
+    comments
+        ..refreshing = false
+        ..things.clear()
         ..things.addAll(_flattenTree(result).map(_mapThing));
   }
 }
@@ -133,7 +147,7 @@ class _GetMoreComments extends Effect {
         comments.fullPostId,
         more.id,
         more.thingIds)
-      .then((ListingData<ThingData> result) {
+      .then<Action>((ListingData<ThingData> result) {
           return _InsertMoreComments(
             comments: comments,
             more: more,
