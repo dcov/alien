@@ -36,11 +36,13 @@ extension ReadEndpoints on RedditClient {
 
   Future<ListingData<ThingData>> getMoreComments(String fullPostId, String moreId, Iterable<String> thingIds) {
     return get('/api/morechildren/${_kRawJsonArgs}'
-               '&link_id=${fullPostId}&id=${moreId}'
+               '&api_type=json'
+               '&link_id=${fullPostId}'
+               '&id=${moreId}'
                '&children=${thingIds.join(',')}')
         .then((String json) {
           return ListingData.fromJson(json,
-              (obj) => obj['data']['json']);
+              (obj) => obj['json']['data']);
         });
   }
 
