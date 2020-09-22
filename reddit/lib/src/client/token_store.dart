@@ -1,7 +1,9 @@
 import 'package:http/http.dart';
-import 'package:meta/meta.dart';
 
 import '../types/data/data.dart';
+
+// The current date time in milliseconds.
+int get _currentTimeUtc => DateTime.now().millisecondsSinceEpoch;
 
 abstract class TokenStore {
 
@@ -17,77 +19,78 @@ abstract class TokenStore {
     String refreshToken
   ) = _UserStore;
 
+  factory TokenStore.asScript(
+    Client ioClient,
+    Map<String, String> basicHeader
+  ) = _ScriptStore;
+
   TokenStore._();
 
-  int _expirationUtc;
-  Map<String, String> _header;
-  Future<Map<String, String>> _futureHeader;
+  Future<Map<String, String>> _futureTokenHeader;
+  Map<String, String> _tokenHeader;
+  int _expirationTimeUtc;
 
-  Future<Map<String, String>> get tokenHeader {
-    return _futureHeader
-        ?? _isHeaderValid() ? Future.value(_header) : _updateHeader();
+  void _updateState(AccessTokenData data) {
+    _expirationTimeUtc = _currentTimeUtc + (data.expiresIn * 1000) - 30000;
+    _tokenHeader = {
+      'Content-Type' : 'application/x-www-form-urlencoded',
+      'Authorization' : 'bearer ${data.accessToken}'
+    };
   }
 
   /// Replaces the current state with [data]. If there is a request for a token
   /// in progress when this is called, it will be ignored and this data will be
   /// used going forward.
   void replaceData(AccessTokenData data) {
-    _futureHeader = null;
-    _setHeader(data);
+    _updateState(data);
+    // Set the _futureTokenHeader to null in case there was a request in progress.
+    _futureTokenHeader = null;
   }
 
-  int get _currentUtc => DateTime.now().millisecondsSinceEpoch;
+  Future<Response> _postTokenRequest();
 
-  bool _isHeaderValid() {
-    return _header != null
-        && _expirationUtc > _currentUtc;
-  }
+  Future<Map<String, String>> _requestToken() {
+    Future<Map<String, String>> future;
 
-  Future<Map<String, String>> _updateHeader() {
-    _futureHeader = postTokenRequest().then((Response response) {
-      if (_futureHeader != null) {
-        _setHeader(AccessTokenData.fromJson(response.body));
-        _futureHeader = null;
+    future = _postTokenRequest().then((Response response) {
+      // Ensure that we're still waiting on this future before updating the state
+      if (_futureTokenHeader == future) {
+        replaceData(AccessTokenData.fromJson(response.body));
       }
-      return _header;
+      return _tokenHeader;
     });
-    return _futureHeader;
+    _futureTokenHeader = future;
+
+    return future;
   }
 
-  void _setHeader(AccessTokenData data) {
-    _expirationUtc = _currentUtc + (data.expiresIn * 1000) - 30000;
-    _header = {
-      'Content-Type' : 'application/x-www-form-urlencoded',
-      'Authorization' : 'bearer ${data.accessToken}'
-    };
-  }
+  bool get _headerIsValid => _tokenHeader != null && _expirationTimeUtc > _currentTimeUtc;
 
-  @protected
-  @visibleForTesting
-  Future<Response> postTokenRequest();
+  Future<Map<String, String>> get tokenHeader =>
+      _futureTokenHeader ?? _headerIsValid ? Future.value(_tokenHeader) : _requestToken();
 }
 
 class _DeviceStore extends TokenStore {
 
   _DeviceStore(
-    this.ioClient,
+    this._ioClient,
     this._basicHeader,
     this._deviceId
   ) : super._();
 
-  final Client ioClient;
+  final Client _ioClient;
 
   final Map<String, String> _basicHeader;
 
   final String _deviceId;
 
   @override
-  Future<Response> postTokenRequest() {
-    return ioClient.post(
+  Future<Response> _postTokenRequest() {
+    return _ioClient.post(
       'https://www.reddit.com/api/v1/access_token',
       headers: _basicHeader,
-      body: 'grant_type=https://oauth.reddit.com/grants/installed_client'
-            '&device_id=${_deviceId}',
+      body: 'grant_type=https://oauth.reddit.com/grants/installed_client&'
+            'device_id=${_deviceId}',
     );
   }
 }
@@ -95,24 +98,45 @@ class _DeviceStore extends TokenStore {
 class _UserStore extends TokenStore {
 
   _UserStore(
-    this.ioClient,
+    this._ioClient,
     this._basicHeader,
     this._refreshToken
   ) : super._();
 
-  final Client ioClient;
+  final Client _ioClient;
 
   final Map<String, String> _basicHeader;
 
   final String _refreshToken;
 
   @override
-  Future<Response> postTokenRequest() {
-    return ioClient.post(
+  Future<Response> _postTokenRequest() {
+    return _ioClient.post(
       'https://www.reddit.com/api/v1/access_token',
       headers: _basicHeader,
-      body: 'grant_type=refresh_token&refresh_token=${_refreshToken}'
+      body: 'grant_type=refresh_token&'
+            'refresh_token=${_refreshToken}'
     );
+  }
+}
+
+class _ScriptStore extends TokenStore {
+
+  _ScriptStore(
+    this._ioClient,
+    this._basicHeader)
+    : super._();
+
+  final Client _ioClient;
+
+  final Map<String, String> _basicHeader;
+
+  @override
+  Future<Response> _postTokenRequest() {
+    return _ioClient.post(
+      'https://www.reddit.com/api/v1/access_token',
+      headers: _basicHeader,
+      body: 'grant_type=client_credentials');
   }
 }
 
