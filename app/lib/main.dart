@@ -1,16 +1,16 @@
 import 'logic/init.dart';
 import 'views/init_view.dart';
 
-import 'config.dart' as config;
+import 'config.dart';
 import 'effects.dart';
 
 void main() {
   runLoopWithEffects(
-    appId: config.kAppId,
-    appRedirect: config.kAppRedirect,
+    appId: Credentials.appId,
+    appRedirect: Credentials.appRedirect,
     initial: InitApp(
-      appId: config.kAppId,
-      appRedirect: config.kAppRedirect),
+      appId: Credentials.appId,
+      appRedirect: Credentials.appRedirect),
     view: InitView());
 }
 
