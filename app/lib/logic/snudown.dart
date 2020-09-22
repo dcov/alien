@@ -135,7 +135,7 @@ void _parseRawInto(String data, Snudown snudown) {
     hrefsToRemove.forEach(snudown.models.remove);
 }
 
-Snudown snudownFrom(String markdown) {
+Snudown snudownFromMarkdown(String markdown) {
   final snudown = Snudown();
   _parseRawInto(markdown, snudown);
   return snudown;

@@ -35,7 +35,11 @@ class _PostPageView extends StatelessWidget {
               height: 48.0,
               child: NavigationToolbar(
                 leading: CloseButton(),
-                middle: Text('${comments.post.commentCount} comments'))))),
+                middle: Text(
+                  '${comments.post.commentCount} comments',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500)))))),
         Expanded(
           child: PostCommentsScrollView(
             comments: comments)),
@@ -60,6 +64,10 @@ class _PostPage extends EntryPage {
         return _PostPageView(comments: comments);
       });
   }
+}
+
+String postPageNameFrom(Post post) {
+  return post.fullId;
 }
 
 void _showPostPage({
@@ -128,6 +136,7 @@ class PostTile extends StatelessWidget {
                           ])),
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 4.0,
                         children: <Widget>[
                           Text(
                             '${formatCount(post.score)} points',
@@ -155,9 +164,5 @@ class PostTile extends StatelessWidget {
               ])));
       });
   }
-}
-
-String postPageNameFrom(Post post) {
-  return post.fullId;
 }
 

@@ -9,7 +9,7 @@ import '../models/listing.dart';
 import '../models/user.dart';
 
 import 'listing.dart';
-import 'post.dart' show PostDataExtensions;
+import 'post.dart';
 
 extension FeedExtensions on Feed {
 
@@ -122,7 +122,7 @@ class GetFeedPosts extends Effect {
       listing: posts.listing,
       to: to,
       data: result,
-      thingFactory: (PostData data) => data.toModel());
+      thingFactory: postFromData);
   }
 }
 

@@ -10,7 +10,7 @@ extension CommentDataExtensions on CommentData {
     return Comment(
       authorFlairText: this.authorFlairText,
       authorName: this.authorName,
-      body: snudownFrom(this.body),
+      body: snudownFromMarkdown(this.body),
       createdAtUtc: this.createdAtUtc,
       depth: this.depth,
       editedAtUtc: this.editedAtUtc,

@@ -19,10 +19,16 @@ class CommentTile extends StatelessWidget {
 
   final bool includeDepthPadding;
 
+  Color getAuthorColor(BuildContext context) {
+    if (comment.isSubmitter) {
+      return Colors.blue;
+    }
+  }
+
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context) {
-      Widget result = Material(
+      return Material(
         child: Padding(
           padding: includeDepthPadding
             ? paddingWithLeftDepth(16.0, comment.depth)
@@ -31,24 +37,22 @@ class CommentTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(children: <Widget>[
+              Wrap(children: <Widget>[
                   Text(
                     comment.authorName,
                     style: TextStyle(
-                      color: comment.isSubmitter ? Colors.blue : null)),
+                      color: getAuthorColor(context))),
                   Text(formatElapsedUtc(comment.createdAtUtc)),
                   Text(formatCount(comment.score)),
               ]),
               Padding(
                 padding: const EdgeInsets.only(top: 4.0),
                 child: DefaultTextStyle(
-                  style: Theme.of(context).textTheme.body1,
+                  style: Theme.of(context).textTheme.bodyText2,
                   child: SnudownBody(
                     snudown: comment.body,
                     scrollable: false)))
             ])));
-
-      return result;
     }
   );
 }
