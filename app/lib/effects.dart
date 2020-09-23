@@ -9,6 +9,8 @@ import 'package:scraper/scraper.dart';
 void runLoopWithEffects({
   @required String appId,
   @required String appRedirect,
+  String scriptId,
+  String scriptSecret,
   @required Initial initial,
   @required Widget view,
 }) {
@@ -29,10 +31,21 @@ class EffectContext {
   factory EffectContext({
     @required String appId,
     @required String appRedirect,
+    String scriptId,
+    String scriptSecret,
     @required GlobalKey<EffectRendererState> rendererKey
   }) {
+    RedditClient client;
+    if (scriptId != null) {
+      client = createScriptClient(
+        clientId: scriptId,
+        clientSecret: scriptSecret);
+    }
     return EffectContext._(
-      Reddit(appId, appRedirect),
+      RedditApp(
+        clientId: appId,
+        redirectUri: appRedirect),
+      client,
       Hive,
       Scraper(),
       rendererKey,
@@ -41,12 +54,15 @@ class EffectContext {
 
   EffectContext._(
     this.reddit,
+    this.client,
     this.hive,
     this.scraper,
     this._rendererKey
   );
 
-  final Reddit reddit;
+  final RedditApp reddit;
+
+  final RedditClient client;
 
   final HiveInterface hive;
 

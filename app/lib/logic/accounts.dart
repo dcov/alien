@@ -9,9 +9,39 @@ import '../models/user.dart';
 
 import 'utils.dart';
 
+// Hive storage keys
 const _kAccountsBoxKey = 'accounts';
 const _kUsersDataKey = 'users';
 const _kCurrentUserDataKey = 'current_user';
+
+// Packed JSON data keys
+const _kUserNameKey = 'name';
+const _kUserTokenKey = 'token';
+
+@visibleForTesting
+String packUsersList(List<AppUser> users) {
+  final data = users.map((AppUser user) =>
+      { _kUserNameKey : user.name, _kUserTokenKey : user.token }).toList();
+  return json.encode(data);
+}
+
+@visibleForTesting
+List<AppUser> unpackUsersList(String jsonData) {
+  final data = json.decode(jsonData) as List<dynamic>;
+  return data.map((userData) =>
+      AppUser(name: userData[_kUserNameKey], token: userData[_kUserTokenKey])).toList();
+}
+
+extension on Accounts {
+
+  bool get isInScriptMode {
+    if (this.users.isNotEmpty && this.users.first is ScriptUser) {
+      assert(this.users.length == 1, 'When the app is running in script mode, there should only be one user, the ScriptUser');
+      return true;
+    }
+    return false;
+  }
+}
 
 /// Starts the initialization process of retrieving and unpacking any stored [Accounts] data.
 ///
@@ -21,7 +51,8 @@ class InitAccounts extends Action {
 
   InitAccounts({
     @required this.onInitialized,
-    @required this.onFailed
+    @required this.onFailed,
+    this.scriptUser,
   }) : assert(onInitialized != null),
        assert(onFailed != null);
 
@@ -31,8 +62,16 @@ class InitAccounts extends Action {
   /// Called if there is an error in initializing the [Accounts] data.
   final ActionCallback onFailed;
 
+  final ScriptUser scriptUser;
+
   @override
   dynamic update(AccountsOwner owner) {
+    // Check if we're running in script mode, in which case the initialization process is completed here.
+    if (scriptUser != null) {
+      owner.accounts..users.add(scriptUser)
+                    ..currentUser = scriptUser;
+      return onInitialized();
+    }
     // The only work we do right now is kick off a side effect to retrieve any stored data.
     return _GetPackedAccountsData(
       onInitialized: onInitialized,
@@ -109,6 +148,9 @@ class AddUser extends Action {
 
   @override
   dynamic update(AccountsOwner owner) {
+    assert(!owner.accounts.isInScriptMode,
+      'Cannot add user while app is running in script mode.');
+
     final accounts = owner.accounts;
     assert(() {
         for (final existingUser in accounts.users) {
@@ -137,7 +179,14 @@ class SetCurrentUser extends Action {
   @override
   dynamic update(AccountsOwner owner) {
     final accounts = owner.accounts;
+    assert(to != accounts.currentUser,
+      'Tried to set currentUser but was already currentUser');
+
     accounts.currentUser = to;
+
+    /// If we're in script mode we don't store any changes to currentUser.
+    if (accounts.isInScriptMode)
+      return;
 
     return _PutPackedAccountsData(
       usersData: packUsersList(accounts.users),
@@ -169,23 +218,5 @@ class _PutPackedAccountsData extends Effect {
       // TODO: better handle this error case
     }
   }
-}
-
-/// PACKING LOGIC
-const _kUserNameKey = 'name';
-const _kUserTokenKey = 'token';
-
-@visibleForTesting
-String packUsersList(List<User> users) {
-  final data = users.map((User user) =>
-      { _kUserNameKey : user.name, _kUserTokenKey : user.token }).toList();
-  return json.encode(data);
-}
-
-@visibleForTesting
-List<User> unpackUsersList(String jsonData) {
-  final data = json.decode(jsonData) as List<dynamic>;
-  return data.map((userData) =>
-      User(name: userData[_kUserNameKey], token: userData[_kUserTokenKey])).toList();
 }
 

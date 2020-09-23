@@ -1,18 +1,14 @@
-import 'package:elmer/elmer.dart';
-import 'package:reddit/reddit.dart' show AuthSession;
 
-part 'auth.g.dart';
+class Auth {
 
-abstract class Auth extends Model {
+  Auth({
+    this.appId,
+    this.appRedirect,
+  });
 
-  factory Auth({
-    String appId,
-    String appRedirect,
-  }) = _$Auth;
+  final String appId;
 
-  String get appId;
-
-  String get appRedirect;
+  final String appRedirect;
 }
 
 abstract class AuthOwner {

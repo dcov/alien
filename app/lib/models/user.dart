@@ -1,16 +1,22 @@
-import 'package:elmer/elmer.dart';
 
-part 'user.g.dart';
+abstract class User {
 
-abstract class User extends Model {
+  User(this.name);
 
-  factory User({
-    String token,
-    String name
-  }) = _$User;
+  final String name;
+}
 
-  String get token;
+class AppUser extends User {
 
-  String get name;
+  AppUser({
+    String name,
+    this.token
+  }) : super(name);
+
+  final String token;
+}
+
+class ScriptUser extends User {
+  ScriptUser(String name) : super(name);
 }
 
