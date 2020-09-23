@@ -3,10 +3,13 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
+import '../models/accounts.dart';
 import '../models/refreshable.dart';
 import '../models/subreddit.dart';
+import '../models/user.dart';
 
-import 'subreddit.dart' show SubredditDataExtensions;
+import 'subreddit.dart';
+import 'user.dart';
 
 class RefreshDefaults extends Action {
 
@@ -17,29 +20,33 @@ class RefreshDefaults extends Action {
   final Refreshable<Subreddit> defaults;
 
   @override
-  dynamic update(_) {
+  dynamic update(AccountsOwner owner) {
     if (defaults.refreshing)
       return null;
     
     defaults..refreshing = true
             ..items.clear();
 
-    return GetDefaults(defaults: defaults);
+    return GetDefaults(
+      defaults: defaults,
+      user: owner.accounts.currentUser);
   }
 }
 
 class GetDefaults extends Effect {
 
   GetDefaults({
-    @required this.defaults
+    @required this.defaults,
+    this.user
   });
 
   final Refreshable<Subreddit> defaults;
 
+  final User user;
+
   @override
   dynamic perform(EffectContext context) {
-    return context.reddit
-      .asDevice()
+    return context.clientFromUser(user)
       .getSubreddits(
           Subreddits.defaults,
           Page(limit: Page.kMaxLimit))
