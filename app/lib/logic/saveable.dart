@@ -7,7 +7,8 @@ import '../models/accounts.dart';
 import '../models/saveable.dart';
 import '../models/user.dart';
 
-import 'thing.dart' show ThingExtensions;
+import 'thing.dart';
+import 'user.dart';
 
 class ToggleSaved extends Action {
 
@@ -43,12 +44,11 @@ class PostSaved extends Effect {
 
   @override
   dynamic perform(EffectContext context) async {
-    final RedditClient client = context.reddit.asUser(user.token);
     try {
       if (saveable.isSaved) {
-        client.postSave(saveable.fullId);
+        context.clientFromUser(user).postSave(saveable.fullId);
       } else {
-        client.postUnsave(saveable.fullId);
+        context.clientFromUser(user).postUnsave(saveable.fullId);
       }
     } catch (_) {
       return PostSavedFailure(saveable: saveable);

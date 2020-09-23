@@ -3,12 +3,15 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
+import '../models/accounts.dart';
 import '../models/listing.dart';
 import '../models/post.dart';
 import '../models/subreddit.dart';
+import '../models/user.dart';
 
 import 'listing.dart';
-import 'post.dart' show PostDataExtensions;
+import 'post.dart';
+import 'user.dart';
 
 extension SubredditToPostsExtension on Subreddit {
 
@@ -34,14 +37,15 @@ class TransitionSubredditPosts extends Action {
   final ListingStatus to;
 
   @override
-  dynamic update(_) {
+  dynamic update(AccountsOwner owner) {
     return TransitionListing(
       listing: posts.listing,
       to: to,
       effectFactory: (Page page) => GetSubredditPosts(
         posts: posts,
         to: to,
-        page: page));
+        page: page,
+        user: owner.accounts.currentUser));
   }
 }
 
@@ -50,11 +54,11 @@ class GetSubredditPosts extends Effect {
   GetSubredditPosts({
     @required this.posts,
     @required this.to,
-    @required this.page
+    @required this.page,
+    this.user,
   }) : assert(posts != null),
        assert(to != null),
        assert(page != null);
-
 
   final SubredditPosts posts;
 
@@ -62,10 +66,11 @@ class GetSubredditPosts extends Effect {
 
   final Page page;
 
+  final User user;
+
   @override
   dynamic perform(EffectContext context) {
-    return context.reddit
-      .asDevice()
+    return context.clientFromUser(user)
       .getSubredditPosts(
         posts.subreddit.name, posts.sortBy, page)
       .then(

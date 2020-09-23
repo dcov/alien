@@ -7,14 +7,15 @@ import '../models/accounts.dart';
 import '../models/user.dart';
 import '../models/votable.dart';
 
-import 'thing.dart' show ThingExtensions;
+import 'thing.dart';
+import 'user.dart';
 
 class Upvote extends Action {
 
   Upvote({
     @required this.votable,
     this.user
-  });
+  }) : assert(votable != null);
 
   final Votable votable;
 
@@ -44,7 +45,7 @@ class Downvote extends Action {
   Downvote({
     @required this.votable,
     this.user
-  });
+  }) : assert(votable != null);
 
   final Votable votable;
 
@@ -64,8 +65,8 @@ class Downvote extends Action {
 
     return PostVote(
       votable: votable,
-      user: user ?? owner.accounts.currentUser,
-      oldVoteDir: oldVoteDir);
+      oldVoteDir: oldVoteDir,
+      user: user ?? owner.accounts.currentUser);
   }
 }
 
@@ -73,20 +74,21 @@ class PostVote extends Effect {
 
   PostVote({
     @required this.votable,
+    @required this.oldVoteDir,
     @required this.user,
-    @required this.oldVoteDir
-  });
+  }) : assert(votable != null),
+       assert(oldVoteDir != null),
+       assert(user != null);
 
   final Votable votable;
 
-  final User user;
-
   final VoteDir oldVoteDir;
+
+  final User user;
 
   @override
   dynamic perform(EffectContext context) {
-    return context.reddit
-      .asUser(user.token)
+    return context.clientFromUser(user)
       .postVote(votable.fullId, votable.voteDir)
       .catchError(() {
         return PostVoteFailure(
@@ -101,7 +103,8 @@ class PostVoteFailure extends Action {
   PostVoteFailure({
     @required this.votable,
     @required this.oldVoteDir
-  });
+  }) : assert(votable != null),
+       assert(oldVoteDir != null);
 
   final Votable votable;
 
