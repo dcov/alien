@@ -53,16 +53,16 @@ class EffectContext {
   }
 
   EffectContext._(
-    this.reddit,
-    this.client,
+    this.redditApp,
+    this.scriptClient,
     this.hive,
     this.scraper,
     this._rendererKey
   );
 
-  final RedditApp reddit;
+  final RedditApp redditApp;
 
-  final RedditClient client;
+  final RedditClient scriptClient;
 
   final HiveInterface hive;
 
