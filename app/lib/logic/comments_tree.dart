@@ -3,10 +3,13 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
+import '../models/accounts.dart';
 import '../models/comments_tree.dart';
 import '../models/thing.dart';
+import '../models/user.dart';
 
 import 'comment.dart';
+import 'user.dart';
 
 class LoadCommentsTree extends Action {
 
@@ -17,7 +20,7 @@ class LoadCommentsTree extends Action {
   final CommentsTree commentsTree;
 
   @override
-  dynamic update(_) {
+  dynamic update(AccountsOwner owner) {
     if (commentsTree.isRefreshing)
       return null;
 
@@ -25,22 +28,26 @@ class LoadCommentsTree extends Action {
         ..isRefreshing = true
         ..things.clear();
     
-    return GetPostComments(commentsTree: commentsTree);
+    return GetPostComments(
+      commentsTree: commentsTree,
+      user: owner.accounts.currentUser);
   }
 }
 
 class GetPostComments extends Effect {
 
   GetPostComments({
-    @required this.commentsTree
+    @required this.commentsTree,
+    this.user
   });
 
   final CommentsTree commentsTree;
 
+  final User user;
+
   @override
   dynamic perform(EffectContext context) {
-    return context.reddit
-      .asDevice()
+    return context.clientFromUser(user)
       .getPostComments(
         commentsTree.permalink,
         commentsTree.sortBy)
@@ -98,7 +105,7 @@ class LoadMoreComments extends Action {
   final More more;
 
   @override
-  dynamic update(_) {
+  dynamic update(AccountsOwner owner) {
     if (more.isLoading)
       return null;
     
@@ -106,6 +113,7 @@ class LoadMoreComments extends Action {
     return GetMoreComments(
       commentsTree: commentsTree,
       more: more,
+      user: owner.accounts.currentUser
     );
   }
 }
@@ -114,17 +122,19 @@ class GetMoreComments extends Effect {
 
   GetMoreComments({
     @required this.commentsTree,
-    @required this.more
+    @required this.more,
+    this.user
   });
 
   final CommentsTree commentsTree;
 
   final More more;
 
+  final User user;
+
   @override
   dynamic perform(EffectContext context) {
-    return context.reddit
-      .asDevice()
+    return context.clientFromUser(user)
       .getMoreComments(
         commentsTree.fullPostId,
         more.id,
