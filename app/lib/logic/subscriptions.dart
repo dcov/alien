@@ -88,7 +88,7 @@ class GetSubscriptionsSuccess extends Action {
     subscriptions
       ..refreshing = false
       ..items.clear()
-      ..items.addAll(result.map((SubredditData data) => data.toModel()))
+      ..items.addAll(result.map(subredditFromData))
       ..items.sort((s1, s2) => s1.name.compareTo(s2.name));
   }
 }

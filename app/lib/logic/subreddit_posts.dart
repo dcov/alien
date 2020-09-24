@@ -13,15 +13,12 @@ import 'listing.dart';
 import 'post.dart';
 import 'user.dart';
 
-extension SubredditToPostsExtension on Subreddit {
-
-  SubredditPosts toPosts() {
-    return SubredditPosts(
-      subreddit: this,
-      sortBy: SubredditSort.hot,
-      listing: Listing<Post>(
-        status: ListingStatus.idle));
-  }
+SubredditPosts postsFromSubreddit(Subreddit subreddit) {
+  return SubredditPosts(
+    subreddit: subreddit,
+    sortBy: SubredditSort.hot,
+    listing: Listing<Post>(
+      status: ListingStatus.idle));
 }
 
 class TransitionSubredditPosts extends Action {

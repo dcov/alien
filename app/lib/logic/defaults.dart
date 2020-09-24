@@ -82,7 +82,7 @@ class GetDefaultsSuccess extends Action {
 
     defaults
       ..refreshing = false
-      ..items.addAll(result.map((SubredditData data) => data.toModel()))
+      ..items.addAll(result.map(subredditFromData))
       ..items.sort((s1, s2) {
           return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
         });
