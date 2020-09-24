@@ -38,8 +38,7 @@ class _GetScopes extends Effect {
 
   @override
   dynamic perform(EffectContext context) async {
-    return context.reddit
-      .asDevice()
+    return context.redditApp.asDevice()
       .getScopeDescriptions()
       .then((Iterable<ScopeData> result) {
         return _InitializeAuthSession(
@@ -159,7 +158,7 @@ class _PostCode extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     try {
-      final reddit = context.reddit;
+      final reddit = context.redditApp;
       final tokenData = await reddit.postCode(code);
       final accountData = await reddit
           .asUser(tokenData.refreshToken)
@@ -207,7 +206,7 @@ class _FinishLogin extends Action {
 
     if (existingUser == null) {
       /// The [accountData] does not correspond to an existing user, so we'll create a new user using it.
-      final newUser = User(
+      final newUser = AppUser(
         name: accountData.username,
         token: tokenData.refreshToken);
       return {
