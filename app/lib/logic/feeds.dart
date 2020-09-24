@@ -10,6 +10,7 @@ import '../models/user.dart';
 
 import 'listing.dart';
 import 'post.dart';
+import 'user.dart';
 
 extension FeedExtensions on Feed {
 
@@ -103,16 +104,16 @@ class GetFeedPosts extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     assert(posts.type != Feed.home || user != null);
-    final client = user != null ? context.reddit.asUser(user.token) : context.reddit.asDevice();
     ListingData<PostData> result;
     try {
       if (posts.type == Feed.home) {
         assert(posts.sortBy is HomeSort);
-        result = await client.getHomePosts(posts.sortBy, page);
+        assert(user != null);
+        result = await context.clientFromUser(user).getHomePosts(posts.sortBy, page);
       } else {
         assert(posts.sortBy is SubredditSort);
         final subredditName = posts.type._name;
-        result = await client.getSubredditPosts(subredditName, posts.sortBy, page);
+        result = await context.clientFromUser(user).getSubredditPosts(subredditName, posts.sortBy, page);
       }
     } catch (_) {
       return TransitionListingFailure();

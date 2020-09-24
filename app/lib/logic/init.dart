@@ -21,19 +21,25 @@ class InitApp extends Initial {
   
   InitApp({
     @required this.appId,
-    @required this.appRedirect
-  });
+    @required this.appRedirect,
+    @required this.isInScriptMode
+  }) : assert(appId != null),
+       assert(appRedirect != null),
+       assert(isInScriptMode != null);
 
   final String appId;
 
   final String appRedirect;
+
+  final bool isInScriptMode;
 
   @override
   Init init() {
     return Init(
       state: App(
         initialized: false,
-        accounts: Accounts(),
+        accounts: Accounts(
+          isInScriptMode: isInScriptMode),
         auth: Auth(
           appId: appId,
           appRedirect: appRedirect),

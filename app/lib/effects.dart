@@ -9,6 +9,10 @@ import 'package:scraper/scraper.dart';
 void runLoopWithEffects({
   @required String appId,
   @required String appRedirect,
+  String scriptId,
+  String scriptSecret,
+  String scriptUsername,
+  String scriptPassword,
   @required Initial initial,
   @required Widget view,
 }) {
@@ -18,7 +22,11 @@ void runLoopWithEffects({
     container: EffectContext(
       appId: appId,
       appRedirect: appRedirect,
-      rendererKey: rendererKey),
+      rendererKey: rendererKey,
+      scriptId: scriptId,
+      scriptSecret: scriptSecret,
+      scriptUsername: scriptUsername,
+      scriptPassword: scriptPassword),
     view: EffectRenderer(
       key: rendererKey,
       child: view));
@@ -29,10 +37,25 @@ class EffectContext {
   factory EffectContext({
     @required String appId,
     @required String appRedirect,
+    String scriptId,
+    String scriptSecret,
+    String scriptUsername,
+    String scriptPassword,
     @required GlobalKey<EffectRendererState> rendererKey
   }) {
+    RedditClient client;
+    if (scriptId != null) {
+      client = createScriptClient(
+        clientId: scriptId,
+        clientSecret: scriptSecret,
+        username: scriptUsername,
+        password: scriptPassword);
+    }
     return EffectContext._(
-      Reddit(appId, appRedirect),
+      RedditApp(
+        clientId: appId,
+        redirectUri: appRedirect),
+      client,
       Hive,
       Scraper(),
       rendererKey,
@@ -40,13 +63,16 @@ class EffectContext {
   }
 
   EffectContext._(
-    this.reddit,
+    this.redditApp,
+    this.scriptClient,
     this.hive,
     this.scraper,
     this._rendererKey
   );
 
-  final Reddit reddit;
+  final RedditApp redditApp;
+
+  final RedditClient scriptClient;
 
   final HiveInterface hive;
 

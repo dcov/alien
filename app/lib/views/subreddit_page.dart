@@ -73,6 +73,11 @@ class _SubredditPage extends EntryPage {
   }
 }
 
+String subredditPageNameFrom(Subreddit subreddit, [String prefix = '']) {
+  assert(prefix != null);
+  return prefix + subreddit.fullId;
+}
+
 void _showSubredditPage({
     @required BuildContext context,
     @required Subreddit subreddit,
@@ -83,7 +88,7 @@ void _showSubredditPage({
   assert(pageNamePrefix != null);
 
     /// Create the posts model
-  final posts = subreddit.toPosts();
+  final posts = postsFromSubreddit(subreddit);
 
   /// Push the subreddit page
   context.push(
@@ -135,10 +140,5 @@ class SubredditTile extends StatelessWidget {
             fontSize: 14.0,
             fontWeight: FontWeight.w500)));
     });
-}
-
-String subredditPageNameFrom(Subreddit subreddit, [String prefix = '']) {
-  assert(prefix != null);
-  return prefix + subreddit.fullId;
 }
 

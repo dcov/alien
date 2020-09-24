@@ -2,6 +2,7 @@ import 'dart:convert' show json;
 
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/accounts.dart';
@@ -9,9 +10,28 @@ import '../models/user.dart';
 
 import 'utils.dart';
 
+// Hive storage keys
 const _kAccountsBoxKey = 'accounts';
 const _kUsersDataKey = 'users';
 const _kCurrentUserDataKey = 'current_user';
+
+// Packed JSON data keys
+const _kUserNameKey = 'name';
+const _kUserTokenKey = 'token';
+
+@visibleForTesting
+String packUsersList(List<AppUser> users) {
+  final data = users.map((AppUser user) =>
+      { _kUserNameKey : user.name, _kUserTokenKey : user.token }).toList();
+  return json.encode(data);
+}
+
+@visibleForTesting
+List<AppUser> unpackUsersList(String jsonData) {
+  final data = json.decode(jsonData) as List<dynamic>;
+  return data.map((userData) =>
+      AppUser(name: userData[_kUserNameKey], token: userData[_kUserTokenKey])).toList();
+}
 
 /// Starts the initialization process of retrieving and unpacking any stored [Accounts] data.
 ///
@@ -21,7 +41,7 @@ class InitAccounts extends Action {
 
   InitAccounts({
     @required this.onInitialized,
-    @required this.onFailed
+    @required this.onFailed,
   }) : assert(onInitialized != null),
        assert(onFailed != null);
 
@@ -33,10 +53,63 @@ class InitAccounts extends Action {
 
   @override
   dynamic update(AccountsOwner owner) {
-    // The only work we do right now is kick off a side effect to retrieve any stored data.
+    // Check if we're running in script mode, in which case we need to get the script user's data.
+    if (owner.accounts.isInScriptMode) {
+      return _GetScriptUserData(
+        onInitialized: onInitialized,
+        onFailed: onFailed);
+    }
+
+    // Kick off a side effect to retrieve any stored users data.
     return _GetPackedAccountsData(
       onInitialized: onInitialized,
       onFailed: onFailed);
+  }
+}
+
+class _GetScriptUserData extends Effect {
+
+  _GetScriptUserData({
+    this.onInitialized,
+    this.onFailed
+  }) : assert(onInitialized != null),
+       assert(onFailed != null);
+
+  final ActionCallback onInitialized;
+
+  final ActionCallback onFailed;
+
+  @override
+  dynamic perform(EffectContext context) {
+    return context.scriptClient
+      .getUserAccount()
+      .then((AccountData data) {
+         return _AddScriptUser(
+            data: data,
+            onInitialized: onInitialized);
+       },
+       onError: (_) => onFailed());
+  }
+}
+
+class _AddScriptUser extends Action {
+
+  _AddScriptUser({
+   @required this.data,
+   @required this.onInitialized
+  }) : assert(data != null),
+       assert(onInitialized != null);
+
+  final AccountData data;
+
+  final ActionCallback onInitialized;
+
+  @override
+  dynamic update(AccountsOwner owner) {
+    final user = ScriptUser(data.username);
+    owner.accounts..users.add(user)
+                  ..currentUser = user;
+    return onInitialized();
   }
 }
 
@@ -109,6 +182,9 @@ class AddUser extends Action {
 
   @override
   dynamic update(AccountsOwner owner) {
+    assert(!owner.accounts.isInScriptMode,
+      'Cannot add user while app is running in script mode.');
+
     final accounts = owner.accounts;
     assert(() {
         for (final existingUser in accounts.users) {
@@ -137,7 +213,14 @@ class SetCurrentUser extends Action {
   @override
   dynamic update(AccountsOwner owner) {
     final accounts = owner.accounts;
+    assert(to != accounts.currentUser,
+      'Tried to set currentUser but was already currentUser');
+
     accounts.currentUser = to;
+
+    /// If we're in script mode we don't store any changes to currentUser.
+    if (accounts.isInScriptMode)
+      return;
 
     return _PutPackedAccountsData(
       usersData: packUsersList(accounts.users),
@@ -169,23 +252,5 @@ class _PutPackedAccountsData extends Effect {
       // TODO: better handle this error case
     }
   }
-}
-
-/// PACKING LOGIC
-const _kUserNameKey = 'name';
-const _kUserTokenKey = 'token';
-
-@visibleForTesting
-String packUsersList(List<User> users) {
-  final data = users.map((User user) =>
-      { _kUserNameKey : user.name, _kUserTokenKey : user.token }).toList();
-  return json.encode(data);
-}
-
-@visibleForTesting
-List<User> unpackUsersList(String jsonData) {
-  final data = json.decode(jsonData) as List<dynamic>;
-  return data.map((userData) =>
-      User(name: userData[_kUserNameKey], token: userData[_kUserTokenKey])).toList();
 }
 

@@ -3,13 +3,16 @@ import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
+import '../models/accounts.dart';
 import '../models/more.dart';
 import '../models/post.dart';
 import '../models/post_comments.dart';
 import '../models/thing.dart';
+import '../models/user.dart';
 
 import 'comment.dart';
 import 'thing.dart';
+import 'user.dart';
 
 extension PostToCommentsExtension on Post {
 
@@ -32,28 +35,32 @@ class RefreshPostComments extends Action {
   final PostComments comments;
 
   @override
-  dynamic update(_) {
+  dynamic update(AccountsOwner owner) {
     if (comments.refreshing)
       return;
 
     comments.refreshing = true;
     
-    return _GetPostComments(comments: comments);
+    return _GetPostComments(
+      comments: comments,
+      user: owner.accounts.currentUser);
   }
 }
 
 class _GetPostComments extends Effect {
 
   _GetPostComments({
-    @required this.comments
+    @required this.comments,
+    this.user
   }) : assert(comments != null);
 
   final PostComments comments;
 
+  final User user;
+
   @override
   dynamic perform(EffectContext context) {
-    return context.reddit
-      .asDevice()
+    return context.clientFromUser(user)
       .getPostComments(
         comments.permalink,
         comments.sortBy)
@@ -115,7 +122,7 @@ class LoadMoreComments extends Action {
   final More more;
 
   @override
-  dynamic update(_) {
+  dynamic update(AccountsOwner owner) {
     if (more.isLoading)
       return null;
     
@@ -123,7 +130,7 @@ class LoadMoreComments extends Action {
     return _GetMoreComments(
       comments: comments,
       more: more,
-    );
+      user: owner.accounts.currentUser);
   }
 }
 
@@ -131,7 +138,8 @@ class _GetMoreComments extends Effect {
 
   _GetMoreComments({
     @required this.comments,
-    @required this.more
+    @required this.more,
+    this.user,
   }) : assert(comments != null),
        assert(more != null);
 
@@ -139,10 +147,11 @@ class _GetMoreComments extends Effect {
 
   final More more;
 
+  final User user;
+
   @override
   dynamic perform(EffectContext context) {
-    return context.reddit
-      .asDevice()
+    return context.clientFromUser(user)
       .getMoreComments(
         comments.fullPostId,
         more.id,
