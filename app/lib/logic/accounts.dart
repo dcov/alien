@@ -2,6 +2,7 @@ import 'dart:convert' show json;
 
 import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
+import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
 import '../models/accounts.dart';
@@ -32,17 +33,6 @@ List<AppUser> unpackUsersList(String jsonData) {
       AppUser(name: userData[_kUserNameKey], token: userData[_kUserTokenKey])).toList();
 }
 
-extension on Accounts {
-
-  bool get isInScriptMode {
-    if (this.users.isNotEmpty && this.users.first is ScriptUser) {
-      assert(this.users.length == 1, 'When the app is running in script mode, there should only be one user, the ScriptUser');
-      return true;
-    }
-    return false;
-  }
-}
-
 /// Starts the initialization process of retrieving and unpacking any stored [Accounts] data.
 ///
 /// [onInitialized] is called once the data has been retrieved and unpacked successfully, otherwise [onFailed] is called
@@ -52,7 +42,6 @@ class InitAccounts extends Action {
   InitAccounts({
     @required this.onInitialized,
     @required this.onFailed,
-    this.scriptUser,
   }) : assert(onInitialized != null),
        assert(onFailed != null);
 
@@ -62,20 +51,65 @@ class InitAccounts extends Action {
   /// Called if there is an error in initializing the [Accounts] data.
   final ActionCallback onFailed;
 
-  final ScriptUser scriptUser;
-
   @override
   dynamic update(AccountsOwner owner) {
-    // Check if we're running in script mode, in which case the initialization process is completed here.
-    if (scriptUser != null) {
-      owner.accounts..users.add(scriptUser)
-                    ..currentUser = scriptUser;
-      return onInitialized();
+    // Check if we're running in script mode, in which case we need to get the script user's data.
+    if (owner.accounts.isInScriptMode) {
+      return _GetScriptUserData(
+        onInitialized: onInitialized,
+        onFailed: onFailed);
     }
-    // The only work we do right now is kick off a side effect to retrieve any stored data.
+
+    // Kick off a side effect to retrieve any stored users data.
     return _GetPackedAccountsData(
       onInitialized: onInitialized,
       onFailed: onFailed);
+  }
+}
+
+class _GetScriptUserData extends Effect {
+
+  _GetScriptUserData({
+    this.onInitialized,
+    this.onFailed
+  }) : assert(onInitialized != null),
+       assert(onFailed != null);
+
+  final ActionCallback onInitialized;
+
+  final ActionCallback onFailed;
+
+  @override
+  dynamic perform(EffectContext context) {
+    return context.scriptClient
+      .getUserAccount()
+      .then((AccountData data) {
+         return _AddScriptUser(
+            data: data,
+            onInitialized: onInitialized);
+       },
+       onError: (_) => onFailed());
+  }
+}
+
+class _AddScriptUser extends Action {
+
+  _AddScriptUser({
+   @required this.data,
+   @required this.onInitialized
+  }) : assert(data != null),
+       assert(onInitialized != null);
+
+  final AccountData data;
+
+  final ActionCallback onInitialized;
+
+  @override
+  dynamic update(AccountsOwner owner) {
+    final user = ScriptUser(data.username);
+    owner.accounts..users.add(user)
+                  ..currentUser = user;
+    return onInitialized();
   }
 }
 

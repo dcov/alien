@@ -11,6 +11,8 @@ void runLoopWithEffects({
   @required String appRedirect,
   String scriptId,
   String scriptSecret,
+  String scriptUsername,
+  String scriptPassword,
   @required Initial initial,
   @required Widget view,
 }) {
@@ -20,7 +22,11 @@ void runLoopWithEffects({
     container: EffectContext(
       appId: appId,
       appRedirect: appRedirect,
-      rendererKey: rendererKey),
+      rendererKey: rendererKey,
+      scriptId: scriptId,
+      scriptSecret: scriptSecret,
+      scriptUsername: scriptUsername,
+      scriptPassword: scriptPassword),
     view: EffectRenderer(
       key: rendererKey,
       child: view));
@@ -33,13 +39,17 @@ class EffectContext {
     @required String appRedirect,
     String scriptId,
     String scriptSecret,
+    String scriptUsername,
+    String scriptPassword,
     @required GlobalKey<EffectRendererState> rendererKey
   }) {
     RedditClient client;
     if (scriptId != null) {
       client = createScriptClient(
         clientId: scriptId,
-        clientSecret: scriptSecret);
+        clientSecret: scriptSecret,
+        username: scriptUsername,
+        password: scriptPassword);
     }
     return EffectContext._(
       RedditApp(
