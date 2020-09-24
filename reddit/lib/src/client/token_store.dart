@@ -21,7 +21,9 @@ abstract class TokenStore {
 
   factory TokenStore.asScript(
     Client ioClient,
-    Map<String, String> basicHeader
+    Map<String, String> basicHeader,
+    String username,
+    String password
   ) = _ScriptStore;
 
   TokenStore._();
@@ -124,19 +126,33 @@ class _ScriptStore extends TokenStore {
 
   _ScriptStore(
     this._ioClient,
-    this._basicHeader)
-    : super._();
+    this._basicHeader,
+    this.username,
+    this.password
+  ) : assert(username == null || password != null),
+      super._();
 
   final Client _ioClient;
 
   final Map<String, String> _basicHeader;
 
+  final String username;
+
+  final String password;
+
   @override
   Future<Response> _postTokenRequest() {
+    String grantType;
+    if (username != null) {
+      grantType = 'password&username=$username&password=$password';
+    } else {
+      grantType = 'client_credentials';
+    }
+
     return _ioClient.post(
       'https://www.reddit.com/api/v1/access_token',
       headers: _basicHeader,
-      body: 'grant_type=client_credentials');
+      body: 'grant_type=$grantType');
   }
 }
 

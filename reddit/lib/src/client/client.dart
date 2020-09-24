@@ -177,6 +177,8 @@ class RedditApp {
 RedditClient createScriptClient({
     @required String clientId,
     @required String clientSecret,
+    String username,
+    String password,
     Client ioClient
     }) {
   assert(clientId != null);
@@ -190,7 +192,9 @@ RedditClient createScriptClient({
   // Create the store in script mode.
   final store = TokenStore.asScript(
     ioClient,
-    basicHeader);
+    basicHeader,
+    username,
+    password);
 
   return RedditClient(
     ioClient,
