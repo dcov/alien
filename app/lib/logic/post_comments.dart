@@ -14,16 +14,11 @@ import 'comment.dart';
 import 'thing.dart';
 import 'user.dart';
 
-extension PostToCommentsExtension on Post {
-
-  PostComments toComments() {
-    return PostComments(
-      post: this,
-      refreshing: false,
-      sortBy: CommentsSort.best,
-      fullPostId: this.fullId,
-      permalink: this.permalink);
-  }
+PostComments commentsFromPost(Post post) {
+  return PostComments(
+    post: post,
+    refreshing: false,
+    sortBy: CommentsSort.best);
 }
 
 class RefreshPostComments extends Action {
@@ -62,7 +57,7 @@ class _GetPostComments extends Effect {
   dynamic perform(EffectContext context) {
     return context.clientFromUser(user)
       .getPostComments(
-        comments.permalink,
+        comments.post.permalink,
         comments.sortBy)
       .then(
         (ListingData<ThingData> result) {
@@ -153,7 +148,7 @@ class _GetMoreComments extends Effect {
   dynamic perform(EffectContext context) {
     return context.clientFromUser(user)
       .getMoreComments(
-        comments.fullPostId,
+        comments.post.fullId,
         more.id,
         more.thingIds)
       .then<Action>((ListingData<ThingData> result) {

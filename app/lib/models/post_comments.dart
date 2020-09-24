@@ -12,18 +12,12 @@ abstract class PostComments extends Model {
     Post post,
     bool refreshing,
     CommentsSort sortBy,
-    String fullPostId,
-    String permalink,
     List<Thing> things,
   }) = _$PostComments;
 
   Post get post;
 
-  String get fullPostId;
-
   bool refreshing;
-
-  String get permalink;
 
   CommentsSort sortBy;
 
