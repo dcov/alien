@@ -28,15 +28,15 @@ class RefreshSubscriptions extends Action {
 
     subscriptions.refreshing = true;
 
-    return GetSubscriptions(
+    return _GetSubscriptions(
       subscriptions: subscriptions,
       user: owner.accounts.currentUser);
   }
 }
 
-class GetSubscriptions extends Effect {
+class _GetSubscriptions extends Effect {
 
-  GetSubscriptions({
+  _GetSubscriptions({
     @required this.subscriptions,
     @required this.user
   }) : assert(subscriptions != null),
@@ -61,19 +61,19 @@ class GetSubscriptions extends Effect {
         pagination = pagination.forward(listing);
       } while (pagination.nextPageExists);
 
-      return GetSubscriptionsSuccess(
+      return _FinishRefreshing(
         subscriptions: subscriptions,
         result: result);
     } catch (e) {
       print(e);
-      return GetSubscriptionsFailure(subscriptions: subscriptions);
+      return _GetSubscriptionsFailed(subscriptions: subscriptions);
     }
   }
 }
 
-class GetSubscriptionsSuccess extends Action {
+class _FinishRefreshing extends Action {
 
-  GetSubscriptionsSuccess({
+  _FinishRefreshing({
     @required this.subscriptions,
     @required this.result
   }) : assert(subscriptions != null),
@@ -89,13 +89,13 @@ class GetSubscriptionsSuccess extends Action {
       ..refreshing = false
       ..items.clear()
       ..items.addAll(result.map(subredditFromData))
-      ..items.sort((s1, s2) => s1.name.compareTo(s2.name));
+      ..items.sort((s1, s2) => s1.name.toLowerCase().compareTo(s2.name.toLowerCase()));
   }
 }
 
-class GetSubscriptionsFailure extends Action {
+class _GetSubscriptionsFailed extends Action {
 
-  GetSubscriptionsFailure({
+  _GetSubscriptionsFailed({
     @required this.subscriptions,
   }) : assert(subscriptions != null);
 
