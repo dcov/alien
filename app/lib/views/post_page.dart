@@ -12,37 +12,97 @@ import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'media_thumbnail.dart';
-import 'post_comments_scroll_view.dart';
+import 'post_comments_slivers.dart';
+import 'snudown_body.dart';
+
+class _PostSliver extends StatelessWidget {
+
+  _PostSliver({
+    Key key,
+    this.post,
+    this.showSubreddit
+  }) : assert(post != null),
+       super(key: key);
+
+  final Post post;
+
+  final bool showSubreddit;
+
+  @override
+  Widget build(_) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              post.title,
+              style: TextStyle(
+                fontSize: 16.0)),
+            Wrap(
+              spacing: 4.0,
+              children: <Widget>[
+                if (showSubreddit)
+                  Text(
+                    'r/${post.subredditName}',
+                    style: TextStyle(
+                      fontSize: 12.0)),
+                Text(
+                  'u/${post.authorName}',
+                  style: TextStyle(
+                    fontSize: 12.0)),
+                Text(
+                  formatElapsedUtc(post.createdAtUtc),
+                  style: TextStyle(
+                    fontSize: 12.0)),
+              ]),
+            Wrap(
+              children: <Widget>[
+                Text('')
+              ]),
+            if (post.selfText != null)
+              SnudownBody(
+                snudown: post.selfText,
+                scrollable: false),
+            if (post.media != null)
+              AspectRatio(
+                aspectRatio: 16/9,
+                child: MediaThumbnail(
+                  media: post.media),
+              )
+          ])));
+  }
+}
 
 class _PostPageView extends StatelessWidget {
 
   _PostPageView({
     Key key,
-    @required this.comments,
-  }) : assert(comments != null),
-       super(key: key);
+    this.comments,
+    this.showSubreddit,
+  }) : super(key: key);
 
   final PostComments comments;
 
+  final bool showSubreddit;
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Material(
-          child: Padding(
-            padding: EdgeInsets.only(top: context.mediaPadding.top),
-            child: SizedBox(
-              height: 48.0,
-              child: NavigationToolbar(
-                leading: CloseButton(),
-                middle: Text(
-                  '${comments.post.commentCount} comments',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w500)))))),
-        Expanded(
-          child: PostCommentsScrollView(
-            comments: comments)),
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          pinned: true,
+          backgroundColor: Theme.of(context).canvasColor,
+          leading: CloseButton(color: Colors.black)),
+        PostCommentsRefreshSliver(
+          comments: comments),
+        _PostSliver(
+          post: comments.post,
+          showSubreddit: showSubreddit),
+        PostCommentsTreeSliver(
+          comments: comments)
       ]);
   }
 }
@@ -50,18 +110,23 @@ class _PostPageView extends StatelessWidget {
 class _PostPage extends EntryPage {
 
   _PostPage({
-    @required this.comments,
-    @required String name,
+    this.comments,
+    String name,
+    this.showSubreddit,
   }) : super(name: name);
 
   final PostComments comments;
+
+  final bool showSubreddit;
 
   @override
   Route createRoute(BuildContext context) {
     return MaterialPageRoute(
       settings: this,
       builder: (BuildContext context) {
-        return _PostPageView(comments: comments);
+        return _PostPageView(
+          comments: comments,
+          showSubreddit: showSubreddit);
       });
   }
 }
@@ -72,17 +137,19 @@ String postPageNameFrom(Post post) {
 
 void _showPostPage({
     BuildContext context,
-    Post post
+    Post post,
+    bool showSubreddit,
   }) {
 
-  final comments = post.toComments();
+  final comments = commentsFromPost(post);
 
   context.push(
     postPageNameFrom(post),
     (String pageName) {
       return _PostPage(
         comments: comments,
-        name: pageName);
+        name: pageName,
+        showSubreddit: showSubreddit);
     });
 
   context.dispatch(
@@ -112,7 +179,8 @@ class PostTile extends StatelessWidget {
           onPress: () {
             _showPostPage(
               context: context,
-              post: post);
+              post: post,
+              showSubreddit: includeSubredditName);
           },
           child: Padding(
             padding: const EdgeInsets.all(16.0),
