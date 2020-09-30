@@ -74,8 +74,8 @@ class _PostCommentsRefreshSliverState extends State<PostCommentsRefreshSliver> {
     return _refreshCompleter.future;
   }
 
-  void _checkShouldFinishRefresh() {
-    if (_refreshCompleter != null && !widget.comments.refreshing) {
+  void _checkShouldFinishRefresh(bool refreshing) {
+    if (_refreshCompleter != null && !refreshing) {
       _refreshCompleter.complete();
       _refreshCompleter = null;
     }
@@ -85,7 +85,11 @@ class _PostCommentsRefreshSliverState extends State<PostCommentsRefreshSliver> {
   Widget build(_) {
     return Connector(
       builder: (_) {
-        _checkShouldFinishRefresh();
+        /// Check if we were waiting on a refresh and if that refresh is done
+        ///
+        /// This also lets [Connector] know that we're depending on the [widget.comments.refreshing] value, so that 
+        /// we can rebuild when it changes.
+        _checkShouldFinishRefresh(widget.comments.refreshing);
         return CupertinoSliverRefreshControl(onRefresh: _handleRefresh);
       });
   }

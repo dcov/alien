@@ -6,6 +6,7 @@ import '../logic/post_comments.dart';
 import '../logic/thing.dart';
 import '../models/post.dart';
 import '../models/post_comments.dart';
+import '../widgets/circle_divider.dart';
 import '../widgets/formatting.dart';
 import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
@@ -20,13 +21,10 @@ class _PostSliver extends StatelessWidget {
   _PostSliver({
     Key key,
     this.post,
-    this.showSubreddit
   }) : assert(post != null),
        super(key: key);
 
   final Post post;
-
-  final bool showSubreddit;
 
   @override
   Widget build(_) {
@@ -40,38 +38,52 @@ class _PostSliver extends StatelessWidget {
             Text(
               post.title,
               style: TextStyle(
-                fontSize: 16.0)),
-            Wrap(
-              spacing: 4.0,
-              children: <Widget>[
-                if (showSubreddit)
+                fontSize: 16.0,
+                fontWeight: FontWeight.w500)),
+            Padding(
+              padding: EdgeInsets.only(top: 2.0, bottom: 4.0),
+              child: Wrap(
+                spacing: 4.0,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: HorizontalCircleDivider.divide(<Widget>[
                   Text(
                     'r/${post.subredditName}',
                     style: TextStyle(
-                      fontSize: 12.0)),
-                Text(
-                  'u/${post.authorName}',
-                  style: TextStyle(
-                    fontSize: 12.0)),
-                Text(
-                  formatElapsedUtc(post.createdAtUtc),
-                  style: TextStyle(
-                    fontSize: 12.0)),
-              ]),
-            Wrap(
-              children: <Widget>[
-                Text('')
-              ]),
-            if (post.selfText != null)
-              SnudownBody(
-                snudown: post.selfText,
-                scrollable: false),
+                      fontSize: 12.0,
+                      color: Colors.black54)),
+                  Text(
+                    'u/${post.authorName}',
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.blue.shade900.withAlpha((80 / 100 * 255).round()))),
+                  Text(
+                    '${formatElapsedUtc(post.createdAtUtc)} ago',
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.black54)),
+                  Text(
+                    '${formatCount(post.score)} points',
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.black54)),
+                  Text(
+                    '${formatCount(post.commentCount)} comments',
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.black54))
+                ]))),
             if (post.media != null)
               AspectRatio(
                 aspectRatio: 16/9,
-                child: MediaThumbnail(
-                  media: post.media),
-              )
+                child: SizedBox.expand(
+                  child: MediaThumbnail(
+                    media: post.media))),
+            if (post.selfText != null)
+              Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: SnudownBody(
+                  snudown: post.selfText,
+                  scrollable: false))
           ])));
   }
 }
@@ -81,29 +93,29 @@ class _PostPageView extends StatelessWidget {
   _PostPageView({
     Key key,
     this.comments,
-    this.showSubreddit,
   }) : super(key: key);
 
   final PostComments comments;
 
-  final bool showSubreddit;
-
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(
-          pinned: true,
-          backgroundColor: Theme.of(context).canvasColor,
-          leading: CloseButton(color: Colors.black)),
-        PostCommentsRefreshSliver(
-          comments: comments),
-        _PostSliver(
-          post: comments.post,
-          showSubreddit: showSubreddit),
-        PostCommentsTreeSliver(
-          comments: comments)
-      ]);
+    return Material(
+      child: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: Theme.of(context).canvasColor,
+            leading: CloseButton(color: Colors.black)),
+          PostCommentsRefreshSliver(
+            comments: comments),
+          _PostSliver(
+            post: comments.post),
+          SliverToBoxAdapter(
+            child: Divider(
+              height: 1.0)),
+          PostCommentsTreeSliver(
+            comments: comments)
+        ]));
   }
 }
 
@@ -112,21 +124,17 @@ class _PostPage extends EntryPage {
   _PostPage({
     this.comments,
     String name,
-    this.showSubreddit,
   }) : super(name: name);
 
   final PostComments comments;
 
-  final bool showSubreddit;
-
   @override
-  Route createRoute(BuildContext context) {
+  Route createRoute(_) {
     return MaterialPageRoute(
       settings: this,
-      builder: (BuildContext context) {
+      builder: (_) {
         return _PostPageView(
-          comments: comments,
-          showSubreddit: showSubreddit);
+          comments: comments);
       });
   }
 }
@@ -138,7 +146,6 @@ String postPageNameFrom(Post post) {
 void _showPostPage({
     BuildContext context,
     Post post,
-    bool showSubreddit,
   }) {
 
   final comments = commentsFromPost(post);
@@ -148,8 +155,7 @@ void _showPostPage({
     (String pageName) {
       return _PostPage(
         comments: comments,
-        name: pageName,
-        showSubreddit: showSubreddit);
+        name: pageName);
     });
 
   context.dispatch(
@@ -179,8 +185,7 @@ class PostTile extends StatelessWidget {
           onPress: () {
             _showPostPage(
               context: context,
-              post: post,
-              showSubreddit: includeSubredditName);
+              post: post);
           },
           child: Padding(
             padding: const EdgeInsets.all(16.0),

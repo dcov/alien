@@ -24,8 +24,8 @@ class MediaThumbnail extends StatelessWidget {
           SchedulerBinding.instance.addPostFrameCallback((_) {
             context.dispatch(LoadThumbnail(media: this.media));
           });
-          continue loading;
-        loading:
+          continue renderLoading;
+        renderLoading:
         case ThumbnailStatus.loading:
           result = Center(child: CircularProgressIndicator());
           break;
@@ -33,7 +33,9 @@ class MediaThumbnail extends StatelessWidget {
           result = Icon(Icons.broken_image);
           break;
         case ThumbnailStatus.loaded:
-          result = Image(image: CachedNetworkImageProvider(media.thumbnail));
+          result = Image(
+              image: CachedNetworkImageProvider(media.thumbnail),
+              fit: BoxFit.contain);
           break;
       }
 
@@ -41,10 +43,49 @@ class MediaThumbnail extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         child: KeyedSubtree(
           key: ValueKey(media.thumbnailStatus),
-          child: result
-        )
-      );
-    }
-  );
+          child: result),
+        layoutBuilder: (Widget currentChild, List<Widget> previousChildren) {
+          return Material(
+            color: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0)),
+            clipBehavior: Clip.hardEdge,
+            child: Stack(
+              fit: StackFit.expand,
+              alignment: Alignment.center,
+              children: <Widget>[
+                ...previousChildren,
+                currentChild,
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.black87),
+                    child: Padding(
+                      padding: EdgeInsets.all(4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          Expanded(
+                            child: Align(
+                              heightFactor: 1.0,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                Uri.parse(media.source).host,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10.0,
+                                  color: Colors.white)))),
+                          Padding(
+                            padding: EdgeInsets.only(left: 4.0),
+                            child: Icon(
+                              Icons.launch,
+                              size: 10.0,
+                              color: Colors.white))
+                        ])))),
+              ]));
+        });
+    });
 }
 
