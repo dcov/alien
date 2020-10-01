@@ -204,7 +204,7 @@ class _GetMoreCommentsFailed extends Action {
 // Maps [data] to a either a [Comment], or [More] object depending on its type.
 Thing _mapThing(ThingData data) {
   if (data is CommentData)
-    return data.toModel();
+    return commentFromData(data);
   else if (data is MoreData)
     return More(
       isLoading: false,

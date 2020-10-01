@@ -2,6 +2,7 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../models/comment.dart';
+import '../widgets/circle_divider.dart';
 import '../widgets/formatting.dart';
 import '../widgets/insets.dart';
 
@@ -21,8 +22,11 @@ class CommentTile extends StatelessWidget {
 
   Color getAuthorColor(BuildContext context) {
     if (comment.isSubmitter) {
-      return Colors.blue;
-    }
+      return Colors.blue.shade900.withAlpha((80/100*255).round());
+     } else if (comment.distinguishment == "moderator") {
+       return Colors.green;
+     }
+    return Colors.black54;
   }
 
   @override
@@ -30,29 +34,41 @@ class CommentTile extends StatelessWidget {
     builder: (BuildContext context) {
       return Material(
         child: Padding(
-          padding: includeDepthPadding
-            ? paddingWithLeftDepth(16.0, comment.depth)
-            : const EdgeInsets.all(16.0),
+          padding: EdgeInsets.fromLTRB(
+            16.0 * (includeDepthPadding ? 1 + comment.depth : 1),
+            8.0,
+            16.0,
+            8.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Wrap(children: <Widget>[
+              Wrap(
+                spacing: 4.0,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: HorizontalCircleDivider.divide(<Widget>[
                   Text(
                     comment.authorName,
                     style: TextStyle(
+                      fontSize: 12.0,
                       color: getAuthorColor(context))),
-                  Text(formatElapsedUtc(comment.createdAtUtc)),
-                  Text(formatCount(comment.score)),
-              ]),
+                  Text(
+                    formatElapsedUtc(comment.createdAtUtc),
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.black54)),
+                  Text(
+                    formatCount(comment.score),
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.black54)),
+                ])),
               Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: DefaultTextStyle(
-                  style: Theme.of(context).textTheme.bodyText2,
-                  child: SnudownBody(
-                    snudown: comment.body,
-                    scrollable: false)))
+                padding: const EdgeInsets.only(top: 2.0),
+                child: SnudownBody(
+                  snudown: comment.body,
+                  scrollable: false))
             ])));
-    }
-  );
+    });
 }
+

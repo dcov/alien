@@ -73,11 +73,13 @@ class _PostSliver extends StatelessWidget {
                       color: Colors.black54))
                 ]))),
             if (post.media != null)
-              AspectRatio(
-                aspectRatio: 16/9,
-                child: SizedBox.expand(
-                  child: MediaThumbnail(
-                    media: post.media))),
+              Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: AspectRatio(
+                  aspectRatio: 16/9,
+                  child: SizedBox.expand(
+                    child: MediaThumbnail(
+                      media: post.media)))),
             if (post.selfText != null)
               Padding(
                 padding: EdgeInsets.only(top: 8.0),

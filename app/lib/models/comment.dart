@@ -15,6 +15,7 @@ abstract class Comment extends Model implements Saveable, Votable {
     Snudown body,
     int createdAtUtc,
     int depth,
+    String distinguishment,
     int editedAtUtc,
     bool isSubmitter,
     bool isSaved,
@@ -33,6 +34,8 @@ abstract class Comment extends Model implements Saveable, Votable {
   int get createdAtUtc;
 
   int get depth;
+
+  String distinguishment;
 
   int get editedAtUtc;
 
