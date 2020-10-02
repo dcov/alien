@@ -1,28 +1,47 @@
-import 'package:elmer/elmer.dart';
-import 'package:meta/meta.dart';
-import 'package:reddit/reddit.dart' show PostData;
+import 'package:reddit/reddit.dart';
 
+import '../models/media.dart';
 import '../models/post.dart';
+import '../models/snudown.dart';
 
-extension PostDataExtensions on PostData {
+import 'snudown.dart';
 
-  Post toModel() {
-    return Post(
-      commentCount: this.commentCount,
-      isNSFW: this.isNSFW,
-      authorName: this.authorName,
-      createdAtUtc: this.createdAtUtc,
-      domainName: this.domainName,
-      isSelf: this.isSelf,
-      permalink: this.permalink,
-      subredditName: this.subredditName,
-      title: this.title,
-      url: this.url,
-      isSaved: this.isSaved,
-      id: this.id,
-      kind: this.kind,
-      score: this.score,
-      voteDir: this.voteDir);
+Post postFromData(PostData data) {
+  Media media;
+  if (!data.isSelf) {
+    var thumbnail = data.thumbnailUrl ?? data.preview?.resolutions?.firstWhere((_) => true, orElse: () => null)?.url;
+    if (thumbnail != null) {
+      thumbnail = Uri.tryParse(thumbnail)?.hasScheme == true ? thumbnail : null;
+    }
+
+    media = Media(
+      source: data.url,
+      thumbnail: thumbnail,
+      thumbnailStatus: thumbnail != null ? ThumbnailStatus.loaded : ThumbnailStatus.notLoaded);
   }
+
+  Snudown selfText;
+  if (data.selfText?.isNotEmpty == true) {
+    selfText = snudownFromMarkdown(data.selfText);
+  }
+
+  return Post(
+    commentCount: data.commentCount,
+    isNSFW: data.isNSFW,
+    authorName: data.authorName,
+    createdAtUtc: data.createdAtUtc,
+    domainName: data.domainName,
+    isSelf: data.isSelf,
+    media: media,
+    permalink: data.permalink,
+    selfText: selfText,
+    subredditName: data.subredditName,
+    title: data.title,
+    url: data.url,
+    isSaved: data.isSaved,
+    id: data.id,
+    kind: data.kind,
+    score: data.score,
+    voteDir: data.voteDir);
 }
 

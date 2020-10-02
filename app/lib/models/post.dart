@@ -54,3 +54,4 @@ abstract class Post extends Model implements Saveable, Votable {
 
   String get url;
 }
+

@@ -29,7 +29,7 @@ MarkdownStyleSheet _createStyleSheet(BuildContext context) {
     img: theme.textTheme.body1,
     blockSpacing: 8.0,
     listIndent: 32.0,
-    blockquotePadding: 8.0,
+    blockquotePadding: EdgeInsets.all(8.0),
     blockquoteDecoration: const BoxDecoration(
       border: Border(
         left: BorderSide(
@@ -38,7 +38,7 @@ MarkdownStyleSheet _createStyleSheet(BuildContext context) {
         )
       )
     ),
-    codeblockPadding: 8.0,
+    codeblockPadding: EdgeInsets.all(8.0),
     codeblockDecoration: BoxDecoration(
       color: Colors.grey.shade100,
       borderRadius: BorderRadius.circular(4.0)

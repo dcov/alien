@@ -8,6 +8,7 @@ class Pressable extends StatefulWidget {
     Key key,
     this.controller,
     this.alignment = Alignment.center,
+    this.behavior = HitTestBehavior.translucent,
     @required this.onPress,
     this.onLongPress,
     @required this.child,
@@ -19,6 +20,8 @@ class Pressable extends StatefulWidget {
   final AnimationController controller;
 
   final Alignment alignment;
+
+  final HitTestBehavior behavior;
 
   final VoidCallback onPress;
 
@@ -111,7 +114,7 @@ class _PressableState extends State<Pressable>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      behavior: HitTestBehavior.translucent,
+      behavior: widget.behavior,
       onTapDown: _handleTapDown,
       onTapCancel: _handleTapCancel,
       onTapUp: _handleTapUp,
@@ -134,6 +137,7 @@ class PressableIcon extends StatelessWidget {
   PressableIcon({
     Key key,
     this.controller,
+    this.behavior = HitTestBehavior.translucent,
     @required this.onPress,
     this.onLongPress,
     @required this.icon
@@ -142,6 +146,8 @@ class PressableIcon extends StatelessWidget {
        super(key: key);
 
   final AnimationController controller;
+
+  final HitTestBehavior behavior;
   
   final VoidCallback onPress;
 
@@ -153,6 +159,7 @@ class PressableIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Pressable(
       controller: controller,
+      behavior: behavior,
       onPress: onPress,
       onLongPress: onLongPress,
       child: Icon(icon),

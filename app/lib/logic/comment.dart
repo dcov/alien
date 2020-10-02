@@ -2,21 +2,22 @@ import 'package:reddit/reddit.dart';
 
 import '../models/comment.dart';
 
-extension CommentDataExtensions on CommentData {
-  
-  Comment toModel() {
-    return Comment(
-      authorFlairText: this.authorFlairText,
-      authorName: this.authorName,
-      createdAtUtc: this.createdAtUtc,
-      depth: this.depth,
-      editedAtUtc: this.editedAtUtc,
-      isSubmitter: this.isSubmitter,
-      isSaved: this.isSaved,
-      id: this.id,
-      kind: this.kind,
-      score: this.score,
-      voteDir: this.voteDir);
-  }
+import 'snudown.dart';
+
+Comment commentFromData(CommentData data) {
+  return Comment(
+    authorFlairText: data.authorFlairText,
+    authorName: data.authorName,
+    body: snudownFromMarkdown(data.body),
+    createdAtUtc: data.createdAtUtc,
+    depth: data.depth,
+    distinguishment: data.distinguishment,
+    editedAtUtc: data.editedAtUtc,
+    isSubmitter: data.isSubmitter,
+    isSaved: data.isSaved,
+    id: data.id,
+    kind: data.kind,
+    score: data.score,
+    voteDir: data.voteDir);
 }
 

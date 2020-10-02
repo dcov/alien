@@ -76,9 +76,7 @@ class GetSubredditPosts extends Effect {
             listing: posts.listing,
             to: to,
             data: data,
-            thingFactory: (PostData data) {
-              return data.toModel();
-            });
+            thingFactory: postFromData);
         },
         onError: (_) {
           // TODO: error handling

@@ -86,9 +86,9 @@ class CustomScrollBehavior extends ScrollBehavior {
   ScrollPhysics getScrollPhysics(BuildContext context) {
     switch (getPlatform(context)) {
       case TargetPlatform.iOS:
-        return const BouncingScrollPhysics();
+        return const BouncingScrollPhysics(parent: const AlwaysScrollableScrollPhysics());
       default:
-        return const CustomScrollPhysics();
+        return const CustomScrollPhysics(parent: const AlwaysScrollableScrollPhysics());
     }
   }
 }

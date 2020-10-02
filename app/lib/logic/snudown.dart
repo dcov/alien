@@ -91,7 +91,7 @@ final ExtensionSet _snudownSyntax = ExtensionSet(
   ]
 );
 
-void parseRawInto(String data, Snudown snudown) {
+void _parseRawInto(String data, Snudown snudown) {
     final List<String> lines = data.replaceAll('\r\n', '\n').split('\n');
     final Document document = Document(
       encodeHtml: false,
@@ -133,5 +133,11 @@ void parseRawInto(String data, Snudown snudown) {
     });
 
     hrefsToRemove.forEach(snudown.models.remove);
+}
+
+Snudown snudownFromMarkdown(String markdown) {
+  final snudown = Snudown();
+  _parseRawInto(markdown, snudown);
+  return snudown;
 }
 
