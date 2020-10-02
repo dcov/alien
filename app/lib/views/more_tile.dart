@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../logic/post_comments.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
+import '../widgets/pressable.dart';
 
 class MoreTile extends StatelessWidget {
 
@@ -28,16 +29,21 @@ class MoreTile extends StatelessWidget {
             more: more));
       }
 
-      return Padding(
-        padding: EdgeInsets.only(left: 16.0 * more.depth),
-        child: Material(
-          child: InkWell(
-            onTap: !more.isLoading ? dispatchLoadMoreComments : null,
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: !more.isLoading
-                ? Text('Load ${more.count} comments')
-                : Text('Loading...')))));
+      final style = TextStyle(
+        fontSize: 12.0,
+        color: Colors.black54);
+
+      return Pressable(
+        onPress: !more.isLoading ? dispatchLoadMoreComments : () { },
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            16.0 * (1 + more.depth),
+            8.0,
+            16.0,
+            8.0),
+          child: !more.isLoading
+            ? Text('load ${more.count} comments', style: style)
+            : Text('loading...', style: style)));
     });
 }
 

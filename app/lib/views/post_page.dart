@@ -1,6 +1,6 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:reddit/reddit.dart' show VoteDir;
+import 'package:reddit/reddit.dart';
 
 import '../logic/post_comments.dart';
 import '../logic/thing.dart';
@@ -10,11 +10,11 @@ import '../widgets/circle_divider.dart';
 import '../widgets/formatting.dart';
 import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
-import '../widgets/widget_extensions.dart';
 
 import 'media_thumbnail.dart';
 import 'post_comments_slivers.dart';
 import 'snudown_body.dart';
+import 'sort_bottom_sheet.dart';
 
 class _PostSliver extends StatelessWidget {
 
@@ -90,6 +90,68 @@ class _PostSliver extends StatelessWidget {
   }
 }
 
+class _CommentsSortSliver extends StatelessWidget {
+
+  _CommentsSortSliver({
+    Key key,
+    @required this.comments
+  }) : assert(comments != null),
+       super(key: key);
+
+  final PostComments comments;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200),
+        child: Pressable(
+          onPress: () {
+            showSortBottomSheet<CommentsSort>(
+              context: context,
+              parameters: <CommentsSort>[
+                // TODO: possibly move this into the reddit package as a static field i.e. CommentsSort.values
+                CommentsSort.best,
+                CommentsSort.top,
+                CommentsSort.newest,
+                CommentsSort.controversial,
+                CommentsSort.old,
+                CommentsSort.qa
+              ],
+              currentSelection: comments.sortBy,
+              onSelection: (CommentsSort parameter) {
+                context.dispatch(
+                  RefreshPostComments(
+                    comments: comments,
+                    sortBy: parameter));
+              });
+          },
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: 8.0,
+              horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Icon(
+                  Icons.sort,
+                  size: 14.0,
+                  color: Colors.grey.shade600),
+                Padding(
+                  padding: EdgeInsets.only(left: 4.0),
+                  child: Connector(
+                    builder: (_) {
+                      return Text(
+                        comments.sortBy.name.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          color: Colors.grey.shade600));
+                    })),
+              ])))));
+  }
+}
+
 class _PostPageView extends StatelessWidget {
 
   _PostPageView({
@@ -107,14 +169,19 @@ class _PostPageView extends StatelessWidget {
           SliverAppBar(
             pinned: true,
             backgroundColor: Theme.of(context).canvasColor,
-            leading: CloseButton(color: Colors.black)),
+            leading: CloseButton(color: Colors.black),
+            actions: <Widget>[
+              IconButton(
+                onPressed: () { },
+                icon: Icon(Icons.more_vert),
+                color: Colors.black),
+            ]),
           PostCommentsRefreshSliver(
             comments: comments),
           _PostSliver(
             post: comments.post),
-          SliverToBoxAdapter(
-            child: Divider(
-              height: 1.0)),
+          _CommentsSortSliver(
+            comments: comments),
           PostCommentsTreeSliver(
             comments: comments)
         ]));

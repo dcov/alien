@@ -28,6 +28,7 @@ class PostCommentsTreeSliver extends StatelessWidget {
     return Connector(
       builder: (_) {
         return SliverList(
+          key: UniqueKey(),
           delegate: SliverChildBuilderDelegate(
             (_, int index) {
               final Thing thing = comments.things[index];

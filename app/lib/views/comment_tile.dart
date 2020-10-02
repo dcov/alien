@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../models/comment.dart';
 import '../widgets/circle_divider.dart';
 import '../widgets/formatting.dart';
-import '../widgets/insets.dart';
 
 import 'snudown_body.dart';
 
