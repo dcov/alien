@@ -19,13 +19,14 @@ class CommentTile extends StatelessWidget {
 
   final bool includeDepthPadding;
 
-  Color getAuthorColor(BuildContext context) {
-    if (comment.isSubmitter) {
-      return Colors.blue.shade900.withAlpha((80/100*255).round());
-     } else if (comment.distinguishment == "moderator") {
+  Color get _authorColor {
+    if (comment.distinguishment == "moderator") {
        return Colors.green;
-     }
-    return Colors.black54;
+    } else if (comment.isSubmitter) {
+      return Colors.blue.shade900.withAlpha((80/100*255).round());
+    } else {
+      return Colors.black54;
+    }
   }
 
   @override
@@ -50,7 +51,7 @@ class CommentTile extends StatelessWidget {
                     comment.authorName,
                     style: TextStyle(
                       fontSize: 12.0,
-                      color: getAuthorColor(context))),
+                      color: _authorColor)),
                   Text(
                     formatElapsedUtc(comment.createdAtUtc),
                     style: TextStyle(
@@ -61,6 +62,13 @@ class CommentTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12.0,
                       color: Colors.black54)),
+                  if (comment.editedAtUtc != null)
+                    Text(
+                      'edited ${formatElapsedUtc(comment.editedAtUtc)}',
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.black54)),
                 ])),
               Padding(
                 padding: const EdgeInsets.only(top: 2.0),

@@ -57,7 +57,7 @@ class _PostSliver extends StatelessWidget {
                       fontSize: 12.0,
                       color: Colors.blue.shade900.withAlpha((80 / 100 * 255).round()))),
                   Text(
-                    '${formatElapsedUtc(post.createdAtUtc)} ago',
+                    '${formatElapsedUtc(post.createdAtUtc)}',
                     style: TextStyle(
                       fontSize: 12.0,
                       color: Colors.black54)),

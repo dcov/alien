@@ -184,6 +184,7 @@ class LoadMoreComments extends Action {
   @override
   dynamic update(AccountsOwner owner) {
     assert(more.refreshMarker == comments.latestRefreshMarker);
+    assert(comments.things.contains(more));
     if (more.isLoading)
       return null;
     
@@ -255,9 +256,11 @@ class _InsertMoreComments extends Action {
     if (more.refreshMarker != comments.latestRefreshMarker)
       return;
 
-    final int insertIndex = comments.things.indexOf(more);
-    final Iterable<Thing> newThings = _flattenTree(result).map((data) => _mapThing(data, more.refreshMarker));
-    comments.things.replaceRange(insertIndex, insertIndex + 1, newThings);
+    final things = _flattenTree(result).map((data) => _mapThing(data, more.refreshMarker));
+    final insertIndex = comments.things.indexOf(more);
+    comments.things
+        ..removeAt(insertIndex)
+        ..insertAll(insertIndex, things);
   }
 }
 

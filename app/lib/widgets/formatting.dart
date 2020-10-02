@@ -6,28 +6,31 @@ const _kSecondsInAWeek = _kSecondsInADay * 7;
 const _kSecondsInAMonth = _kSecondsInADay * 30;
 const _kSecondsInAYear = _kSecondsInADay * 365;
 
-String _formatValue(double value, String postfix) {
-  return value > 1 ? '${value.ceil()}$postfix' : null;
-}
-
 String formatElapsedUtc(int startingUtcSeconds, { String append = ''}) {
 
   final elapsedTime = (DateTime.now().millisecondsSinceEpoch / 1000) - startingUtcSeconds;
 
-  return _formatValue(elapsedTime/_kSecondsInAYear, 'y') ??
-         _formatValue(elapsedTime / _kSecondsInAMonth, 'mo') ??
-         _formatValue(elapsedTime / _kSecondsInAWeek, 'w') ??
-         _formatValue(elapsedTime / _kSecondsInADay, 'd') ??
-         _formatValue(elapsedTime / _kSecondsInAnHour, 'h') ??
-         _formatValue(elapsedTime / _kSecondsInAMinute, 'm') ??
-         _formatValue(elapsedTime, 's');
+  String formatValue(double value, String postfix) => value > 1 ? '${value.ceil()}$postfix' : null;
+
+  final formattedElapsedTime = formatValue(elapsedTime/_kSecondsInAYear, 'y') ??
+                               formatValue(elapsedTime / _kSecondsInAMonth, 'mo') ??
+                               formatValue(elapsedTime / _kSecondsInAWeek, 'w') ??
+                               formatValue(elapsedTime / _kSecondsInADay, 'd') ??
+                               formatValue(elapsedTime / _kSecondsInAnHour, 'h') ??
+                               formatValue(elapsedTime / _kSecondsInAMinute, 'm') ??
+                               formatValue(elapsedTime, 's');
+
+  return '$formattedElapsedTime ago';
 }
 
 String formatCount(int count) {
-  if (count == null)
-    return '0';
-  if (count < 1000)
-    return '$count';
-  return (count / 1000).toStringAsPrecision(2) + 'k';
+  if (count > 1000000)
+    return '${(count / 1000000).toStringAsFixed(1)}m';
+  else if (count > 100000)
+    return '${(count / 1000).floor()}k';
+  else if (count > 1000)
+    return '${(count / 1000).toStringAsFixed(1)}k';
+  else
+    return count.toString() ?? '0';
 }
 
