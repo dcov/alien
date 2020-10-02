@@ -11,7 +11,7 @@ import '../widgets/formatting.dart';
 import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
 
-import 'media_thumbnail.dart';
+import 'media_pages.dart';
 import 'post_comments_slivers.dart';
 import 'snudown_body.dart';
 import 'sort_bottom_sheet.dart';
@@ -251,6 +251,7 @@ class PostTile extends StatelessWidget {
     return Connector(
       builder: (BuildContext context) {
         return Pressable(
+          behavior: HitTestBehavior.opaque,
           onPress: () {
             _showPostPage(
               context: context,
@@ -265,21 +266,16 @@ class PostTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(post.title),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: <Widget>[
-                            if (includeSubredditName)
-                              Text('r/${post.subredditName}'),
-                            Text('u/${post.authorName}'),
-                            Text(formatElapsedUtc(post.createdAtUtc)),
-                          ])),
+                      Text(
+                        post.title),
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
                         spacing: 4.0,
-                        children: <Widget>[
+                        children: HorizontalCircleDivider.divide(<Widget>[
+                          if (includeSubredditName)
+                            Text('r/${post.subredditName}'),
+                          Text('u/${post.authorName}'),
+                          Text(formatElapsedUtc(post.createdAtUtc)),
                           Text(
                             '${formatCount(post.score)} points',
                             style: TextStyle(
@@ -287,7 +283,7 @@ class PostTile extends StatelessWidget {
                                      post.voteDir == VoteDir.down ? Colors.indigoAccent :
                                      Colors.grey)),
                           Text('${formatCount(post.commentCount)} comments')
-                        ])
+                        ]))
                     ])),
                 if (post.media != null) 
                   Padding(

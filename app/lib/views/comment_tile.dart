@@ -48,7 +48,7 @@ class CommentTile extends StatelessWidget {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: HorizontalCircleDivider.divide(<Widget>[
                   Text(
-                    comment.authorName,
+                    'u/${comment.authorName}',
                     style: TextStyle(
                       fontSize: 12.0,
                       color: _authorColor)),
@@ -58,7 +58,7 @@ class CommentTile extends StatelessWidget {
                       fontSize: 12.0,
                       color: Colors.black54)),
                   Text(
-                    formatCount(comment.score),
+                    '${formatCount(comment.score)} points',
                     style: TextStyle(
                       fontSize: 12.0,
                       color: Colors.black54)),
