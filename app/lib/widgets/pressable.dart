@@ -74,6 +74,9 @@ class _PressableState extends State<Pressable>
         _controller = widget.controller;
       }
     } else if (oldWidget.controller != null) {
+      // We should've been using the controller given to us
+      assert(_controller == oldWidget.controller);
+
       // We weren't passed a new [AnimationController] and our old [_controller]
       // was not owned by us so we'll create one now.
       _controller = Pressable.createController(vsync: this);
@@ -125,10 +128,7 @@ class _PressableState extends State<Pressable>
         alignment: widget.alignment,
         child: FadeTransition(
           opacity: _controller.drive(Tween(begin: 0.5, end: 1.0)),
-          child: widget.child,
-        ),
-      )
-    );
+          child: widget.child)));
   }
 }
 
@@ -140,7 +140,9 @@ class PressableIcon extends StatelessWidget {
     this.behavior = HitTestBehavior.translucent,
     @required this.onPress,
     this.onLongPress,
-    @required this.icon
+    @required this.icon,
+    this.iconColor,
+    this.padding = EdgeInsets.zero,
   }) : assert(onPress != null),
        assert(icon != null),
        super(key: key);
@@ -155,6 +157,10 @@ class PressableIcon extends StatelessWidget {
 
   final IconData icon;
 
+  final Color iconColor;
+
+  final EdgeInsets padding;
+
   @override
   Widget build(BuildContext context) {
     return Pressable(
@@ -162,8 +168,11 @@ class PressableIcon extends StatelessWidget {
       behavior: behavior,
       onPress: onPress,
       onLongPress: onLongPress,
-      child: Icon(icon),
-    );
+      child: Padding(
+        padding: padding,
+        child: Icon(
+          icon,
+          color: iconColor)));
   }
 }
 
