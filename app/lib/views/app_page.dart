@@ -173,7 +173,7 @@ class _AppBodyState extends State<_AppBody> {
         mapValues(
           app.feeds,
           (Feed feed) => FeedTile(feed: feed),
-          FeedPage.pageNameFrom);
+          feedPageNameFrom);
 
         if (app.defaults != null) {
           assert(app.subscriptions == null);

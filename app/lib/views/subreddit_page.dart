@@ -7,6 +7,7 @@ import '../models/listing.dart';
 import '../models/subreddit.dart';
 import '../models/post.dart';
 import '../widgets/icons.dart';
+import '../widgets/pressable.dart';
 import '../widgets/tile.dart';
 import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
@@ -29,13 +30,22 @@ class _SubredditPageView extends StatelessWidget {
       child: Column(
         children: <Widget>[
           Material(
+            elevation: 1.0,
             child: Padding(
               padding: EdgeInsets.only(top: context.mediaPadding.top),
               child: SizedBox(
                 height: 48.0,
                 child: NavigationToolbar(
                   leading: CloseButton(),
-                  middle: Text(posts.subreddit.name))))),
+                  middle: Text(
+                    posts.subreddit.name,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500)),
+                  trailing: PressableIcon(
+                    onPress: () { },
+                    icon: Icons.more_vert,
+                    iconColor: Colors.black))))),
           Expanded(
             child: ListingScrollView(
               listing: posts.listing,

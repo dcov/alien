@@ -12,80 +12,6 @@ import '../widgets/widget_extensions.dart';
 import 'listing_scroll_view.dart';
 import 'post_page.dart';
 
-class FeedTile extends StatelessWidget {
-
-  FeedTile({
-    Key key,
-    @required this.feed,
-  }) : super(key: key);
-
-  final Feed feed;
-
-  void _pushPage(BuildContext context) {
-
-    final posts = feed.toPosts();
-
-    /// Push the feed posts page
-    context.push(
-        FeedPage.pageNameFrom(feed),
-        (String pageName) => FeedPage(
-          posts: posts,
-          name: pageName));
-
-    /// Dispatch a refresh event
-    context.dispatch(
-        TransitionFeedPosts(
-          posts: posts,
-          to: ListingStatus.refreshing));
-  }
-
-  IconData get _feedTypeIcon {
-    switch (feed) {
-      case Feed.home:
-        return Icons.home;
-      case Feed.popular:
-        return Icons.trending_up;
-      case Feed.all:
-        return Icons.all_inclusive;
-    }
-    throw ArgumentError('Invalid Feed.type value');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomTile(
-      onTap: () => _pushPage(context),
-      icon: Icon(_feedTypeIcon),
-      title: Text(
-        feed.displayName,
-        style: TextStyle(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w500)));
-  }
-}
-
-class FeedPage extends EntryPage {
-
-  FeedPage({
-    @required this.posts,
-    @required String name,
-  }) : super(name: name);
-
-  final FeedPosts posts;
-
-  static String pageNameFrom(Feed feed) => feed.displayName;
-
-  @override
-  Route createRoute(_) {
-    return MaterialPageRoute(
-      settings: this,
-      builder: (_) {
-        return _FeedPageView(
-          posts: posts);
-      });
-  }
-}
-
 class _FeedPageView extends StatelessWidget {
 
   _FeedPageView({
@@ -109,7 +35,11 @@ class _FeedPageView extends StatelessWidget {
                 leading: IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(Icons.close)),
-                middle: Text(posts.type.displayName))))),
+                middle: Text(
+                  posts.type.displayName,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500)))))),
         Expanded(
           child: ListingScrollView(
             listing: posts.listing,
@@ -125,6 +55,87 @@ class _FeedPageView extends StatelessWidget {
                 includeSubredditName: true);
             }))
       ]);
+  }
+}
+
+class _FeedPage extends EntryPage {
+
+  _FeedPage({
+    @required this.posts,
+    @required String name,
+  }) : super(name: name);
+
+  final FeedPosts posts;
+
+  @override
+  Route createRoute(_) {
+    return MaterialPageRoute(
+      settings: this,
+      builder: (_) {
+        return _FeedPageView(
+          posts: posts);
+      });
+  }
+}
+
+String feedPageNameFrom(Feed feed) => feed.displayName;
+
+void _showFeedPage({
+    @required BuildContext context,
+    @required Feed feed
+  }) {
+  assert(context != null);
+  assert(feed != null);
+  /// Create the FeedPosts model
+  final posts = postsFromFeed(feed);
+
+  /// Push the feed posts page
+  context.push(
+      feedPageNameFrom(feed),
+      (String pageName) => _FeedPage(
+        posts: posts,
+        name: pageName));
+
+  /// Dispatch a refresh event
+  context.dispatch(
+      TransitionFeedPosts(
+        posts: posts,
+        to: ListingStatus.refreshing));
+}
+
+class FeedTile extends StatelessWidget {
+
+  FeedTile({
+    Key key,
+    @required this.feed,
+  }) : super(key: key);
+
+  final Feed feed;
+
+  IconData get _feedTypeIcon {
+    switch (feed) {
+      case Feed.home:
+        return Icons.home;
+      case Feed.popular:
+        return Icons.trending_up;
+      case Feed.all:
+        return Icons.all_inclusive;
+    }
+    throw ArgumentError('Invalid Feed.type value');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomTile(
+      onTap: () => _showFeedPage(
+        context: context,
+        feed: feed),
+      icon: Icon(_feedTypeIcon),
+      title: Text(
+        feed.displayName,
+        style: TextStyle(
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500)));
   }
 }
 

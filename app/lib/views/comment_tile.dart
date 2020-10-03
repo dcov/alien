@@ -36,9 +36,9 @@ class CommentTile extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             16.0 * (includeDepthPadding ? 1 + comment.depth : 1),
-            8.0,
+            12.0,
             16.0,
-            8.0),
+            12.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,

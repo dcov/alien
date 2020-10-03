@@ -16,6 +16,18 @@ import 'post_comments_slivers.dart';
 import 'snudown_body.dart';
 import 'sort_bottom_sheet.dart';
 
+Color _determinePostScoreColor(Post post) {
+  switch (post.voteDir) {
+    case VoteDir.up:
+      return Colors.deepOrange;
+    case VoteDir.down:
+      return Colors.indigoAccent;
+    case VoteDir.none:
+      return Colors.black54;
+  }
+  return null;
+}
+
 class _PostSliver extends StatelessWidget {
 
   _PostSliver({
@@ -65,7 +77,7 @@ class _PostSliver extends StatelessWidget {
                     '${formatCount(post.score)} points',
                     style: TextStyle(
                       fontSize: 12.0,
-                      color: Colors.black54)),
+                      color: _determinePostScoreColor(post))),
                   Text(
                     '${formatCount(post.commentCount)} comments',
                     style: TextStyle(
@@ -250,56 +262,78 @@ class PostTile extends StatelessWidget {
   Widget build(_) {
     return Connector(
       builder: (BuildContext context) {
-        return Pressable(
-          behavior: HitTestBehavior.opaque,
-          onPress: () {
-            _showPostPage(
-              context: context,
-              post: post);
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        post.title),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 4.0,
-                        children: HorizontalCircleDivider.divide(<Widget>[
-                          if (includeSubredditName)
-                            Text('r/${post.subredditName}'),
-                          Text('u/${post.authorName}'),
-                          Text(formatElapsedUtc(post.createdAtUtc)),
-                          Text(
-                            '${formatCount(post.score)} points',
-                            style: TextStyle(
-                              color: post.voteDir == VoteDir.up ? Colors.deepOrange :
-                                     post.voteDir == VoteDir.down ? Colors.indigoAccent :
-                                     Colors.grey)),
-                          Text('${formatCount(post.commentCount)} comments')
-                        ]))
-                    ])),
-                if (post.media != null) 
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Material(
-                      child: InkWell(
-                        child: ClipPath(
-                          clipper: ShapeBorderClipper(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4.0))),
-                          child: SizedBox(
-                            width: 70,
-                            height: 60,
-                            child: MediaThumbnail(
-                              media: post.media))))))
-              ])));
+        return DecoratedBox(
+          decoration: BoxDecoration(),
+          child: Pressable(
+            behavior: HitTestBehavior.opaque,
+            onPress: () {
+              _showPostPage(
+                context: context,
+                post: post);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 12.0,
+                horizontal: 16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          post.title,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w400)),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4.0,
+                          children: HorizontalCircleDivider.divide(<Widget>[
+                            if (includeSubredditName)
+                              Text(
+                                'r/${post.subredditName}',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  color: Colors.black54)),
+                            Text(
+                              'u/${post.authorName}',
+                              style: TextStyle(
+                                fontSize: 12.0,
+                                color: Colors.black54)),
+                            Text(
+                              formatElapsedUtc(post.createdAtUtc),
+                              style: TextStyle(
+                                fontSize: 12.0,
+                                color: Colors.black54)),
+                            Text(
+                              '${formatCount(post.score)} points',
+                              style: TextStyle(
+                                fontSize: 12.0,
+                                color: _determinePostScoreColor(post))),
+                            Text(
+                              '${formatCount(post.commentCount)} comments',
+                              style: TextStyle(
+                                fontSize: 12.0,
+                                color: Colors.black54))
+                          ]))
+                      ])),
+                  if (post.media != null) 
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Material(
+                        child: InkWell(
+                          child: ClipPath(
+                            clipper: ShapeBorderClipper(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4.0))),
+                            child: SizedBox(
+                              width: 70,
+                              height: 60,
+                              child: MediaThumbnail(
+                                media: post.media))))))
+                ]))));
       });
   }
 }

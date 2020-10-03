@@ -12,6 +12,24 @@ import 'listing.dart';
 import 'post.dart';
 import 'user.dart';
 
+FeedPosts postsFromFeed(Feed feed) {
+  Object sortBy;
+  switch (feed) {
+    case Feed.home:
+      sortBy = HomeSort.best;
+      break;
+    case Feed.popular:
+    case Feed.all:
+      sortBy = SubredditSort.hot;
+  }
+
+  return FeedPosts(
+    type: feed,
+    sortBy: sortBy,
+    listing: Listing(
+      status: ListingStatus.idle));
+}
+
 extension FeedExtensions on Feed {
 
   String get _name {
@@ -36,24 +54,6 @@ extension FeedExtensions on Feed {
         return 'All';
     }
     throw ArgumentError('Invalid Feed.type value');
-  }
-
-  FeedPosts toPosts() {
-    Object sortBy;
-    switch (this) {
-      case Feed.home:
-        sortBy = HomeSort.best;
-        break;
-      case Feed.popular:
-      case Feed.all:
-        sortBy = SubredditSort.hot;
-    }
-
-    return FeedPosts(
-      type: this,
-      sortBy: sortBy,
-      listing: Listing(
-        status: ListingStatus.idle));
   }
 }
 

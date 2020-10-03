@@ -67,6 +67,7 @@ class _SortBottomSheet<T extends Parameter> extends StatelessWidget {
       builder: (BuildContext context, ScrollController controller) {
         return ListView(
           controller: controller,
+          shrinkWrap: true,
           children: parameters.map((T parameter){
               return _ParameterTile(
                 parameter: parameter,

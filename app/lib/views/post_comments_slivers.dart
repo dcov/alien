@@ -9,6 +9,7 @@ import '../models/comment.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
 import '../models/thing.dart';
+import '../widgets/widget_extensions.dart';
 
 import 'comment_tile.dart';
 import 'more_tile.dart';
@@ -26,25 +27,27 @@ class PostCommentsTreeSliver extends StatelessWidget {
   @override
   Widget build(_) {
     return Connector(
-      builder: (_) {
-        return SliverList(
-          key: UniqueKey(),
-          delegate: SliverChildBuilderDelegate(
-            (_, int index) {
-              final Thing thing = comments.things[index];
-              if (thing is Comment) {
-                return CommentTile(
-                  comment: thing,
-                  includeDepthPadding: true);
-              } else if (thing is More) {
-                return MoreTile(
-                  comments: comments,
-                  more: thing);
-              }
-              
-              return const SizedBox();
-            },
-            childCount: comments.things.length));
+      builder: (BuildContext context) {
+        return SliverPadding(
+          padding: EdgeInsets.only(bottom: context.mediaPadding.bottom + 24.0),
+          sliver: SliverList(
+            key: UniqueKey(),
+            delegate: SliverChildBuilderDelegate(
+              (_, int index) {
+                final Thing thing = comments.things[index];
+                if (thing is Comment) {
+                  return CommentTile(
+                    comment: thing,
+                    includeDepthPadding: true);
+                } else if (thing is More) {
+                  return MoreTile(
+                    comments: comments,
+                    more: thing);
+                }
+                
+                return const SizedBox();
+              },
+              childCount: comments.things.length)));
       });
   }
 }
