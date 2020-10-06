@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
+import '../widgets/pressable.dart';
 import '../widgets/tile.dart';
 
 class _ParameterTile extends StatelessWidget {
@@ -36,7 +37,7 @@ class _ParameterTile extends StatelessWidget {
 
 typedef SortParameterCallback<T extends Parameter> = void Function(T parameter);
 
-class _SortBottomSheet<T extends Parameter> extends StatelessWidget {
+class _SortBottomSheet<T extends Parameter> extends StatefulWidget {
 
   _SortBottomSheet({
     Key key,
@@ -54,9 +55,20 @@ class _SortBottomSheet<T extends Parameter> extends StatelessWidget {
 
   final SortParameterCallback<T> onSelection;
 
+  @override
+  _SortBottomSheetState<T> createState() => _SortBottomSheetState<T>();
+}
+
+class _SortBottomSheetState<T extends Parameter> extends State<_SortBottomSheet<T>> {
+
+  List<Parameter> _currentParameters;
+
   void _handleSelection(BuildContext context, T parameter) {
+    if (parameter is TimedParameter && parameter.isTimed) {
+
+    }
     Navigator.pop(context);
-    onSelection(parameter);
+    widget.onSelection(parameter);
   }
 
   @override
@@ -68,10 +80,10 @@ class _SortBottomSheet<T extends Parameter> extends StatelessWidget {
         return ListView(
           controller: controller,
           shrinkWrap: true,
-          children: parameters.map((T parameter){
+          children: widget.parameters.map((T parameter){
               return _ParameterTile(
                 parameter: parameter,
-                isCurrentSelection: parameter == currentSelection,
+                isCurrentSelection: parameter == widget.currentSelection,
                 onTap: () => _handleSelection(context, parameter));
             }).toList());
       });
@@ -94,5 +106,59 @@ void showSortBottomSheet<T extends Parameter>({
         currentSelection: currentSelection,
         onSelection: onSelection);
     });
+}
+
+class SortSliver<T extends Parameter> extends StatelessWidget {
+
+  SortSliver({
+    Key key,
+    @required this.parameters,
+    @required this.currentSelection,
+    @required this.onSelection
+  }) : assert(parameters != null),
+       assert(currentSelection != null),
+       assert(onSelection != null),
+       super(key: key);
+
+  final List<T> parameters;
+
+  final T currentSelection;
+
+  final SortParameterCallback <T> onSelection;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200),
+        child: Pressable(
+          onPress: () {
+            showSortBottomSheet<T>(
+              context: context,
+              parameters: parameters,
+              currentSelection: currentSelection,
+              onSelection: onSelection);
+          },
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: 8.0,
+              horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Icon(
+                  Icons.sort,
+                  size: 14.0,
+                  color: Colors.grey.shade600),
+                Padding(
+                  padding: EdgeInsets.only(left: 4.0),
+                  child: Text(
+                    currentSelection.name.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      color: Colors.grey.shade600))),
+              ])))));
+  }
 }
 

@@ -1,5 +1,6 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:reddit/reddit.dart';
 
 import '../logic/subreddit_posts.dart';
 import '../logic/thing.dart';
@@ -14,6 +15,7 @@ import '../widgets/widget_extensions.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_page.dart';
+import 'sort_bottom_sheet.dart';
 
 class _SubredditPageView extends StatelessWidget {
 
@@ -27,40 +29,65 @@ class _SubredditPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: Column(
-        children: <Widget>[
-          Material(
-            elevation: 1.0,
-            child: Padding(
-              padding: EdgeInsets.only(top: context.mediaPadding.top),
-              child: SizedBox(
-                height: 48.0,
-                child: NavigationToolbar(
-                  leading: CloseButton(),
-                  middle: Text(
-                    posts.subreddit.name,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500)),
-                  trailing: PressableIcon(
+      child: ListingScrollView(
+        listing: posts.listing,
+        onTransitionListing: (ListingStatus to) {
+          context.dispatch(
+            TransitionSubredditPosts(
+              posts: posts,
+              to: to));
+        },
+        thingBuilder: (BuildContext context, Post post) {
+          return PostTile(
+            post: post,
+            includeSubredditName: false);
+        },
+        scrollViewBuilder: (BuildContext context, ScrollController controller, Widget refreshSliver, Widget listSliver) {
+          return CustomScrollView(
+            controller: controller,
+            slivers: <Widget>[
+              SliverAppBar(
+                elevation: 1.0,
+                pinned: true,
+                backgroundColor: Theme.of(context).canvasColor,
+                leading: CloseButton(
+                  color: Colors.black),
+                title: Text(
+                  posts.subreddit.name,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black)),
+                actions: <Widget>[
+                  PressableIcon(
                     onPress: () { },
                     icon: Icons.more_vert,
-                    iconColor: Colors.black))))),
-          Expanded(
-            child: ListingScrollView(
-              listing: posts.listing,
-              onTransitionListing: (ListingStatus to) {
-                context.dispatch(
-                  TransitionSubredditPosts(
-                    posts: posts,
-                    to: to));
-              },
-              builder: (BuildContext context, Post post) {
-                return PostTile(
-                  post: post,
-                  includeSubredditName: false);
-              }))
-        ]));
+                    iconColor: Colors.black,
+                    padding: EdgeInsets.symmetric(horizontal: 16.0))
+                ]),
+              refreshSliver,
+              Connector(
+                builder: (BuildContext context) {
+                  return SortSliver(
+                    parameters: [
+                      SubredditSort.hot,
+                      SubredditSort.newest,
+                      SubredditSort.controversial,
+                      SubredditSort.top,
+                      SubredditSort.rising
+                    ],
+                    currentSelection: posts.sortBy,
+                    onSelection: (SubredditSort sortBy) {
+                      context.dispatch(
+                        TransitionSubredditPosts(
+                          posts: posts,
+                          to: ListingStatus.refreshing,
+                          sortBy: sortBy));
+                    });
+                }),
+              listSliver
+            ]);
+        }));
   }
 }
 

@@ -24,7 +24,7 @@ abstract class PostComments extends Model {
 
   bool refreshing;
 
-  /// Used when determining whether to refresh, and whether to complete a refresh. This is needed because
+  /// Used when determining whether to refresh, and then whether to complete a refresh. This is needed because
   /// there are cases where multiple refresh actions are in progress (ex. if a user changes the sortBy value multiple
   /// times quickly), and this is used to ensure that only the latest refresh action completes succesfully.
   ///

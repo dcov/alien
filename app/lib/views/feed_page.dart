@@ -1,16 +1,19 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:reddit/reddit.dart';
 
 import '../logic/feeds.dart';
 import '../models/feed.dart';
 import '../models/listing.dart';
 import '../models/post.dart';
+import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
 import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_page.dart';
+import 'sort_bottom_sheet.dart';
 
 class _FeedPageView extends StatelessWidget {
 
@@ -22,39 +25,84 @@ class _FeedPageView extends StatelessWidget {
 
   final FeedPosts posts;
 
+  List<Parameter> get _sortParameters {
+    switch (posts.type) {
+      case Feed.home:
+        return <HomeSort>[
+          HomeSort.best,
+          HomeSort.hot,
+          HomeSort.newest,
+          HomeSort.controversial,
+          HomeSort.top,
+          HomeSort.rising
+        ];
+      case Feed.popular:
+      case Feed.all:
+        return <SubredditSort>[
+          SubredditSort.hot,
+          SubredditSort.newest,
+          SubredditSort.controversial,
+          SubredditSort.top,
+          SubredditSort.rising
+        ];
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Material(
-          child: Padding(
-            padding: EdgeInsets.only(top: context.mediaPadding.top),
-            child: SizedBox(
-              height: 48.0,
-              child: NavigationToolbar(
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close)),
-                middle: Text(
-                  posts.type.displayName,
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w500)))))),
-        Expanded(
-          child: ListingScrollView(
-            listing: posts.listing,
-            onTransitionListing: (ListingStatus to) {
-              context.dispatch(
-                TransitionFeedPosts(
-                  posts: posts,
-                  to: to));
-            },
-            builder: (BuildContext context, Post post) {
-              return PostTile(
-                post: post,
-                includeSubredditName: true);
-            }))
-      ]);
+    return ListingScrollView(
+      listing: posts.listing,
+      onTransitionListing: (ListingStatus to) {
+        context.dispatch(
+          TransitionFeedPosts(
+            posts: posts,
+            to: to));
+      },
+      thingBuilder: (BuildContext context, Post post) {
+        return PostTile(
+          post: post,
+          includeSubredditName: true);
+      },
+      scrollViewBuilder: (BuildContext context, ScrollController controller, Widget refreshSliver, Widget listSliver) {
+        return CustomScrollView(
+          controller: controller,
+          slivers: <Widget>[
+            SliverAppBar(
+              elevation: 1.0,
+              pinned: true,
+              backgroundColor: Theme.of(context).canvasColor,
+              leading: CloseButton(color: Colors.black),
+              title: Text(
+                posts.type.displayName,
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black)),
+              actions: <Widget>[
+                PressableIcon(
+                  onPress: () { },
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  icon: Icons.more_vert,
+                  iconColor: Colors.black)
+              ]),
+            refreshSliver,
+            Connector(
+              builder: (BuildContext context) {
+                return SortSliver(
+                  parameters: _sortParameters,
+                  currentSelection: posts.sortBy,
+                  onSelection: (Parameter parameter) {
+                    context.dispatch(
+                      TransitionFeedPosts(
+                        posts: posts,
+                        to: ListingStatus.refreshing,
+                        sortBy: parameter));
+                  });
+              }),
+            listSliver
+          ]);
+      });
   }
 }
 

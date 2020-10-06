@@ -1,4 +1,5 @@
 import 'package:elmer/elmer.dart';
+import 'package:reddit/reddit.dart';
 
 import 'listing.dart';
 import 'post.dart';
@@ -15,7 +16,7 @@ abstract class FeedPosts extends Model {
 
   factory FeedPosts({
     Feed type,
-    Object sortBy,
+    Parameter sortBy,
     Listing<Post> listing,
   }) = _$FeedPosts;
 
@@ -24,7 +25,11 @@ abstract class FeedPosts extends Model {
   /// The value to use when sorting the posts.
   /// If [type] is [FeedType.home] this should be a [HomeSort] value; If [type] is [FeedType.popular] or [FeedType.all]
   /// this should be a [SubredditSort] value.
-  Object sortBy;
+  Parameter sortBy;
+
+  /// Because both of the possible [sortBy] types ([HomeSort] and [SubredditSort]), are [TimedParameter]s, this is the
+  /// time aspect to those sort values.
+  TimeSort sortFrom;
 
   Listing<Post> listing;
 }

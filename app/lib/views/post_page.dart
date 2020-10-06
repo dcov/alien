@@ -102,68 +102,6 @@ class _PostSliver extends StatelessWidget {
   }
 }
 
-class _CommentsSortSliver extends StatelessWidget {
-
-  _CommentsSortSliver({
-    Key key,
-    @required this.comments
-  }) : assert(comments != null),
-       super(key: key);
-
-  final PostComments comments;
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200),
-        child: Pressable(
-          onPress: () {
-            showSortBottomSheet<CommentsSort>(
-              context: context,
-              parameters: <CommentsSort>[
-                // TODO: possibly move this into the reddit package as a static field i.e. CommentsSort.values
-                CommentsSort.best,
-                CommentsSort.top,
-                CommentsSort.newest,
-                CommentsSort.controversial,
-                CommentsSort.old,
-                CommentsSort.qa
-              ],
-              currentSelection: comments.sortBy,
-              onSelection: (CommentsSort parameter) {
-                context.dispatch(
-                  RefreshPostComments(
-                    comments: comments,
-                    sortBy: parameter));
-              });
-          },
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Icon(
-                  Icons.sort,
-                  size: 14.0,
-                  color: Colors.grey.shade600),
-                Padding(
-                  padding: EdgeInsets.only(left: 4.0),
-                  child: Connector(
-                    builder: (_) {
-                      return Text(
-                        comments.sortBy.name.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          color: Colors.grey.shade600));
-                    })),
-              ])))));
-  }
-}
-
 class _PostPageView extends StatelessWidget {
 
   _PostPageView({
@@ -179,6 +117,7 @@ class _PostPageView extends StatelessWidget {
       child: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
+            elevation: 1.0,
             pinned: true,
             backgroundColor: Theme.of(context).canvasColor,
             leading: CloseButton(color: Colors.black),
@@ -192,8 +131,26 @@ class _PostPageView extends StatelessWidget {
             comments: comments),
           _PostSliver(
             post: comments.post),
-          _CommentsSortSliver(
-            comments: comments),
+          Connector(
+            builder: (_) {
+              return SortSliver(
+                parameters: <CommentsSort>[
+                  // TODO: possibly move this into the reddit package as a static field i.e. CommentsSort.values
+                  CommentsSort.best,
+                  CommentsSort.top,
+                  CommentsSort.newest,
+                  CommentsSort.controversial,
+                  CommentsSort.old,
+                  CommentsSort.qa
+                ],
+                currentSelection: comments.sortBy,
+                onSelection: (CommentsSort parameter) {
+                  context.dispatch(
+                    RefreshPostComments(
+                      comments: comments,
+                      sortBy: parameter));
+                });
+            }),
           PostCommentsTreeSliver(
             comments: comments)
         ]));
@@ -263,7 +220,10 @@ class PostTile extends StatelessWidget {
     return Connector(
       builder: (BuildContext context) {
         return DecoratedBox(
-          decoration: BoxDecoration(),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.grey.shade200))),
           child: Pressable(
             behavior: HitTestBehavior.opaque,
             onPress: () {
@@ -286,7 +246,7 @@ class PostTile extends StatelessWidget {
                           post.title,
                           style: TextStyle(
                             fontSize: 14.0,
-                            fontWeight: FontWeight.w400)),
+                            fontWeight: FontWeight.normal)),
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
                           spacing: 4.0,

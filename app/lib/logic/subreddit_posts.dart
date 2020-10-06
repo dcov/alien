@@ -25,7 +25,9 @@ class TransitionSubredditPosts extends Action {
 
   TransitionSubredditPosts({
     @required this.posts,
-    @required this.to
+    @required this.to,
+    this.sortBy,
+    this.sortFrom
   }) : assert(posts != null),
        assert(to != null);
 
@@ -33,15 +35,32 @@ class TransitionSubredditPosts extends Action {
 
   final ListingStatus to;
 
+  final SubredditSort sortBy;
+
+  final TimeSort sortFrom;
+
   @override
   dynamic update(AccountsOwner owner) {
+
+    bool changedSort = false;
+    if (sortBy != null && (sortBy != posts.sortBy || sortFrom != posts.sortFrom)) {
+      assert(to == ListingStatus.refreshing);
+      posts..sortBy = sortBy
+           ..sortFrom = sortFrom
+           /// We're changing the sort value so we'll clear the current posts since they no longer correspond to
+           /// the sort value.
+           ..listing.things.clear();
+      changedSort = true;
+    }
+
     return TransitionListing(
       listing: posts.listing,
       to: to,
-      effectFactory: (Page page) => GetSubredditPosts(
+      forceIfRefreshing: changedSort,
+      effectFactory: (Page page, Object transitionMarker) => GetSubredditPosts(
         posts: posts,
-        to: to,
         page: page,
+        transitionMarker: transitionMarker,
         user: owner.accounts.currentUser));
   }
 }
@@ -50,18 +69,18 @@ class GetSubredditPosts extends Effect {
 
   GetSubredditPosts({
     @required this.posts,
-    @required this.to,
     @required this.page,
+    @required this.transitionMarker,
     this.user,
   }) : assert(posts != null),
-       assert(to != null),
-       assert(page != null);
+       assert(page != null),
+       assert(transitionMarker != null);
 
   final SubredditPosts posts;
 
-  final ListingStatus to;
-
   final Page page;
+
+  final Object transitionMarker;
 
   final User user;
 
@@ -72,14 +91,16 @@ class GetSubredditPosts extends Effect {
         posts.subreddit.name, posts.sortBy, page)
       .then(
         (ListingData<PostData> data) {
-          return TransitionListingSuccess(
+          return FinishListingTransition(
             listing: posts.listing,
-            to: to,
+            transitionMarker: transitionMarker,
             data: data,
             thingFactory: postFromData);
         },
         onError: (_) {
-          // TODO: error handling
+          return ListingTransitionFailed(
+            listing: posts.listing,
+            transitionMarker: transitionMarker);
         });
   }
 }

@@ -13,7 +13,7 @@ import 'post.dart';
 import 'user.dart';
 
 FeedPosts postsFromFeed(Feed feed) {
-  Object sortBy;
+  Parameter sortBy;
   switch (feed) {
     case Feed.home:
       sortBy = HomeSort.best;
@@ -61,24 +61,41 @@ class TransitionFeedPosts extends Action {
 
   TransitionFeedPosts({
     @required this.posts,
-    @required this.to
+    @required this.to,
+    this.sortBy,
+    this.sortFrom
   });
 
   final FeedPosts posts;
 
   final ListingStatus to;
 
+  final Parameter sortBy;
+
+  final TimeSort sortFrom;
+
   @override
   dynamic update(AccountsOwner owner) {
     assert(posts.type != Feed.home || owner.accounts.currentUser != null);
+
+    bool changedSort = false;
+    if (sortBy != null && (sortBy != posts.sortBy || sortFrom != posts.sortFrom)) {
+      // Since we're changing the sort value, we should be refreshing
+      assert(to == ListingStatus.refreshing);
+      posts..sortBy = sortBy
+           ..sortFrom = sortFrom;
+      changedSort = true;
+    }
+
     return TransitionListing(
       listing: posts.listing,
       to: to,
-      effectFactory: (Page page) {
+      forceIfRefreshing: changedSort,
+      effectFactory: (Page page, Object transitionMarker) {
         return GetFeedPosts(
           posts: posts,
-          to: to,
           page: page,
+          transitionMarker: transitionMarker,
           user: owner.accounts.currentUser);
       });
   }
@@ -88,41 +105,45 @@ class GetFeedPosts extends Effect {
 
   GetFeedPosts({
     @required this.posts,
-    @required this.to,
     @required this.page,
+    @required this.transitionMarker,
     this.user
-  });
+  }) : assert(posts != null),
+       assert(page != null),
+       assert(transitionMarker != null);
 
   final FeedPosts posts;
 
-  final ListingStatus to;
-
   final Page page;
+
+  final Object transitionMarker;
 
   final User user;
 
   @override
   dynamic perform(EffectContext context) async {
     assert(posts.type != Feed.home || user != null);
-    ListingData<PostData> result;
+    ListingData<PostData> data;
     try {
       if (posts.type == Feed.home) {
         assert(posts.sortBy is HomeSort);
         assert(user != null);
-        result = await context.clientFromUser(user).getHomePosts(posts.sortBy, page);
+        data = await context.clientFromUser(user).getHomePosts(posts.sortBy, page);
       } else {
         assert(posts.sortBy is SubredditSort);
         final subredditName = posts.type._name;
-        result = await context.clientFromUser(user).getSubredditPosts(subredditName, posts.sortBy, page);
+        data = await context.clientFromUser(user).getSubredditPosts(subredditName, posts.sortBy, page);
       }
     } catch (_) {
-      return TransitionListingFailure();
+      return ListingTransitionFailed(
+        listing: posts.listing,
+        transitionMarker: transitionMarker);
     }
 
-    return TransitionListingSuccess(
+    return FinishListingTransition(
       listing: posts.listing,
-      to: to,
-      data: result,
+      transitionMarker: transitionMarker,
+      data: data,
       thingFactory: postFromData);
   }
 }

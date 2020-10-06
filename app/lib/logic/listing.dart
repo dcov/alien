@@ -5,62 +5,85 @@ import 'package:reddit/reddit.dart';
 import '../models/listing.dart';
 import '../models/thing.dart';
 
-typedef _TransitionListingEffectFactory = Effect Function(Page page);
+typedef _ListingTransitionEffectFactory = Effect Function(Page page, Object marker);
 
 class TransitionListing extends Action {
 
   TransitionListing({
     @required this.listing,
     @required this.to,
+    @required this.forceIfRefreshing,
     @required this.effectFactory
-  });
+  }) : assert(listing != null),
+       assert(to != null),
+       assert(to != ListingStatus.idle),
+       assert(forceIfRefreshing != null),
+       assert(!forceIfRefreshing || to != ListingStatus.loadingMore),
+       assert(effectFactory != null);
 
   final Listing listing;
 
+  /// The status to transition to.
+  ///
+  /// This value cannot be [ListingStatus.idle].
   final ListingStatus to;
 
-  final _TransitionListingEffectFactory effectFactory;
+  /// Whether to force the transition if we're transitioning to [ListingStatus.refreshing]
+  ///
+  /// This only applies if [to] == [ListingStatus.refreshing].
+  final bool forceIfRefreshing;
+
+  final _ListingTransitionEffectFactory effectFactory;
 
   @override
   dynamic update(_) {
-    assert(to != ListingStatus.idle,
-        'Can\'t transition a Listing to idle manually, it has to be as a result of a different transition.');
-
-    // ignore: missing_enum_constant_in_switch
     switch(to) {
       case ListingStatus.refreshing:
-        // Check if the listing is already refreshing
-        if (listing.status == ListingStatus.refreshing)
+        // We can only transition to refreshing if we're not already refreshing, or if we're forcing a refresh.
+        if (listing.status == ListingStatus.refreshing && !forceIfRefreshing)
           return;
 
         listing.pagination = Pagination();
         break;
       case ListingStatus.loadingMore:
-        assert(listing.pagination != null);
-        assert(listing.pagination.nextPageExists);
-        if (listing.status != ListingStatus.idle) return null;
+        // We can only transition to loadingMore if we're idling
+        if (listing.status != ListingStatus.idle)
+          return;
+
+        // We can transition to loadingMore so there should be a next page to transition to
+        assert(listing.pagination != null && listing.pagination.nextPageExists);
+        break;
+      default:
         break;
     }
 
-    listing.status = to;
-    return effectFactory(listing.pagination.nextPage);
+    /// Create a new marker to mark this transition instance.
+    final transitionMarker = Object();
+
+    listing..status = to
+           ..latestTransitionMarker = transitionMarker;
+
+    return effectFactory(listing.pagination.nextPage, transitionMarker);
   }
 }
 
 typedef _ThingFactory<TD extends ThingData, T extends Thing> = T Function(TD data);
 
-class TransitionListingSuccess<TD extends ThingData, T extends Thing> extends Action {
+class FinishListingTransition<TD extends ThingData, T extends Thing> extends Action {
 
-  TransitionListingSuccess({
+  FinishListingTransition({
     @required this.listing,
-    @required this.to,
+    @required this.transitionMarker,
     @required this.data,
     @required this.thingFactory
-  });
+  }) : assert(listing != null),
+       assert(transitionMarker != null),
+       assert(data != null),
+       assert(thingFactory != null);
 
   final Listing<T> listing;
 
-  final ListingStatus to;
+  final Object transitionMarker;
 
   final ListingData<TD> data;
 
@@ -68,9 +91,10 @@ class TransitionListingSuccess<TD extends ThingData, T extends Thing> extends Ac
 
   @override
   dynamic update(_) {
-    // If that status of the listing isn't what we're finishing transitioning to then this transition has been
-    // overriden by a different transition, in which case we don't need to do anything.
-    if (listing.status != to)
+    // If the latest marker isn't the marker
+    // we have, then this transition has been overriden by a different transition, in which case we don't need to do
+    // anything.
+    if (transitionMarker != listing.latestTransitionMarker)
       return;
     
     Iterable<TD> things;
@@ -96,15 +120,28 @@ class TransitionListingSuccess<TD extends ThingData, T extends Thing> extends Ac
 
     listing..pagination = listing.pagination.forward(data)
            ..things.addAll(things.map(thingFactory))
-           ..status = ListingStatus.idle;
+           ..status = ListingStatus.idle
+           ..latestTransitionMarker = null;
   }
 }
 
-class TransitionListingFailure extends Action {
+class ListingTransitionFailed extends Action {
+
+  ListingTransitionFailed({
+    @required this.listing,
+    @required this.transitionMarker
+  }) : assert(listing != null),
+       assert(transitionMarker != null);
+
+  final Listing listing;
+
+  final Object transitionMarker;
 
   @override
   dynamic update(_) {
-    // TODO: implement
+    if (transitionMarker == listing.latestTransitionMarker)
+      listing..status = ListingStatus.idle
+             ..latestTransitionMarker = null;
   }
 }
 

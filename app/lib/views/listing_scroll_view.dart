@@ -7,24 +7,46 @@ import 'package:flutter/material.dart';
 import '../models/listing.dart';
 import '../models/thing.dart';
 
-typedef ThingWidgetBuilder<T extends Thing> = Widget Function(BuildContext context, T thing);
-
 typedef TransitionListingCallback = void Function(ListingStatus to);
+
+typedef ThingBuilder<T extends Thing> = Widget Function(BuildContext context, T thing);
+
+typedef ListingScrollViewBuilder = Widget Function(
+  BuildContext context,
+  ScrollController controller,
+  Widget refreshSliver,
+  Widget listSliver);
 
 class ListingScrollView<T extends Thing> extends StatefulWidget {
 
   ListingScrollView({
     Key key,
     @required this.listing,
-    @required this.builder,
-    @required this.onTransitionListing
-  }) : super(key: key);
+    @required this.onTransitionListing,
+    @required this.thingBuilder,
+    this.scrollViewBuilder = defaultScrollViewBuilder
+  }) : assert(listing != null),
+       assert(onTransitionListing != null),
+       assert(thingBuilder != null),
+       assert(scrollViewBuilder != null),
+       super(key: key);
 
   final Listing<T> listing;
 
-  final ThingWidgetBuilder<T> builder;
-
   final TransitionListingCallback onTransitionListing;
+
+  final ThingBuilder<T> thingBuilder;
+
+  final ListingScrollViewBuilder scrollViewBuilder;
+
+  static Widget defaultScrollViewBuilder(BuildContext _, ScrollController controller, Widget refreshSliver, Widget listSliver) {
+    return CustomScrollView(
+      controller: controller,
+      slivers: <Widget>[
+        refreshSliver,
+        listSliver
+      ]);
+  }
 
   @override
   _ListingScrollViewState<T> createState() => _ListingScrollViewState<T>();
@@ -86,18 +108,18 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
         final Listing<T> listing = widget.listing;
         _checkShouldHandlePositionChange(listing);
         _checkShouldFinishRefresh(listing);
-        return CustomScrollView(
-          controller: _controller,
-          slivers: <Widget>[
-            CupertinoSliverRefreshControl(
-              onRefresh: _handleRefresh),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  return widget.builder(context, listing.things[index]);
-                },
-                childCount: listing.things.length)),
-          ]);
+        return widget.scrollViewBuilder(
+          context,
+          _controller,
+          CupertinoSliverRefreshControl(
+            onRefresh: _handleRefresh),
+          SliverList(
+            key: ValueKey(listing.latestTransitionMarker),
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                return widget.thingBuilder(context, listing.things[index]);
+              },
+              childCount: listing.things.length)));
       });
   }
 

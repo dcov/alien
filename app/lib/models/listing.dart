@@ -16,7 +16,8 @@ abstract class Listing<T extends Thing> extends Model {
   factory Listing({
     ListingStatus status,
     List<T> things,
-    Pagination pagination
+    Pagination pagination,
+    Object latestTransitionMarker
   }) = _$Listing;
 
   ListingStatus status;
@@ -24,5 +25,7 @@ abstract class Listing<T extends Thing> extends Model {
   List<T> get things;
 
   Pagination pagination;
+
+  Object latestTransitionMarker;
 }
 

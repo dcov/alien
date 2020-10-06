@@ -26,12 +26,15 @@ abstract class SubredditPosts extends Model {
   factory SubredditPosts({
     Subreddit subreddit,
     SubredditSort sortBy,
+    TimeSort sortFrom,
     Listing<Post> listing
   }) = _$SubredditPosts;
 
   Subreddit get subreddit;
 
   SubredditSort sortBy;
+
+  TimeSort sortFrom;
 
   Listing<Post> get listing;
 }
