@@ -128,11 +128,11 @@ class GetFeedPosts extends Effect {
       if (posts.type == Feed.home) {
         assert(posts.sortBy is HomeSort);
         assert(user != null);
-        data = await context.clientFromUser(user).getHomePosts(posts.sortBy, page);
+        data = await context.clientFromUser(user).getHomePosts(page, posts.sortBy, posts.sortFrom);
       } else {
         assert(posts.sortBy is SubredditSort);
         final subredditName = posts.type._name;
-        data = await context.clientFromUser(user).getSubredditPosts(subredditName, posts.sortBy, page);
+        data = await context.clientFromUser(user).getSubredditPosts(subredditName, page, posts.sortBy, posts.sortFrom);
       }
     } catch (_) {
       return ListingTransitionFailed(

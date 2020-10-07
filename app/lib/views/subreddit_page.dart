@@ -76,13 +76,15 @@ class _SubredditPageView extends StatelessWidget {
                       SubredditSort.top,
                       SubredditSort.rising
                     ],
-                    currentSelection: posts.sortBy,
-                    onSelection: (SubredditSort sortBy) {
+                    currentSortBy: posts.sortBy,
+                    currentSortFrom: posts.sortFrom,
+                    onSort: (SubredditSort sortBy, TimeSort sortFrom) {
                       context.dispatch(
                         TransitionSubredditPosts(
                           posts: posts,
                           to: ListingStatus.refreshing,
-                          sortBy: sortBy));
+                          sortBy: sortBy,
+                          sortFrom: sortFrom));
                     });
                 }),
               listSliver

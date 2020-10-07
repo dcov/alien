@@ -88,7 +88,7 @@ class GetSubredditPosts extends Effect {
   dynamic perform(EffectContext context) {
     return context.clientFromUser(user)
       .getSubredditPosts(
-        posts.subreddit.name, posts.sortBy, page)
+        posts.subreddit.name, page, posts.sortBy, posts.sortFrom)
       .then(
         (ListingData<PostData> data) {
           return FinishListingTransition(

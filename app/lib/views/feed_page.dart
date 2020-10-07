@@ -91,13 +91,15 @@ class _FeedPageView extends StatelessWidget {
               builder: (BuildContext context) {
                 return SortSliver(
                   parameters: _sortParameters,
-                  currentSelection: posts.sortBy,
-                  onSelection: (Parameter parameter) {
+                  currentSortBy: posts.sortBy,
+                  currentSortFrom: posts.sortFrom,
+                  onSort: (Parameter parameter, TimeSort sortFrom) {
                     context.dispatch(
                       TransitionFeedPosts(
                         posts: posts,
                         to: ListingStatus.refreshing,
-                        sortBy: parameter));
+                        sortBy: parameter,
+                        sortFrom: sortFrom));
                   });
               }),
             listSliver

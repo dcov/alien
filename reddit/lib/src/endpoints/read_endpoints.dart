@@ -7,8 +7,8 @@ extension ReadEndpoints on RedditClient {
         .then((String json) => AccountData.fromJson(json));
   }
 
-  Future<ListingData<PostData>> getHomePosts(HomeSort sort, Page page) {
-    return get('/${sort}/${_kRawJsonArgs}&${page}')
+  Future<ListingData<PostData>> getHomePosts(Page page, HomeSort sortBy, [TimeSort sortFrom]) {
+    return get('/${sortBy}/${_kRawJsonArgs}${_formatTimeSortAsArg(sortFrom)}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 
@@ -76,9 +76,9 @@ extension ReadEndpoints on RedditClient {
         .then((String json) => ListingData.fromJson(json));
   }
 
-  Future<ListingData<PostData>> getSubredditPosts(String subredditName, SubredditSort sort, Page page) {
-    return get('/r/${subredditName}/${sort}'
-               '/${_kRawJsonArgs}&${page}')
+  Future<ListingData<PostData>> getSubredditPosts(String subredditName, Page page, SubredditSort sortBy, [TimeSort sortFrom]) {
+    return get('/r/${subredditName}/${sortBy}'
+               '/${_kRawJsonArgs}${_formatTimeSortAsArg(sortFrom)}&${page}')
         .then((String json) => ListingData.fromJson(json));
   }
 

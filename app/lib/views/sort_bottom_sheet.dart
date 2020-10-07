@@ -35,25 +35,28 @@ class _ParameterTile extends StatelessWidget {
   }
 }
 
-typedef SortParameterCallback<T extends Parameter> = void Function(T parameter);
+typedef SortParameterCallback<T extends Parameter> = void Function(T sortBy, TimeSort sortFrom);
 
 class _SortBottomSheet<T extends Parameter> extends StatefulWidget {
 
   _SortBottomSheet({
     Key key,
     @required this.parameters,
-    @required this.currentSelection,
-    @required this.onSelection
+    @required this.currentSortBy,
+    this.currentSortFrom,
+    @required this.onSort
   }) : assert(parameters != null),
-       assert(currentSelection != null),
-       assert(onSelection != null),
+       assert(currentSortBy != null),
+       assert(onSort != null),
        super(key: key);
 
   final List<T> parameters;
 
-  final T currentSelection;
+  final T currentSortBy;
 
-  final SortParameterCallback<T> onSelection;
+  final TimeSort currentSortFrom;
+
+  final SortParameterCallback<T> onSort;
 
   @override
   _SortBottomSheetState<T> createState() => _SortBottomSheetState<T>();
@@ -62,13 +65,35 @@ class _SortBottomSheet<T extends Parameter> extends StatefulWidget {
 class _SortBottomSheetState<T extends Parameter> extends State<_SortBottomSheet<T>> {
 
   List<Parameter> _currentParameters;
+  Parameter _selectedTimedParameter;
 
-  void _handleSelection(BuildContext context, T parameter) {
-    if (parameter is TimedParameter && parameter.isTimed) {
+  @override
+  void initState() {
+    super.initState();
+    _currentParameters = widget.parameters;
+  }
 
+  void _handleSelection(BuildContext context, Parameter parameter) {
+    if (parameter is TimeSort) {
+      assert(_selectedTimedParameter != null);
+      Navigator.pop(context);
+      widget.onSort(_selectedTimedParameter, parameter);
+    } else if (parameter is TimedParameter && parameter.isTimed) {
+      setState(() {
+        _currentParameters = const <Parameter>[
+          TimeSort.hour,
+          TimeSort.day,
+          TimeSort.week,
+          TimeSort.month,
+          TimeSort.year,
+          TimeSort.all
+        ];
+        _selectedTimedParameter = parameter;
+      });
+    } else {
+      Navigator.pop(context);
+      widget.onSort(parameter, null);
     }
-    Navigator.pop(context);
-    widget.onSelection(parameter);
   }
 
   @override
@@ -77,15 +102,20 @@ class _SortBottomSheetState<T extends Parameter> extends State<_SortBottomSheet<
       expand: false,
       maxChildSize: 2/3,
       builder: (BuildContext context, ScrollController controller) {
-        return ListView(
-          controller: controller,
-          shrinkWrap: true,
-          children: widget.parameters.map((T parameter){
+        return AnimatedSwitcher(
+          key: ValueKey(_currentParameters),
+          duration: const Duration(milliseconds: 250),
+          child: ListView(
+            controller: controller,
+            shrinkWrap: true,
+            children: _currentParameters.map((Parameter parameter) {
               return _ParameterTile(
                 parameter: parameter,
-                isCurrentSelection: parameter == widget.currentSelection,
+                isCurrentSelection: parameter is TimeSort 
+                    ? parameter == widget.currentSortFrom
+                    : parameter == widget.currentSortBy,
                 onTap: () => _handleSelection(context, parameter));
-            }).toList());
+            }).toList()));
       });
   }
 }
@@ -93,8 +123,9 @@ class _SortBottomSheetState<T extends Parameter> extends State<_SortBottomSheet<
 void showSortBottomSheet<T extends Parameter>({
     @required BuildContext context,
     @required List<T> parameters,
-    @required T currentSelection,
-    @required SortParameterCallback<T> onSelection,
+    @required T currentSortBy,
+    TimeSort currentSortFrom,
+    @required SortParameterCallback<T> onSort,
   }) {
   showModalBottomSheet(
     context: context,
@@ -103,8 +134,9 @@ void showSortBottomSheet<T extends Parameter>({
     builder: (BuildContext context) {
       return _SortBottomSheet<T>(
         parameters: parameters,
-        currentSelection: currentSelection,
-        onSelection: onSelection);
+        currentSortBy: currentSortBy,
+        currentSortFrom: currentSortFrom,
+        onSort: onSort);
     });
 }
 
@@ -113,21 +145,31 @@ class SortSliver<T extends Parameter> extends StatelessWidget {
   SortSliver({
     Key key,
     @required this.parameters,
-    @required this.currentSelection,
-    @required this.onSelection
+    @required this.currentSortBy,
+    this.currentSortFrom,
+    @required this.onSort
   }) : assert(parameters != null),
-       assert(currentSelection != null),
-       assert(onSelection != null),
+       assert(currentSortBy != null),
+       assert(onSort != null),
        super(key: key);
 
   final List<T> parameters;
 
-  final T currentSelection;
+  final T currentSortBy;
 
-  final SortParameterCallback <T> onSelection;
+  final TimeSort currentSortFrom;
+
+  final SortParameterCallback <T> onSort;
 
   @override
   Widget build(BuildContext context) {
+
+    final title = StringBuffer(currentSortBy.name.toUpperCase());
+    if (currentSortFrom != null) {
+      title..write(' ')
+           ..write(currentSortFrom.name.toUpperCase());
+    }
+
     return SliverToBoxAdapter(
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -137,8 +179,9 @@ class SortSliver<T extends Parameter> extends StatelessWidget {
             showSortBottomSheet<T>(
               context: context,
               parameters: parameters,
-              currentSelection: currentSelection,
-              onSelection: onSelection);
+              currentSortBy: currentSortBy,
+              currentSortFrom: currentSortFrom,
+              onSort: onSort);
           },
           child: Padding(
             padding: EdgeInsets.symmetric(
@@ -154,7 +197,7 @@ class SortSliver<T extends Parameter> extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: 4.0),
                   child: Text(
-                    currentSelection.name.toUpperCase(),
+                    title.toString(),
                     style: TextStyle(
                       fontSize: 12.0,
                       color: Colors.grey.shade600))),

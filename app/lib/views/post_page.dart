@@ -143,8 +143,8 @@ class _PostPageView extends StatelessWidget {
                   CommentsSort.old,
                   CommentsSort.qa
                 ],
-                currentSelection: comments.sortBy,
-                onSelection: (CommentsSort parameter) {
+                currentSortBy: comments.sortBy,
+                onSort: (CommentsSort parameter, _) {
                   context.dispatch(
                     RefreshPostComments(
                       comments: comments,

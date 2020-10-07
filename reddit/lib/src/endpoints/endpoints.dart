@@ -12,3 +12,9 @@ part 'vote_endpoints.dart';
 
 const String _kRawJsonArgs = '.json?raw_json=1';
 
+String _formatTimeSortAsArg(TimeSort sortFrom, [String prefix='&']) {
+  if (sortFrom == null)
+    return '';
+  return '${prefix}t=$sortFrom';
+}
+
