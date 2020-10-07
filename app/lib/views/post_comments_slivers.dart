@@ -8,11 +8,45 @@ import '../logic/post_comments.dart';
 import '../models/comment.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
-import '../models/thing.dart';
+import '../widgets/sliver_custom_paint.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'comment_tile.dart';
 import 'more_tile.dart';
+
+class _CommentsTreePainter extends CustomPainter {
+  
+  _CommentsTreePainter({
+    @required this.depth,
+    @required this.spacing,
+    @required this.linePaint
+  }) : assert(depth != null),
+       assert(spacing != null);
+
+  final int depth;
+
+  final double spacing;
+
+  final Paint linePaint;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (int i = 1; i <= depth; i++) {
+      final dx = spacing * i;
+      canvas.drawLine(
+        Offset(dx, 0.0),
+        Offset(dx, size.height),
+        linePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CommentsTreePainter oldPainter) {
+    return depth != oldPainter.depth ||
+           spacing != oldPainter.spacing ||
+           linePaint != oldPainter.linePaint;
+  }
+}
 
 class PostCommentsTreeSliver extends StatelessWidget {
 
@@ -30,24 +64,29 @@ class PostCommentsTreeSliver extends StatelessWidget {
       builder: (BuildContext context) {
         return SliverPadding(
           padding: EdgeInsets.only(bottom: context.mediaPadding.bottom + 24.0),
-          sliver: SliverList(
-            key: UniqueKey(),
-            delegate: SliverChildBuilderDelegate(
-              (_, int index) {
-                final Thing thing = comments.things[index];
-                if (thing is Comment) {
-                  return CommentTile(
-                    comment: thing,
-                    includeDepthPadding: true);
-                } else if (thing is More) {
-                  return MoreTile(
-                    comments: comments,
-                    more: thing);
-                }
-                
-                return const SizedBox();
-              },
-              childCount: comments.things.length)));
+          sliver: SliverCustomPaint(
+            painter: _CommentsTreePainter(
+              depth: 10,
+              spacing: 16.0,
+              linePaint: Paint()..color = Colors.grey),
+            sliver: SliverList(
+              key: UniqueKey(),
+              delegate: SliverChildBuilderDelegate(
+                (_, int index) {
+                  final thing = comments.things[index];
+                  if (thing is Comment) {
+                    return CommentTile(
+                      comment: thing,
+                      includeDepthPadding: true);
+                  } else if (thing is More) {
+                    return MoreTile(
+                      comments: comments,
+                      more: thing);
+                  }
+                  
+                  return const SizedBox();
+                },
+                childCount: comments.things.length))));
       });
   }
 }

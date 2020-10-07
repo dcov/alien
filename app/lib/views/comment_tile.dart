@@ -32,50 +32,48 @@ class CommentTile extends StatelessWidget {
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context) {
-      return Material(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            16.0 * (includeDepthPadding ? 1 + comment.depth : 1),
-            12.0,
-            16.0,
-            12.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Wrap(
-                spacing: 4.0,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: HorizontalCircleDivider.divide(<Widget>[
-                  Text(
-                    'u/${comment.authorName}',
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      color: _authorColor)),
-                  Text(
-                    formatElapsedUtc(comment.createdAtUtc),
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      color: Colors.black54)),
-                  Text(
-                    '${formatCount(comment.score)} points',
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      color: Colors.black54)),
-                  if (comment.editedAtUtc != null)
+      return Padding(
+        padding: EdgeInsets.only(left: (comment.depth * 16.0) + 1),
+        child: Material(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Wrap(
+                  spacing: 4.0,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: HorizontalCircleDivider.divide(<Widget>[
                     Text(
-                      'edited ${formatElapsedUtc(comment.editedAtUtc)}',
+                      'u/${comment.authorName}',
                       style: TextStyle(
                         fontSize: 12.0,
-                        fontStyle: FontStyle.italic,
+                        color: _authorColor)),
+                    Text(
+                      formatElapsedUtc(comment.createdAtUtc),
+                      style: TextStyle(
+                        fontSize: 12.0,
                         color: Colors.black54)),
-                ])),
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: SnudownBody(
-                  snudown: comment.body,
-                  scrollable: false))
-            ])));
+                    Text(
+                      '${formatCount(comment.score)} points',
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        color: Colors.black54)),
+                    if (comment.editedAtUtc != null)
+                      Text(
+                        'edited ${formatElapsedUtc(comment.editedAtUtc)}',
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black54)),
+                  ])),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: SnudownBody(
+                    snudown: comment.body,
+                    scrollable: false))
+              ]))));
     });
 }
 

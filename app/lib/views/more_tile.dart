@@ -33,17 +33,16 @@ class MoreTile extends StatelessWidget {
         fontSize: 12.0,
         color: Colors.black54);
 
-      return Pressable(
-        onPress: !more.isLoading ? dispatchLoadMoreComments : () { },
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            16.0 * (1 + more.depth),
-            8.0,
-            16.0,
-            8.0),
-          child: !more.isLoading
-            ? Text('load ${more.count} comments', style: style)
-            : Text('loading...', style: style)));
+      return Padding(
+        padding: EdgeInsets.only(left: (more.depth * 16.0) + 1),
+        child: Material(
+          child: Pressable(
+            onPress: !more.isLoading ? dispatchLoadMoreComments : () { },
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: !more.isLoading
+                ? Text('load ${more.count} comments', style: style)
+                : Text('loading...', style: style)))));
     });
 }
 
