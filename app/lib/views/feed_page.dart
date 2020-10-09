@@ -12,7 +12,7 @@ import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'listing_scroll_view.dart';
-import 'post_page.dart';
+import 'post_tile.dart';
 import 'sort_bottom_sheet.dart';
 
 class _FeedPageView extends StatelessWidget {
@@ -51,60 +51,61 @@ class _FeedPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListingScrollView(
-      listing: posts.listing,
-      onTransitionListing: (ListingStatus to) {
-        context.dispatch(
-          TransitionFeedPosts(
-            posts: posts,
-            to: to));
-      },
-      thingBuilder: (BuildContext context, Post post) {
-        return PostTile(
-          post: post,
-          includeSubredditName: true);
-      },
-      scrollViewBuilder: (BuildContext context, ScrollController controller, Widget refreshSliver, Widget listSliver) {
-        return CustomScrollView(
-          controller: controller,
-          slivers: <Widget>[
-            SliverAppBar(
-              elevation: 1.0,
-              pinned: true,
-              backgroundColor: Theme.of(context).canvasColor,
-              leading: CloseButton(color: Colors.black),
-              title: Text(
-                posts.type.displayName,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black)),
-              actions: <Widget>[
-                PressableIcon(
-                  onPress: () { },
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  icon: Icons.more_vert,
-                  iconColor: Colors.black)
-              ]),
-            refreshSliver,
-            Connector(
-              builder: (BuildContext context) {
-                return SortSliver(
-                  parameters: _sortParameters,
-                  currentSortBy: posts.sortBy,
-                  currentSortFrom: posts.sortFrom,
-                  onSort: (Parameter parameter, TimeSort sortFrom) {
-                    context.dispatch(
-                      TransitionFeedPosts(
-                        posts: posts,
-                        to: ListingStatus.refreshing,
-                        sortBy: parameter,
-                        sortFrom: sortFrom));
-                  });
-              }),
-            listSliver
-          ]);
-      });
+    return Material(
+      child: ListingScrollView(
+        listing: posts.listing,
+        onTransitionListing: (ListingStatus to) {
+          context.dispatch(
+            TransitionFeedPosts(
+              posts: posts,
+              to: to));
+        },
+        thingBuilder: (BuildContext context, Post post) {
+          return PostTile(
+            post: post,
+            includeSubredditName: true);
+        },
+        scrollViewBuilder: (BuildContext context, ScrollController controller, Widget refreshSliver, Widget listSliver) {
+          return CustomScrollView(
+            controller: controller,
+            slivers: <Widget>[
+              SliverAppBar(
+                elevation: 1.0,
+                pinned: true,
+                backgroundColor: Theme.of(context).canvasColor,
+                leading: CloseButton(color: Colors.black),
+                title: Text(
+                  posts.type.displayName,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black)),
+                actions: <Widget>[
+                  PressableIcon(
+                    onPress: () { },
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    icon: Icons.more_vert,
+                    iconColor: Colors.black)
+                ]),
+              refreshSliver,
+              Connector(
+                builder: (BuildContext context) {
+                  return SortSliver(
+                    parameters: _sortParameters,
+                    currentSortBy: posts.sortBy,
+                    currentSortFrom: posts.sortFrom,
+                    onSort: (Parameter parameter, TimeSort sortFrom) {
+                      context.dispatch(
+                        TransitionFeedPosts(
+                          posts: posts,
+                          to: ListingStatus.refreshing,
+                          sortBy: parameter,
+                          sortFrom: sortFrom));
+                    });
+                }),
+              listSliver
+            ]);
+        }));
   }
 }
 

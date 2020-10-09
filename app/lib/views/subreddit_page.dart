@@ -14,7 +14,7 @@ import '../widgets/routing.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'listing_scroll_view.dart';
-import 'post_page.dart';
+import 'post_tile.dart';
 import 'sort_bottom_sheet.dart';
 
 class _SubredditPageView extends StatelessWidget {

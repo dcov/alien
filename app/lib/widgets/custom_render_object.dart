@@ -17,17 +17,6 @@ abstract class CustomRenderObjectWidget extends RenderObjectWidget {
     if (slots.any((dynamic slot) => slot == null))
       return false;
 
-    if (slots.length <= 1)
-      return true;
-
-    final List<dynamic> checked = List();
-    checked.add(slots.first);
-    for (int i = 1; i < slots.length; i++) {
-      final dynamic slot = slots[i];
-      if (checked.contains(slot))
-        return false;
-      checked.add(slot);
-    }
     return true;
   }
 
@@ -103,21 +92,22 @@ class CustomRenderObjectElement extends RenderObjectElement {
     assert(_childToSlot.keys.contains(child));
     final dynamic slot = _childToSlot.remove(child);
     _slotToChild.remove(slot);
+    super.forgetChild(child);
   }
 
   @override
-  void insertChildRenderObject(RenderObject child, dynamic slot) {
+  void insertRenderObjectChild(RenderObject child, dynamic slot) {
     assert(renderObject.debugValidateChildType(child));
     renderObject.insert(child, slot);
   }
 
   @override
-  void moveChildRenderObject(RenderObject child, slot) {
+  void moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot) {
     assert(false, 'not reachable');
   }
 
   @override
-  void removeChildRenderObject(RenderObject child) {
+  void removeRenderObjectChild(RenderObject child, dynamic slot) {
     assert(child.parent == renderObject);
     renderObject.remove(child);
   }
@@ -200,7 +190,7 @@ mixin CustomRenderObjectMixin<ChildType extends RenderObject> on RenderObject {
   ChildType getChild(dynamic slot) => _slotToChild[slot];
 }
 
-mixin CustomRenderBoxDefaultsMixin implements CustomRenderObjectMixin<RenderBox> {
+mixin CustomRenderBoxDefaultsMixin implements RenderBox, CustomRenderObjectMixin<RenderBox> {
 
   Size layoutChild(dynamic slot, BoxConstraints constraints, { bool parentUsesSize = false }) {
     assert(hasChild(slot));
@@ -233,4 +223,35 @@ mixin CustomRenderBoxDefaultsMixin implements CustomRenderObjectMixin<RenderBox>
     final BoxParentData parentData = child.parentData;
     context.paintChild(child, offset + parentData.offset);
   }
+
+  @protected
+  List<dynamic> get hitTestOrdering => null;
+
+  @protected
+  List<dynamic> get paintOrdering => hitTestOrdering?.reversed?.toList();
+
+  @override
+  bool hitTestChildren(HitTestResult result, { Offset position }) {
+    final slots = hitTestOrdering;
+    if (slots != null) {
+      for (final slot in slots) {
+        if (hasChild(slot) && hitTestChild(slot, result, position: position))
+          return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final slots = paintOrdering;
+    if (slots != null) {
+      for (final slot in slots) {
+        if (hasChild(slot)) {
+          paintChild(slot, context, offset);
+        }
+      }
+    }
+  }
 }
+
