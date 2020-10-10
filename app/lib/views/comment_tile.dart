@@ -1,11 +1,35 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
+import '../logic/voting.dart';
 import '../models/comment.dart';
 import '../widgets/circle_divider.dart';
 import '../widgets/formatting.dart';
+import '../widgets/pressable.dart';
+import '../widgets/slidable.dart';
+import '../widgets/tile.dart';
 
 import 'snudown_body.dart';
+import 'votable_utils.dart';
+
+void _showCommentOptionsBottomSheet({
+    @required BuildContext context,
+    @required Comment comment,
+  }) {
+  assert(context != null);
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return DraggableScrollableSheet(
+        expand: false,
+        maxChildSize: 0.5,
+        builder: (BuildContext context, ScrollController controller) {
+          return ListView(
+            children: <Widget>[
+            ]);
+        });
+    });
+}
 
 class CommentTile extends StatelessWidget {
 
@@ -32,48 +56,77 @@ class CommentTile extends StatelessWidget {
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context) {
-      return Padding(
-        padding: EdgeInsets.only(left: (comment.depth * 16.0) + 1),
-        child: Material(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Wrap(
-                  spacing: 4.0,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: HorizontalCircleDivider.divide(<Widget>[
-                    Text(
-                      'u/${comment.authorName}',
-                      style: TextStyle(
-                        fontSize: 12.0,
-                        color: _authorColor)),
-                    Text(
-                      formatElapsedUtc(comment.createdAtUtc),
-                      style: TextStyle(
-                        fontSize: 12.0,
-                        color: Colors.black54)),
-                    Text(
-                      '${formatCount(comment.score)} points',
-                      style: TextStyle(
-                        fontSize: 12.0,
-                        color: Colors.black54)),
-                    if (comment.editedAtUtc != null)
-                      Text(
-                        'edited ${formatElapsedUtc(comment.editedAtUtc)}',
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.black54)),
-                  ])),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: SnudownBody(
-                    snudown: comment.body,
-                    scrollable: false))
-              ]))));
+      return Slidable(
+        actions: <SlidableAction>[
+          SlidableAction(
+            onTriggered: () {
+              context.dispatch(Upvote(votable: comment));
+            },
+            icon: Icons.arrow_upward,
+            iconColor: Colors.white,
+            backgroundColor: Colors.deepOrange,
+            preBackgroundColor: Colors.grey),
+          SlidableAction(
+            onTriggered: () {
+              context.dispatch(Downvote(votable: comment));
+            },
+            icon: Icons.arrow_downward,
+            iconColor: Colors.white,
+            backgroundColor: Colors.indigoAccent),
+          SlidableAction(
+            onTriggered: () {
+              _showCommentOptionsBottomSheet(
+                context: context,
+                comment: comment);
+            },
+            icon: Icons.more_horiz,
+            iconColor: Colors.white,
+            backgroundColor: Colors.grey)
+        ],
+        child: Padding(
+          padding: EdgeInsets.only(left: (comment.depth * 16.0) + 1),
+          child: Material(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Pressable(
+                onPress: () { },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Wrap(
+                      spacing: 4.0,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: HorizontalCircleDivider.divide(<Widget>[
+                        Text(
+                          'u/${comment.authorName}',
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: _authorColor)),
+                        Text(
+                          formatElapsedUtc(comment.createdAtUtc),
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: Colors.black54)),
+                        Text(
+                          '${formatCount(comment.score)} points',
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: getVoteColor(comment))),
+                        if (comment.editedAtUtc != null)
+                          Text(
+                            'edited ${formatElapsedUtc(comment.editedAtUtc)}',
+                            style: TextStyle(
+                              fontSize: 12.0,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.black54)),
+                      ])),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: SnudownBody(
+                        snudown: comment.body,
+                        scrollable: false))
+                  ]))))));
     });
 }
 

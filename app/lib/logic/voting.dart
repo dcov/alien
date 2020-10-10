@@ -33,7 +33,7 @@ class Upvote extends Action {
              ..voteDir = VoteDir.up;
     }
 
-    return PostVote(
+    return _PostVote(
       votable: votable,
       user: user ?? owner.accounts.currentUser,
       oldVoteDir: oldVoteDir);
@@ -63,16 +63,16 @@ class Downvote extends Action {
              ..voteDir = VoteDir.down;
     }
 
-    return PostVote(
+    return _PostVote(
       votable: votable,
       oldVoteDir: oldVoteDir,
       user: user ?? owner.accounts.currentUser);
   }
 }
 
-class PostVote extends Effect {
+class _PostVote extends Effect {
 
-  PostVote({
+  _PostVote({
     @required this.votable,
     @required this.oldVoteDir,
     @required this.user,
@@ -90,17 +90,17 @@ class PostVote extends Effect {
   dynamic perform(EffectContext context) {
     return context.clientFromUser(user)
       .postVote(votable.fullId, votable.voteDir)
-      .catchError(() {
-        return PostVoteFailure(
+      .catchError((_) {
+        return _PostVoteFailed(
           votable: votable,
           oldVoteDir: oldVoteDir);
       });
   }
 }
 
-class PostVoteFailure extends Action {
+class _PostVoteFailed extends Action {
 
-  PostVoteFailure({
+  _PostVoteFailed({
     @required this.votable,
     @required this.oldVoteDir
   }) : assert(votable != null),

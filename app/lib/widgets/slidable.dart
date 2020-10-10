@@ -220,10 +220,8 @@ class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin
   }
 
   void _determineCurrentAction() {
-    final numOfThresholds = widget.actions.length + 1;
-    final thresholdBounds = _controller.upperBound / numOfThresholds;
-    final thresholdsPassed = math.min((_controller.value / thresholdBounds).floor(), numOfThresholds - 1);
-    _currentAction.value = thresholdsPassed > 0 ? widget.actions[thresholdsPassed - 1] : null;
+    final sectionsPassed = math.min((_controller.value / _sectionSize).floor(), _numOfSections - 1);
+    _currentAction.value = sectionsPassed > 0 ? widget.actions[sectionsPassed - 1] : null;
   }
 
   double _draggableExtent = 0.0;
