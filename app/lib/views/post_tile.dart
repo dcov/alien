@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +9,7 @@ import '../widgets/pressable.dart';
 
 import 'media_pages.dart';
 import 'post_page.dart';
+import 'votable_utils.dart';
 
 enum _PostTileLayoutSlot {
   title,
@@ -41,7 +40,8 @@ class _PostTileLayout extends CustomRenderObjectWidget {
 }
 
 class _RenderPostTileLayout extends RenderBox
-    with CustomRenderObjectMixin<RenderBox>, CustomRenderBoxDefaultsMixin {
+    with CustomRenderObjectMixin<RenderBox>,
+         CustomRenderBoxDefaultsMixin {
 
   @override
   List<dynamic> get hitTestOrdering => const <dynamic>[
@@ -182,7 +182,7 @@ class PostTile extends StatelessWidget {
                         '${formatCount(post.score)} points',
                         style: TextStyle(
                           fontSize: 12.0,
-                          color: determinePostScoreColor(post))),
+                          color: getVoteColor(post))),
                       Text(
                         '${formatCount(post.commentCount)} comments',
                         style: TextStyle(

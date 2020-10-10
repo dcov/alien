@@ -14,18 +14,7 @@ import 'media_pages.dart';
 import 'post_comments_slivers.dart';
 import 'snudown_body.dart';
 import 'sort_bottom_sheet.dart';
-
-Color determinePostScoreColor(Post post) {
-  switch (post.voteDir) {
-    case VoteDir.up:
-      return Colors.deepOrange;
-    case VoteDir.down:
-      return Colors.indigoAccent;
-    case VoteDir.none:
-      return Colors.black54;
-  }
-  return null;
-}
+import 'votable_utils.dart';
 
 class _PostSliver extends StatelessWidget {
 
@@ -76,7 +65,7 @@ class _PostSliver extends StatelessWidget {
                     '${formatCount(post.score)} points',
                     style: TextStyle(
                       fontSize: 12.0,
-                      color: determinePostScoreColor(post))),
+                      color: getVoteColor(post))),
                   Text(
                     '${formatCount(post.commentCount)} comments',
                     style: TextStyle(
