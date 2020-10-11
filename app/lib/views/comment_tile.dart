@@ -1,15 +1,18 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
+import '../logic/saveable.dart';
 import '../logic/voting.dart';
 import '../models/comment.dart';
 import '../widgets/circle_divider.dart';
 import '../widgets/formatting.dart';
+import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
 import '../widgets/slidable.dart';
 import '../widgets/tile.dart';
 
 import 'snudown_body.dart';
+import 'view_extensions.dart';
 import 'votable_utils.dart';
 
 void _showCommentOptionsBottomSheet({
@@ -17,18 +20,17 @@ void _showCommentOptionsBottomSheet({
     @required Comment comment,
   }) {
   assert(context != null);
-  showModalBottomSheet(
+  showOptionsBottomSheet(
     context: context,
-    builder: (BuildContext context) {
-      return DraggableScrollableSheet(
-        expand: false,
-        maxChildSize: 0.5,
-        builder: (BuildContext context, ScrollController controller) {
-          return ListView(
-            children: <Widget>[
-            ]);
-        });
-    });
+    options: <Option>[
+      if (context.userIsSignedIn)
+        Option(
+          onSelected: () {
+            context.dispatch(ToggleSaved(saveable: comment));
+          },
+          title: comment.isSaved ? 'Unsave' : 'Save',
+          icon: comment.isSaved ? Icons.save : Icons.save_outlined)
+    ]);
 }
 
 class CommentTile extends StatelessWidget {

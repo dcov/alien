@@ -15,7 +15,7 @@ class ToggleSaved extends Action {
   ToggleSaved({
     @required this.saveable,
     this.user
-  });
+  }) : assert(saveable != null);
 
   final Saveable saveable;
 
@@ -24,19 +24,20 @@ class ToggleSaved extends Action {
   @override
   dynamic update(AccountsOwner owner) {
     saveable.isSaved = !saveable.isSaved;
-    return PostSaved(
+    return _PostSaved(
       saveable: saveable,
       user: user ?? owner.accounts.currentUser,
     );
   }
 }
 
-class PostSaved extends Effect {
+class _PostSaved extends Effect {
 
-  PostSaved({
+  _PostSaved({
     @required this.saveable,
     @required this.user
-  });
+  }) : assert(saveable != null),
+       assert(user != null);
 
   final Saveable saveable;
 
@@ -51,22 +52,22 @@ class PostSaved extends Effect {
         context.clientFromUser(user).postUnsave(saveable.fullId);
       }
     } catch (_) {
-      return PostSavedFailure(saveable: saveable);
+      return _PostSavedFailed(saveable: saveable);
     }
   }
 }
 
-class PostSavedFailure extends Action {
+class _PostSavedFailed extends Action {
 
-  PostSavedFailure({
+  _PostSavedFailed({
     @required this.saveable
-  });
+  }) : assert(saveable != null);
 
   final Saveable saveable;
 
   @override
   dynamic update(_) {
-    // TODO: implement
+    saveable.isSaved = !saveable.isSaved;
   }
 }
 
