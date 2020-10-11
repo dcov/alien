@@ -50,8 +50,10 @@ class _SubredditPageView extends StatelessWidget {
                 elevation: 1.0,
                 pinned: true,
                 backgroundColor: Theme.of(context).canvasColor,
-                leading: CloseButton(
-                  color: Colors.black),
+                leading: PressableIcon(
+                  onPress: () => Navigator.pop(context),
+                  icon: Icons.close,
+                  iconColor: Colors.black),
                 title: Text(
                   posts.subreddit.name,
                   style: TextStyle(

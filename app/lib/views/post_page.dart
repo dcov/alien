@@ -8,6 +8,7 @@ import '../models/post.dart';
 import '../models/post_comments.dart';
 import '../widgets/circle_divider.dart';
 import '../widgets/formatting.dart';
+import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
 
 import 'media_pages.dart';
@@ -108,12 +109,16 @@ class _PostPageView extends StatelessWidget {
             elevation: 1.0,
             pinned: true,
             backgroundColor: Theme.of(context).canvasColor,
-            leading: CloseButton(color: Colors.black),
+            leading: PressableIcon(
+              onPress: () => Navigator.pop(context),
+              icon: Icons.close,
+              iconColor: Colors.black),
             actions: <Widget>[
-              IconButton(
-                onPressed: () { },
-                icon: Icon(Icons.more_vert),
-                color: Colors.black),
+              PressableIcon(
+                onPress: () => Navigator.pop(context),
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                icon: Icons.more_vert,
+                iconColor: Colors.black),
             ]),
           PostCommentsRefreshSliver(
             comments: comments),
