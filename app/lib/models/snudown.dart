@@ -7,11 +7,11 @@ abstract class Snudown extends Model {
 
   factory Snudown({
     List<Node> nodes,
-    Map<String, Model> models
+    Map<String, Object> links
   }) = _$Snudown;
 
   List<Node> get nodes;
 
-  Map<String, Model> get models;
+  Map<String, Object> get links;
 }
 

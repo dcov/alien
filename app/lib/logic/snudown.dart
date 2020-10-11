@@ -1,10 +1,12 @@
-import 'package:elmer/elmer.dart';
 import 'package:markdown/markdown.dart';
 import 'package:reddit/reddit.dart';
 
+import '../models/media.dart';
 import '../models/snudown.dart';
 
-typedef _OnLinkMatched<L extends Link> = void Function(String href, Link link);
+import 'media.dart';
+
+typedef _OnLinkMatched<L extends Link> = void Function(String href, L link);
 
 class _SnudownMatcher implements NodeVisitor {
 
@@ -78,7 +80,7 @@ class _SubredditSyntax extends InlineSyntax {
 }
 
 /// A reddit flavored markdown syntax.
-final ExtensionSet _snudownSyntax = ExtensionSet(
+final _snudownSyntax = ExtensionSet(
   <BlockSyntax>[
     const FencedCodeBlockSyntax(),
     const TableSyntax()
@@ -91,53 +93,59 @@ final ExtensionSet _snudownSyntax = ExtensionSet(
   ]
 );
 
-void _parseRawInto(String data, Snudown snudown) {
-    final List<String> lines = data.replaceAll('\r\n', '\n').split('\n');
-    final Document document = Document(
-      encodeHtml: false,
-      extensionSet: _snudownSyntax
-    );
+void parseMarkdownIntoSnudown(String data, Snudown snudown) {
+  final lines = data.replaceAll('\r\n', '\n').split('\n');
+  final document = Document(
+    encodeHtml: false,
+    extensionSet: _snudownSyntax);
 
-    snudown.nodes..clear()
-                 ..addAll(document.parseLines(lines));
+  snudown.nodes..clear()
+               ..addAll(document.parseLines(lines));
 
-    final List<String> hrefsToRemove = snudown.models.keys.toList();
+  final hrefsToRemove = snudown.links.keys.toList();
 
-    void put<T extends Model>(String href,
-        { bool checkIfMatches(T model), T onAbsent() }) {
-
-      hrefsToRemove.remove(href);
-
-      if (snudown.models[href] == null) {
-        T model;
-        for (final Model value in snudown.models.values) {
-          if (value is T && checkIfMatches(value)) {
-            model = value;
-            break;
-          }
+  void put<T>(String href, { bool checkIfMatches(T link), T onAbsent() }) {
+    hrefsToRemove.remove(href);
+    if (snudown.links[href] == null) {
+      T link;
+      for (final Object value in snudown.links.values) {
+        if (value is T && checkIfMatches(value)) {
+          link = value;
+          break;
         }
-        model ??= onAbsent();
-        snudown.models[href] = model;
       }
+      link ??= onAbsent();
+      snudown.links[href] = link;
     }
+  }
 
-    final _SnudownMatcher matcher = _SnudownMatcher(
-      onAccountLink: (href, link) {},
-      onPostLink: (href, link) {},
-      onSubredditLink: (href, link) {},
-      onExternalLink: (href, link) {}
-    );
-
-    snudown.nodes.forEach((Node node) {
-      node.accept(matcher);
+  final matcher = _SnudownMatcher(
+    onAccountLink: (String href, AccountLink link) {
+      /// TODO: Implement AccountLink handling
+    },
+    onPostLink: (String href, PostLink link) {
+      /// TODO: Implement PostLink handling
+    },
+    onSubredditLink: (String href, SubredditLink link) {
+      /// TODO: Implement SubredditLink handling
+    },
+    onExternalLink: (String href, ExternalLink link) {
+      put(
+        href,
+        checkIfMatches: (Media media) => media.source == link.ref,
+        onAbsent: () => Media(source: link.ref));
     });
 
-    hrefsToRemove.forEach(snudown.models.remove);
+  snudown.nodes.forEach((Node node) {
+    node.accept(matcher);
+  });
+
+  hrefsToRemove.forEach(snudown.links.remove);
 }
 
 Snudown snudownFromMarkdown(String markdown) {
   final snudown = Snudown();
-  _parseRawInto(markdown, snudown);
+  parseMarkdownIntoSnudown(markdown, snudown);
   return snudown;
 }
 

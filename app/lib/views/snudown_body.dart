@@ -2,7 +2,10 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
+import '../models/media.dart';
 import '../models/snudown.dart';
+
+import 'media_pages.dart';
 
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {
   final ThemeData theme = Theme.of(context);
@@ -69,9 +72,17 @@ class SnudownBody extends StatelessWidget {
       return Markdown(
         nodes: snudown.nodes,
         styleSheet: _createStyleSheet(context),
-        onTapLink: (link) {},
+        onTapLink: (String ref) {
+          final link = snudown.links[ref];
+          if (link is Media) {
+            showMediaPage(
+              context: context,
+              media: link);
+          }
+        },
         scrollable: scrollable,
       );
     }
   );
 }
+

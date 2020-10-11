@@ -38,7 +38,7 @@ class _WebPage extends StatelessWidget {
   }
 }
 
-void _showMediaPage({
+void showMediaPage({
     @required BuildContext context,
     @required Media media
   }) {
@@ -83,7 +83,7 @@ class MediaThumbnail extends StatelessWidget {
 
       return Pressable(
         behavior: HitTestBehavior.opaque,
-        onPress: () => _showMediaPage(
+        onPress: () => showMediaPage(
           context: context,
           media: media),
         child: AnimatedSwitcher(
