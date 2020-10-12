@@ -1,15 +1,38 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:reddit/reddit.dart';
 
 import '../models/post.dart';
+import '../logic/saveable.dart';
+import '../logic/voting.dart';
 import '../widgets/circle_divider.dart';
 import '../widgets/custom_render_object.dart';
 import '../widgets/formatting.dart';
+import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
+import '../widgets/slidable.dart';
 
 import 'media_pages.dart';
 import 'post_page.dart';
 import 'votable_utils.dart';
+
+void _showPostOptionsBottomSheet({
+    @required BuildContext context,
+    @required Post post
+  }) {
+  assert(context != null);
+  assert(post != null);
+  showOptionsBottomSheet(
+    context: context,
+    options: <Option>[
+      Option(
+        onSelected: () {
+          context.dispatch(ToggleSaved(saveable: post));
+        },
+        title: post.isSaved ? 'Unsave' : 'Save',
+        icon: post.isSaved ? Icons.save : Icons.save_outlined)
+    ]);
+}
 
 enum _PostTileLayoutSlot {
   title,
@@ -139,70 +162,97 @@ class PostTile extends StatelessWidget {
             border: Border(
               bottom: BorderSide(
                 color: Colors.grey.shade200))),
-          child: Pressable(
-            behavior: HitTestBehavior.opaque,
-            onPress: () {
-              showPostPage(
-                context: context,
-                post: post);
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 12.0,
-                horizontal: 16.0),
-              child: _PostTileLayout(
-                title: Text(
-                  post.title,
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.normal)),
-                details: Padding(
-                  padding: EdgeInsets.only(top: 4.0),
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 4.0,
-                    children: HorizontalCircleDivider.divide(<Widget>[
-                      if (includeSubredditName)
+          child: Slidable(
+            actions: <SlidableAction>[
+              SlidableAction(
+                onTriggered: () {
+                  context.dispatch(Upvote(votable: post));
+                },
+                icon: Icons.arrow_upward,
+                iconColor: Colors.white,
+                backgroundColor: getVoteDirColor(VoteDir.up),
+                preBackgroundColor: Colors.grey),
+              SlidableAction(
+                onTriggered: () {
+                  context.dispatch(Downvote(votable: post));
+                },
+                icon: Icons.arrow_downward,
+                iconColor: Colors.white,
+                backgroundColor: getVoteDirColor(VoteDir.down)),
+              SlidableAction(
+                onTriggered: () {
+                  _showPostOptionsBottomSheet(
+                    context: context,
+                    post: post);
+                },
+                icon: Icons.more_horiz,
+                iconColor: Colors.white,
+                backgroundColor: Colors.grey)
+            ],
+            child: Pressable(
+              behavior: HitTestBehavior.opaque,
+              onPress: () {
+                showPostPage(
+                  context: context,
+                  post: post);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12.0,
+                  horizontal: 16.0),
+                child: _PostTileLayout(
+                  title: Text(
+                    post.title,
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.normal)),
+                  details: Padding(
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4.0,
+                      children: HorizontalCircleDivider.divide(<Widget>[
+                        if (includeSubredditName)
+                          Text(
+                            'r/${post.subredditName}',
+                            style: TextStyle(
+                              fontSize: 12.0,
+                              color: Colors.black54)),
                         Text(
-                          'r/${post.subredditName}',
+                          'u/${post.authorName}',
                           style: TextStyle(
                             fontSize: 12.0,
                             color: Colors.black54)),
-                      Text(
-                        'u/${post.authorName}',
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          color: Colors.black54)),
-                      Text(
-                        formatElapsedUtc(post.createdAtUtc),
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          color: Colors.black54)),
-                      Text(
-                        '${formatCount(post.score)} points',
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          color: getVoteColor(post))),
-                      Text(
-                        '${formatCount(post.commentCount)} comments',
-                        style: TextStyle(
-                          fontSize: 12.0,
-                          color: Colors.black54))
-                    ]))),
-                thumbnail: post.media != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: Material(
-                          child: InkWell(
-                            child: ClipPath(
-                              clipper: ShapeBorderClipper(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4.0))),
-                              child: AspectRatio(
-                                aspectRatio: 15/12,
-                                child: MediaThumbnail(
-                                  media: post.media))))))
-                    : null))));
+                        Text(
+                          formatElapsedUtc(post.createdAtUtc),
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: Colors.black54)),
+                        Text(
+                          '${formatCount(post.score)} points',
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: getVotableColor(post))),
+                        Text(
+                          '${formatCount(post.commentCount)} comments',
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: Colors.black54))
+                      ]))),
+                  thumbnail: post.media != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Material(
+                            child: InkWell(
+                              child: ClipPath(
+                                clipper: ShapeBorderClipper(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4.0))),
+                                child: AspectRatio(
+                                  aspectRatio: 15/12,
+                                  child: MediaThumbnail(
+                                    media: post.media))))))
+                      : null)))));
       });
   }
 }

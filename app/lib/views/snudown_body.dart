@@ -12,14 +12,12 @@ MarkdownStyleSheet _createStyleSheet(BuildContext context) {
   return MarkdownStyleSheet(
     a: const TextStyle(
       color: Colors.blue,
-      decoration: TextDecoration.underline,
-    ),
+      decoration: TextDecoration.underline),
     p: theme.textTheme.body1,
     code: TextStyle(
       color: Colors.grey.shade700,
       fontFamily: "monospace",
-      fontSize: theme.textTheme.body1.fontSize * 0.85
-    ),
+      fontSize: theme.textTheme.body1.fontSize * 0.85),
     h1: theme.textTheme.headline,
     h2: theme.textTheme.title,
     h3: theme.textTheme.subhead,
@@ -37,21 +35,16 @@ MarkdownStyleSheet _createStyleSheet(BuildContext context) {
       border: Border(
         left: BorderSide(
           color: Colors.blue,
-          width: 2.0
-        )
-      )
-    ),
+          width: 2.0))),
     codeblockPadding: EdgeInsets.all(8.0),
     codeblockDecoration: BoxDecoration(
       color: Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(4.0)
-    ),
+      borderRadius: BorderRadius.circular(4.0)),
     horizontalRuleDecoration: BoxDecoration(
       border: Border(
-        top: BorderSide(width: 5.0, color: Colors.grey.shade300)
-      ),
-    ),
-  );
+        top: BorderSide(
+          width: 5.0,
+          color: Colors.grey.shade300))));
 }
 
 class SnudownBody extends StatelessWidget {
@@ -80,9 +73,7 @@ class SnudownBody extends StatelessWidget {
               media: link);
           }
         },
-        scrollable: scrollable,
-      );
-    }
-  );
+        scrollable: scrollable);
+    });
 }
 

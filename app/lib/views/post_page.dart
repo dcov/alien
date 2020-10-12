@@ -66,7 +66,7 @@ class _PostSliver extends StatelessWidget {
                     '${formatCount(post.score)} points',
                     style: TextStyle(
                       fontSize: 12.0,
-                      color: getVoteColor(post))),
+                      color: getVotableColor(post))),
                   Text(
                     '${formatCount(post.commentCount)} comments',
                     style: TextStyle(
@@ -115,7 +115,7 @@ class _PostPageView extends StatelessWidget {
               iconColor: Colors.black),
             actions: <Widget>[
               PressableIcon(
-                onPress: () => Navigator.pop(context),
+                onPress: () {},
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
                 icon: Icons.more_vert,
                 iconColor: Colors.black),

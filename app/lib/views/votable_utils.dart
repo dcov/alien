@@ -3,8 +3,8 @@ import 'package:reddit/reddit.dart';
 
 import '../models/votable.dart';
 
-Color getVoteColor(Votable votable, [Color defaultColor = Colors.black54]) {
-  switch (votable.voteDir) {
+Color getVoteDirColor(VoteDir voteDir, [Color defaultColor = Colors.black54]) {
+  switch (voteDir) {
     case VoteDir.up:
       return Colors.deepOrange;
     case VoteDir.down:
@@ -12,5 +12,9 @@ Color getVoteColor(Votable votable, [Color defaultColor = Colors.black54]) {
     default:
       return defaultColor;
   }
+}
+
+Color getVotableColor(Votable votable, [Color defaultColor = Colors.black54]) {
+  return getVoteDirColor(votable.voteDir);
 }
 

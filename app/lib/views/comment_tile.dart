@@ -1,5 +1,6 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:reddit/reddit.dart';
 
 import '../logic/saveable.dart';
 import '../logic/voting.dart';
@@ -64,9 +65,9 @@ class CommentTile extends StatelessWidget {
             onTriggered: () {
               context.dispatch(Upvote(votable: comment));
             },
-            icon: Icons.arrow_upward,
+            icon: Icons.arrow_upward_rounded,
             iconColor: Colors.white,
-            backgroundColor: Colors.deepOrange,
+            backgroundColor: getVoteDirColor(VoteDir.up),
             preBackgroundColor: Colors.grey),
           SlidableAction(
             onTriggered: () {
@@ -74,7 +75,7 @@ class CommentTile extends StatelessWidget {
             },
             icon: Icons.arrow_downward,
             iconColor: Colors.white,
-            backgroundColor: Colors.indigoAccent),
+            backgroundColor: getVoteDirColor(VoteDir.down)),
           SlidableAction(
             onTriggered: () {
               _showCommentOptionsBottomSheet(
@@ -114,7 +115,7 @@ class CommentTile extends StatelessWidget {
                           '${formatCount(comment.score)} points',
                           style: TextStyle(
                             fontSize: 12.0,
-                            color: getVoteColor(comment))),
+                            color: getVotableColor(comment))),
                         if (comment.editedAtUtc != null)
                           Text(
                             'edited ${formatElapsedUtc(comment.editedAtUtc)}',
