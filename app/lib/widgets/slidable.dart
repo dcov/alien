@@ -103,8 +103,8 @@ class _RenderSlidableLayout extends RenderBox
 
     final maxSize = constraints.biggest;
 
-    /// The draggable extent is 80% of the width
-    final draggableExtent = maxSize.width * 0.8;
+    /// The draggable extent is 50% of the width
+    final draggableExtent = maxSize.width * 0.5;
     _onDraggableExtent(draggableExtent);
 
     /// The foreground child is always as big as can be width-wise
