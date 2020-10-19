@@ -69,8 +69,9 @@ class RefreshPostComments extends Action {
     /// Create a new marker to be used to represent this instantiation of the refresh flow.
     final refreshMarker = Object();
 
-    comments..refreshing = true
-            ..latestRefreshMarker = refreshMarker;
+    comments
+        ..refreshing = true
+        ..latestRefreshMarker = refreshMarker;
 
     if (sortBy != null && sortBy != comments.sortBy) {
       comments..sortBy = sortBy
@@ -164,8 +165,9 @@ class _GetPostCommentsFailed extends Action {
 
   @override
   dynamic update(_) {
-    if (refreshMarker == comments.latestRefreshMarker)
+    if (refreshMarker == comments.latestRefreshMarker) {
       comments.refreshing = false;
+    }
   }
 }
 

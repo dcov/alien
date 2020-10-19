@@ -9,11 +9,10 @@ class Pressable extends StatefulWidget {
     this.controller,
     this.alignment = Alignment.center,
     this.behavior = HitTestBehavior.translucent,
-    @required this.onPress,
+    this.onPress,
     this.onLongPress,
     @required this.child,
   }) : assert(alignment != null),
-       assert(onPress != null),
        assert(child != null),
        super(key: key);
 
@@ -98,7 +97,9 @@ class _PressableState extends State<Pressable>
 
   void _handleTapUp(_) {
     _controller.forward();
-    widget.onPress();
+    if (widget.onPress != null) {
+      widget.onPress();
+    }
   }
 
   void _handleTapCancel() {

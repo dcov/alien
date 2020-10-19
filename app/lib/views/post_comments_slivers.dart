@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:reddit/reddit.dart';
 
 import '../logic/post_comments.dart';
 import '../models/comment.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
+import '../models/thing.dart';
 import '../widgets/sliver_custom_paint.dart';
 import '../widgets/widget_extensions.dart';
 
@@ -48,7 +50,7 @@ class _CommentsTreePainter extends CustomPainter {
   }
 }
 
-class PostCommentsTreeSliver extends StatelessWidget {
+class PostCommentsTreeSliver extends StatefulWidget {
 
   PostCommentsTreeSliver({
     Key key,
@@ -59,35 +61,184 @@ class PostCommentsTreeSliver extends StatelessWidget {
   final PostComments comments;
 
   @override
-  Widget build(_) {
-    return Connector(
-      builder: (BuildContext context) {
-        return SliverPadding(
-          padding: EdgeInsets.only(bottom: context.mediaPadding.bottom + 24.0),
-          sliver: SliverCustomPaint(
-            painter: _CommentsTreePainter(
-              depth: 10,
-              spacing: 16.0,
-              linePaint: Paint()..color = Colors.grey),
-            sliver: SliverList(
-              key: UniqueKey(),
-              delegate: SliverChildBuilderDelegate(
-                (_, int index) {
-                  final thing = comments.things[index];
-                  if (thing is Comment) {
-                    return CommentTile(
-                      comment: thing,
-                      includeDepthPadding: true);
-                  } else if (thing is More) {
-                    return MoreTile(
-                      comments: comments,
-                      more: thing);
-                  }
-                  
-                  return const SizedBox();
-                },
-                childCount: comments.things.length))));
-      });
+  PostCommentsTreeSliverState createState() => PostCommentsTreeSliverState();
+}
+
+@visibleForTesting
+class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with ConnectionStateMixin {
+
+  @visibleForTesting
+  List<Thing> get visible => _visible;
+  List<Thing> _visible;
+
+  @visibleForTesting
+  Set<String> get collapsed => _collapsed;
+  final _collapsed = Set<String>();
+
+  CommentsSort _latestSortBy;
+
+  @override
+  void capture(StateSetter setState) {
+    final comments = widget.comments;
+
+    /// We place all of the state we depend on in variables so that we can track changes to it, regardless of whether
+    /// it's used or not.
+    final things = comments.things;
+    final latestSortBy = comments.sortBy;
+    final refreshing = comments.refreshing;
+
+    setState(() {
+      if (_visible == null) {
+        /// We're initializing our state for the first time
+        _visible = List<Thing>.from(things);
+        _latestSortBy = latestSortBy;
+        return;
+      }
+
+      if (refreshing) {
+        /// If we're refreshing due to a sortBy change, we'll clear the _visible list
+        if (_latestSortBy != latestSortBy){
+          _visible = const <Thing>[];
+        }
+        return;
+      }
+        
+      _visible = List<Thing>.from(things);
+      if (_latestSortBy != latestSortBy) {
+        /// The completed refresh was due to a sort change so the currently collapsed items
+        /// no longer apply.
+        _collapsed.clear();
+        _latestSortBy = latestSortBy;
+        return;
+      }
+
+      if (_collapsed.isNotEmpty) {
+        final noLongerCollapsed = Set<String>.from(_collapsed);
+        for (var i = 0; i < _visible.length; i++) {
+          final thing = _visible[i];
+          if (thing is Comment && _collapsed.contains(thing.id)) {
+            _collapse(thing, i, setState);
+            noLongerCollapsed.remove(thing.id);
+          }
+        }
+        _collapsed.removeAll(noLongerCollapsed);
+      }
+    });
+  }
+
+  int _getThingDepth(Thing thing) {
+    if (thing is Comment) {
+      return thing.depth;
+    } else if (thing is More) {
+      return thing.depth;
+    } else {
+      assert(false, '$thing was not instance of type Comment or More');
+      return 0;
+    }
+  }
+
+  void _collapse(Comment comment, int index, [StateSetter setState]) {
+    setState ??= this.setState;
+    setState(() {
+      for (var i = index + 1; i < _visible.length;) {
+        if (_getThingDepth(_visible[i]) <= comment.depth) {
+          break;
+        }
+        _visible.removeAt(i);
+      }
+      _collapsed.add(comment.id);
+    });
+  }
+
+  void _collapseToRoot(Comment comment, int index) {
+    if (comment.depth == 0) {
+      return;
+    }
+
+    Comment rootComment;
+    int rootIndex;
+    for (var i = index - 1; i >= 0; i--) {
+      if (_getThingDepth(_visible[i]) == 0) {
+        rootComment = _visible[i];
+        rootIndex = i;
+        break;
+      }
+    }
+    assert(rootComment != null && rootIndex != null);
+    _collapse(rootComment, rootIndex);
+  }
+
+  void _uncollapse(Comment comment, int index) {
+    assert(_collapsed.contains(comment.id));
+
+    final mainThings = widget.comments.things;
+    final mainIndex = mainThings.indexOf(comment);
+    assert(mainIndex != -1);
+
+    final uncollapsed = List<Thing>();
+    for (var i = mainIndex + 1; i < mainThings.length; i++) {
+      final thing = mainThings[i];
+      if (_getThingDepth(thing) <= comment.depth)
+        break;
+
+      uncollapsed.add(thing);
+      if (_collapsed.contains(thing.id)) {
+        for (; i < mainThings.length; i++) {
+          if (_getThingDepth(mainThings[i + 1]) <= _getThingDepth(thing))
+            break;
+        }
+      }
+    }
+
+    setState(() {
+      _collapsed.remove(comment.id);
+      _visible.insertAll(index + 1, uncollapsed);
+    });
+  }
+
+  Widget _buildItem(_, int index) {
+    final thing = _visible[index];
+    Widget child;
+    if (thing is Comment) {
+      child = CommentTile(
+        comment: thing,
+        includeDepthPadding: true,
+        collapsed: _collapsed.contains(thing.id),
+        onCollapse: () {
+          _collapse(thing, index);
+        },
+        onCollapseToRoot: () {
+          _collapseToRoot(thing, index);
+        },
+        onUncollapse: () {
+          _uncollapse(thing, index);
+        });
+    } else {
+      assert(thing is More);
+      child = MoreTile(
+        comments: widget.comments,
+        more: thing);
+    }
+    
+    return child;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    buildCheck();
+    return SliverPadding(
+      padding: EdgeInsets.only(
+        bottom: context.mediaPadding.bottom + 24.0),
+      sliver: SliverCustomPaint(
+        painter: _CommentsTreePainter(
+          depth: 10,
+          spacing: 16.0,
+          linePaint: Paint()..color = Colors.grey),
+        sliver: SliverList(
+          key: UniqueKey(),
+          delegate: SliverChildBuilderDelegate(
+            _buildItem,
+            childCount: _visible.length))));
   }
 }
 
