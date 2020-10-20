@@ -6,8 +6,8 @@ void accountsTest() {
   group('accounts tests', () {
     test('pack/unpack logic', () {
       final users = [
-        User(token: '1', name: 'one'),
-        User(token: '2', name: 'two')
+        AppUser(token: '1', name: 'one'),
+        AppUser(token: '2', name: 'two')
       ];
 
       final result = unpackUsersList(packUsersList(users));
