@@ -5,81 +5,23 @@ import 'package:hive/hive.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 import 'package:scraper/scraper.dart';
+import 'package:stash/stash_api.dart';
 
-void runLoopWithEffects({
-  @required String appId,
-  @required String appRedirect,
-  String scriptId,
-  String scriptSecret,
-  String scriptUsername,
-  String scriptPassword,
-  @required Initial initial,
-  @required Widget view,
-}) {
-  final rendererKey = GlobalKey<EffectRendererState>();
-  runLoop(
-    initial: initial,
-    container: EffectContext(
-      appId: appId,
-      appRedirect: appRedirect,
-      rendererKey: rendererKey,
-      scriptId: scriptId,
-      scriptSecret: scriptSecret,
-      scriptUsername: scriptUsername,
-      scriptPassword: scriptPassword),
-    view: EffectRenderer(
-      key: rendererKey,
-      child: view));
-}
+class _EffectRendererScope extends InheritedWidget {
 
-class EffectContext {
+  _EffectRendererScope({
+    Key key,
+    @required this.state,
+    Widget child,
+  }) : assert(state != null),
+       super(key: key, child: child);
 
-  factory EffectContext({
-    @required String appId,
-    @required String appRedirect,
-    String scriptId,
-    String scriptSecret,
-    String scriptUsername,
-    String scriptPassword,
-    @required GlobalKey<EffectRendererState> rendererKey
-  }) {
-    RedditClient client;
-    if (scriptId != null) {
-      client = createScriptClient(
-        clientId: scriptId,
-        clientSecret: scriptSecret,
-        username: scriptUsername,
-        password: scriptPassword);
-    }
-    return EffectContext._(
-      RedditApp(
-        clientId: appId,
-        redirectUri: appRedirect),
-      client,
-      Hive,
-      Scraper(),
-      rendererKey,
-    );
+  final EffectRendererState state;
+
+  @override
+  bool updateShouldNotify(_EffectRendererScope oldWidget) {
+    return oldWidget.state != this.state;
   }
-
-  EffectContext._(
-    this.redditApp,
-    this.scriptClient,
-    this.hive,
-    this.scraper,
-    this._rendererKey
-  );
-
-  final RedditApp redditApp;
-
-  final RedditClient scriptClient;
-
-  final HiveInterface hive;
-
-  final Scraper scraper;
-
-  EffectRendererState get renderer => _rendererKey.currentState;
-  final GlobalKey<EffectRendererState> _rendererKey;
 }
 
 class EffectRenderer extends StatefulWidget {
@@ -121,23 +63,6 @@ class EffectRendererState extends State<EffectRenderer> {
   }
 }
 
-class _EffectRendererScope extends InheritedWidget {
-
-  _EffectRendererScope({
-    Key key,
-    @required this.state,
-    Widget child,
-  }) : assert(state != null),
-       super(key: key, child: child);
-
-  final EffectRendererState state;
-
-  @override
-  bool updateShouldNotify(_EffectRendererScope oldWidget) {
-    return oldWidget.state != this.state;
-  }
-}
-
 mixin EffectRendererMixin<W extends StatefulWidget> on State<W> {
 
   EffectRendererState _owner;
@@ -165,5 +90,81 @@ mixin EffectRendererMixin<W extends StatefulWidget> on State<W> {
     super.dispose();
     _owner?._remove(rendererId);
   }
+}
+
+class EffectContext {
+
+  factory EffectContext({
+    @required String appId,
+    @required String appRedirect,
+    String scriptId,
+    String scriptSecret,
+    String scriptUsername,
+    String scriptPassword,
+    @required GlobalKey<EffectRendererState> rendererKey
+  }) {
+    RedditClient client;
+    if (scriptId != null) {
+      client = createScriptClient(
+        clientId: scriptId,
+        clientSecret: scriptSecret,
+        username: scriptUsername,
+        password: scriptPassword);
+    }
+    return EffectContext._(
+      RedditApp(
+        clientId: appId,
+        redirectUri: appRedirect),
+      client,
+      Hive,
+      Scraper(),
+      rendererKey);
+  }
+
+  EffectContext._(
+    this.redditApp,
+    this.scriptClient,
+    this.hive,
+    this.scraper,
+    this._rendererKey);
+
+  final RedditApp redditApp;
+
+  final RedditClient scriptClient;
+
+  final HiveInterface hive;
+
+  final Scraper scraper;
+
+  Cache cache;
+
+  EffectRendererState get renderer => _rendererKey.currentState;
+  final GlobalKey<EffectRendererState> _rendererKey;
+}
+
+void runLoopWithEffects({
+  @required String appId,
+  @required String appRedirect,
+  String scriptId,
+  String scriptSecret,
+  String scriptUsername,
+  String scriptPassword,
+  @required Initial initial,
+  @required Widget view,
+}) {
+  final rendererKey = GlobalKey<EffectRendererState>();
+  runLoop(
+    initial: initial,
+    container: EffectContext(
+      appId: appId,
+      appRedirect: appRedirect,
+      rendererKey: rendererKey,
+      scriptId: scriptId,
+      scriptSecret: scriptSecret,
+      scriptUsername: scriptUsername,
+      scriptPassword: scriptPassword),
+    view: EffectRenderer(
+      key: rendererKey,
+      child: view));
 }
 

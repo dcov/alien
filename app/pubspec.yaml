@@ -19,7 +19,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cached_network_image: 2.0.0
+  cached_network_image: 2.3.3
 
   elmer_flutter:
     git:
@@ -42,6 +42,8 @@ dependencies:
   
   scraper:
     path: ../scraper
+
+  stash_hive: 1.0.1
 
   webview_flutter: ^0.3.19+8
 

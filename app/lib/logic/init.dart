@@ -2,6 +2,7 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
+import 'package:stash_hive/stash_hive.dart' as cacheProvider;
 
 import '../effects.dart';
 import '../logic/defaults.dart';
@@ -58,7 +59,12 @@ class _InitEffectContext extends Effect {
     await context.scraper.init();
 
     /// Initialize the hive db instance
-    context.hive.init(path.join((await pathProvider.getApplicationSupportDirectory()).path, 'hive'));
+    context.hive.init(
+        path.join((await pathProvider.getApplicationSupportDirectory()).path, 'db'));
+
+    /// Initialize the cache instance
+    context.cache = cacheProvider.newHiveCache(
+        path.join((await pathProvider.getTemporaryDirectory()).path, 'cache'));
 
     return _InitCoreState();
   }
