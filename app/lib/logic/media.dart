@@ -8,60 +8,73 @@ class LoadThumbnail extends Action {
 
   LoadThumbnail({
     @required this.media
-  });
+  }) : assert(media != null);
 
   final Media media;
 
+  @override
   dynamic update(_) {
     assert(media.thumbnailStatus == ThumbnailStatus.notLoaded);
     media.thumbnailStatus = ThumbnailStatus.loading;
-    return GetThumbnail(media: media);
+    return _GetThumbnail(media: media);
   }
 }
 
-class GetThumbnail extends Effect {
+class _GetThumbnail extends Effect {
 
-  GetThumbnail({
+  _GetThumbnail({
     @required this.media
-  });
+  }) : assert(media != null);
 
   final Media media;
 
-  dynamic perform(EffectContext context) {
-    return context.scraper.getThumbnail(media.source)
-        .then((String result) {
-          return GetThumbnailSuccess(
-            media: media,
-            result: result);
-        })
-        .catchError((_) {
-          return GetThumbnailFailure();
-        });
+  String get _thumbnailCacheKey => 'thumbnail-${media.source}';
+
+  @override
+  dynamic perform(EffectContext context) async {
+    try {
+      String thumbnail;
+      if (await context.cache.containsKey(_thumbnailCacheKey)) {
+        thumbnail = await context.cache.get(_thumbnailCacheKey);
+      } else {
+        /// Scrape the thumbnail from the source site
+        thumbnail = await context.scraper.getThumbnail(media.source);
+        /// Cache the result
+        await context.cache.put(_thumbnailCacheKey, thumbnail);
+      }
+
+      return _FinishGetThumbnail(
+        media: media,
+        thumbnail: thumbnail);
+    } catch (_) {
+      return _GetThumbnailFailed();
+    }
   }
 }
 
-class GetThumbnailSuccess extends Action {
+class _FinishGetThumbnail extends Action {
 
-  GetThumbnailSuccess({
+  _FinishGetThumbnail({
     @required this.media,
-    @required this.result
-  });
+    @required this.thumbnail
+  }) : assert(media != null),
+       assert(thumbnail != null);
 
   final Media media;
 
-  final String result;
+  final String thumbnail;
 
   @override
   dynamic update(_) {
     media
-      ..thumbnailStatus = result != null
+      ..thumbnailStatus = thumbnail != null
           ? ThumbnailStatus.loaded
           : ThumbnailStatus.notFound
-      ..thumbnail = result;
+      ..thumbnail = thumbnail;
   }
 }
 
-class GetThumbnailFailure extends Action {
+class _GetThumbnailFailed extends Action {
 
   @override
   dynamic update(_) {
