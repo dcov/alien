@@ -16,6 +16,7 @@ abstract class Post extends Model implements Saveable, Votable {
     String authorName,
     int createdAtUtc,
     String domainName,
+    bool hasBeenViewed,
     bool isSelf,
     Media media,
     String permalink,
@@ -37,6 +38,8 @@ abstract class Post extends Model implements Saveable, Votable {
   int get createdAtUtc;
 
   String get domainName;
+
+  bool hasBeenViewed;
 
   bool isNSFW;
 

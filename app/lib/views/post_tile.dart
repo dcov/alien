@@ -205,7 +205,8 @@ class PostTile extends StatelessWidget {
                     post.title,
                     style: TextStyle(
                       fontSize: 14.0,
-                      fontWeight: FontWeight.normal)),
+                      fontWeight: FontWeight.normal,
+                      color: post.hasBeenViewed ? Colors.black54 : Colors.black)),
                   details: Padding(
                     padding: EdgeInsets.only(top: 4.0),
                     child: Wrap(

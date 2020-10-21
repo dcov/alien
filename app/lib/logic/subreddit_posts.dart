@@ -85,23 +85,27 @@ class GetSubredditPosts extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) {
-    return context.clientFromUser(user)
-      .getSubredditPosts(
-        posts.subreddit.name, page, posts.sortBy, posts.sortFrom)
-      .then(
-        (ListingData<PostData> data) {
-          return FinishListingTransition(
-            listing: posts.listing,
-            transitionMarker: transitionMarker,
-            data: data,
-            thingFactory: postFromData);
-        },
-        onError: (_) {
-          return ListingTransitionFailed(
-            listing: posts.listing,
-            transitionMarker: transitionMarker);
+  dynamic perform(EffectContext context) async {
+    try {
+      final listing = await context
+          .clientFromUser(user)
+          .getSubredditPosts(posts.subreddit.name, page, posts.sortBy, posts.sortFrom);
+
+      /// We will use this when [FinishListingTransition] calls the [thingFactory].
+      final hasBeenViewed = await context.getPostListingDataHasBeenViewed(listing);
+      
+      return FinishListingTransition(
+        listing: posts.listing,
+        transitionMarker: transitionMarker,
+        data: listing,
+        thingFactory: (PostData data) {
+          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]);
         });
+    } catch (_) {
+      return ListingTransitionFailed(
+        listing: posts.listing,
+        transitionMarker: transitionMarker);
+    }
   }
 }
 

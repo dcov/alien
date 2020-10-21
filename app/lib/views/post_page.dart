@@ -2,6 +2,7 @@ import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
+import '../logic/post.dart';
 import '../logic/post_comments.dart';
 import '../logic/thing.dart';
 import '../models/post.dart';
@@ -183,16 +184,15 @@ void showPostPage({
 
   final comments = commentsFromPost(post);
 
-  context.push(
-    postPageNameFrom(post),
-    (String pageName) {
-      return _PostPage(
-        comments: comments,
-        name: pageName);
-    });
-
-  context.dispatch(
-    RefreshPostComments(
-      comments: comments));
+  context
+    ..push(
+        postPageNameFrom(post),
+        (String pageName) {
+          return _PostPage(
+            comments: comments,
+            name: pageName);
+        })
+    ..dispatch(MarkPostAsViewed(post: post))
+    ..dispatch(RefreshPostComments(comments: comments));
 }
 

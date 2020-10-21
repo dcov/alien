@@ -2,6 +2,7 @@ import 'package:elmer/elmer.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
+import 'package:stash/stash_api.dart';
 import 'package:stash_hive/stash_hive.dart' as cacheProvider;
 
 import '../effects.dart';
@@ -64,7 +65,10 @@ class _InitEffectContext extends Effect {
 
     /// Initialize the cache instance
     context.cache = cacheProvider.newHiveCache(
-        path.join((await pathProvider.getTemporaryDirectory()).path, 'cache'));
+        path.join((await pathProvider.getTemporaryDirectory()).path, 'cache'),
+        cacheName: 'main',
+        expiryPolicy: const TouchedExpiryPolicy(Duration(days: 2)),
+        evictionPolicy: const LruEvictionPolicy());
 
     return _InitCoreState();
   }

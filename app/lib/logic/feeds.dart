@@ -123,28 +123,32 @@ class GetFeedPosts extends Effect {
   @override
   dynamic perform(EffectContext context) async {
     assert(posts.type != Feed.home || user != null);
-    ListingData<PostData> data;
     try {
+      ListingData<PostData> listing;
       if (posts.type == Feed.home) {
         assert(posts.sortBy is HomeSort);
         assert(user != null);
-        data = await context.clientFromUser(user).getHomePosts(page, posts.sortBy, posts.sortFrom);
+        listing = await context.clientFromUser(user).getHomePosts(page, posts.sortBy, posts.sortFrom);
       } else {
         assert(posts.sortBy is SubredditSort);
         final subredditName = posts.type._name;
-        data = await context.clientFromUser(user).getSubredditPosts(subredditName, page, posts.sortBy, posts.sortFrom);
+        listing = await context.clientFromUser(user).getSubredditPosts(subredditName, page, posts.sortBy, posts.sortFrom);
       }
+
+      final hasBeenViewed = await context.getPostListingDataHasBeenViewed(listing);
+
+      return FinishListingTransition(
+        listing: posts.listing,
+        transitionMarker: transitionMarker,
+        data: listing,
+        thingFactory: (PostData data) {
+          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]);
+        });
     } catch (_) {
       return ListingTransitionFailed(
         listing: posts.listing,
         transitionMarker: transitionMarker);
     }
-
-    return FinishListingTransition(
-      listing: posts.listing,
-      transitionMarker: transitionMarker,
-      data: data,
-      thingFactory: postFromData);
   }
 }
 
