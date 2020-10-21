@@ -42,7 +42,6 @@ class _LoginScreen extends StatelessWidget {
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context) {
-      print('Building login screen status: ${login.status}');
       switch (login.status) {
         case LoginStatus.idle:
           ServicesBinding.instance.addPostFrameCallback((_) {

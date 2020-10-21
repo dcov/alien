@@ -199,7 +199,7 @@ class AddUser extends Action {
     accounts.users.add(user);
 
     return _PutPackedAccountsData(
-      usersData: packUsersList(accounts.users),
+      usersData: packUsersList(accounts.users.cast<AppUser>()),
       currentUserData: accounts.currentUser?.name);
   }
 }
@@ -223,7 +223,7 @@ class SetCurrentUser extends Action {
       return;
 
     return _PutPackedAccountsData(
-      usersData: packUsersList(accounts.users),
+      usersData: packUsersList(accounts.users.cast<AppUser>()),
       currentUserData: accounts.currentUser?.name);
   }
 }
