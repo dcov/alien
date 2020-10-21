@@ -14,6 +14,7 @@ import '../widgets/slidable.dart';
 
 import 'media_pages.dart';
 import 'post_page.dart';
+import 'view_extensions.dart';
 import 'votable_utils.dart';
 
 void _showPostOptionsBottomSheet({
@@ -25,12 +26,13 @@ void _showPostOptionsBottomSheet({
   showOptionsBottomSheet(
     context: context,
     options: <Option>[
-      Option(
-        onSelected: () {
-          context.dispatch(ToggleSaved(saveable: post));
-        },
-        title: post.isSaved ? 'Unsave' : 'Save',
-        icon: post.isSaved ? Icons.save : Icons.save_outlined)
+      if (context.userIsSignedIn)
+        Option(
+          onSelected: () {
+            context.dispatch(ToggleSaved(saveable: post));
+          },
+          title: post.isSaved ? 'Unsave' : 'Save',
+          icon: post.isSaved ? Icons.save : Icons.save_outlined)
     ]);
 }
 
@@ -164,21 +166,24 @@ class PostTile extends StatelessWidget {
                 color: Colors.grey.shade200))),
           child: Slidable(
             actions: <SlidableAction>[
-              SlidableAction(
-                onTriggered: () {
-                  context.dispatch(Upvote(votable: post));
-                },
-                icon: Icons.arrow_upward,
-                iconColor: Colors.white,
-                backgroundColor: getVoteDirColor(VoteDir.up),
-                preBackgroundColor: Colors.grey),
-              SlidableAction(
-                onTriggered: () {
-                  context.dispatch(Downvote(votable: post));
-                },
-                icon: Icons.arrow_downward,
-                iconColor: Colors.white,
-                backgroundColor: getVoteDirColor(VoteDir.down)),
+              if (context.userIsSignedIn)
+                ...[
+                  SlidableAction(
+                    onTriggered: () {
+                      context.dispatch(Upvote(votable: post));
+                    },
+                    icon: Icons.arrow_upward,
+                    iconColor: Colors.white,
+                    backgroundColor: getVoteDirColor(VoteDir.up),
+                    preBackgroundColor: Colors.grey),
+                  SlidableAction(
+                    onTriggered: () {
+                      context.dispatch(Downvote(votable: post));
+                    },
+                    icon: Icons.arrow_downward,
+                    iconColor: Colors.white,
+                    backgroundColor: getVoteDirColor(VoteDir.down)),
+                ],
               SlidableAction(
                 onTriggered: () {
                   _showPostOptionsBottomSheet(
@@ -187,7 +192,8 @@ class PostTile extends StatelessWidget {
                 },
                 icon: Icons.more_horiz,
                 iconColor: Colors.white,
-                backgroundColor: Colors.grey)
+                backgroundColor: Colors.black54,
+                preBackgroundColor: Colors.grey)
             ],
             child: Pressable(
               behavior: HitTestBehavior.opaque,

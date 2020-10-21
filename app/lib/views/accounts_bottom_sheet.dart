@@ -1,7 +1,7 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 
-import '../logic/accounts.dart';
+import '../logic/init.dart';
 import '../models/accounts.dart';
 import '../models/auth.dart';
 import '../models/user.dart';
@@ -37,6 +37,14 @@ class _AccountTile extends StatelessWidget {
           fontSize: 14.0,
           fontWeight: FontWeight.w500)));
   }
+}
+
+void _switchUser(BuildContext context, User to) {
+  /// Switch the currently signed in user
+  context.dispatch(SwitchUser(to: to));
+
+  /// Pop the bottom sheet
+  Navigator.of(context, rootNavigator: true).pop();
 }
 
 void showAccountsBottomSheet({
@@ -84,11 +92,15 @@ void showAccountsBottomSheet({
                            user: user,
                            isCurrentAccount: accounts.currentUser == user,
                            onTap: () {
+                             if (user != accounts.currentUser)
+                               _switchUser(context, user);
                            });
                        }),
                     _AccountTile(
                       isCurrentAccount: accounts.currentUser == null,
                       onTap: () {
+                        if (accounts.currentUser != null)
+                          _switchUser(context, null);
                       }),
                     CustomTile(
                       onTap: () => showLoginScreen(context: context, auth: auth),

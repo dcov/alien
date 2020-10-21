@@ -10,7 +10,6 @@ import '../widgets/formatting.dart';
 import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
 import '../widgets/slidable.dart';
-import '../widgets/tile.dart';
 
 import 'snudown_body.dart';
 import 'view_extensions.dart';
@@ -159,21 +158,24 @@ class CommentTile extends StatelessWidget {
 
       return Slidable(
         actions: <SlidableAction>[
-          SlidableAction(
-            onTriggered: () {
-              context.dispatch(Upvote(votable: comment));
-            },
-            icon: Icons.arrow_upward_rounded,
-            iconColor: Colors.white,
-            backgroundColor: getVoteDirColor(VoteDir.up),
-            preBackgroundColor: Colors.grey),
-          SlidableAction(
-            onTriggered: () {
-              context.dispatch(Downvote(votable: comment));
-            },
-            icon: Icons.arrow_downward,
-            iconColor: Colors.white,
-            backgroundColor: getVoteDirColor(VoteDir.down)),
+          if (context.userIsSignedIn)
+            ...[
+              SlidableAction(
+                onTriggered: () {
+                  context.dispatch(Upvote(votable: comment));
+                },
+                icon: Icons.arrow_upward_rounded,
+                iconColor: Colors.white,
+                backgroundColor: getVoteDirColor(VoteDir.up),
+                preBackgroundColor: Colors.grey),
+              SlidableAction(
+                onTriggered: () {
+                  context.dispatch(Downvote(votable: comment));
+                },
+                icon: Icons.arrow_downward,
+                iconColor: Colors.white,
+                backgroundColor: getVoteDirColor(VoteDir.down)),
+            ],
           SlidableAction(
             onTriggered: () {
               _showCommentOptionsBottomSheet(
@@ -182,7 +184,8 @@ class CommentTile extends StatelessWidget {
             },
             icon: Icons.more_horiz,
             iconColor: Colors.white,
-            backgroundColor: Colors.grey)
+            backgroundColor: Colors.black54,
+            preBackgroundColor: Colors.grey)
         ],
         child: _addInsets(child));
     });
