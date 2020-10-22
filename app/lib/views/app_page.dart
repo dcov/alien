@@ -6,6 +6,7 @@ import '../models/app.dart';
 import '../models/auth.dart';
 import '../models/feed.dart';
 import '../models/subreddit.dart';
+import '../widgets/draggable_page_route.dart';
 import '../widgets/routing.dart';
 import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
@@ -27,9 +28,9 @@ class AppPage extends EntryPage {
 
   @override
   Route createRoute(_) {
-    return PageRouteBuilder(
+    return DraggablePageRoute(
       settings: this,
-      pageBuilder: (BuildContext context, Animation<double> _, Animation<double> __) {
+      builder: (BuildContext context) {
         return _AppPageView(app: app);
       });
   }

@@ -30,7 +30,8 @@ class _WebPage extends StatelessWidget {
                 leading: CloseButton())))),
         Expanded(
           child: WebViewControl(
-            url: url)),
+            url: url,
+            javascriptEnabled: true)),
         Material(
           child: SizedBox(
             height: context.mediaPadding.bottom))

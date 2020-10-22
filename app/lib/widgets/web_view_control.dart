@@ -7,12 +7,18 @@ class WebViewControl extends StatefulWidget {
     Key key,
     @required this.url,
     this.onPageFinished,
+    this.javascriptEnabled = false,
+    this.gestureNavigationEnabled = false,
   }) : assert(url != null),
        super(key: key);
 
   final String url;
 
   final PageFinishedCallback onPageFinished;
+
+  final bool javascriptEnabled;
+
+  final bool gestureNavigationEnabled;
   
   @override
   _WebViewControlState createState() => _WebViewControlState();
@@ -43,6 +49,7 @@ class _WebViewControlState extends State<WebViewControl> {
     return WebView(
       key: _webViewKey,
       initialUrl: widget.url,
+      javascriptMode: widget.javascriptEnabled ? JavascriptMode.unrestricted : JavascriptMode.disabled,
       onWebViewCreated: (WebViewController controller) {
         _controller = controller;
       },
