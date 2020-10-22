@@ -6,6 +6,7 @@ import '../logic/feeds.dart';
 import '../models/feed.dart';
 import '../models/listing.dart';
 import '../models/post.dart';
+import '../widgets/draggable_page_route.dart';
 import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
 import '../widgets/tile.dart';
@@ -122,7 +123,7 @@ class _FeedPage extends EntryPage {
 
   @override
   Route createRoute(_) {
-    return MaterialPageRoute(
+    return DraggablePageRoute(
       settings: this,
       builder: (_) {
         return _FeedPageView(

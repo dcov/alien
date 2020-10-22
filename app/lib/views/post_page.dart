@@ -8,6 +8,7 @@ import '../logic/thing.dart';
 import '../models/post.dart';
 import '../models/post_comments.dart';
 import '../widgets/circle_divider.dart';
+import '../widgets/draggable_page_route.dart';
 import '../widgets/formatting.dart';
 import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
@@ -162,7 +163,7 @@ class _PostPage extends EntryPage {
 
   @override
   Route createRoute(_) {
-    return MaterialPageRoute(
+    return DraggablePageRoute(
       settings: this,
       builder: (_) {
         return _PostPageView(

@@ -7,6 +7,7 @@ import '../logic/thing.dart';
 import '../models/listing.dart';
 import '../models/subreddit.dart';
 import '../models/post.dart';
+import '../widgets/draggable_page_route.dart';
 import '../widgets/icons.dart';
 import '../widgets/pressable.dart';
 import '../widgets/tile.dart';
@@ -106,7 +107,7 @@ class _SubredditPage extends EntryPage {
 
   @override
   Route createRoute(BuildContext context) {
-    return MaterialPageRoute(
+    return DraggablePageRoute(
       settings: this,
       builder: (BuildContext context) {
         return _SubredditPageView(posts: posts);
