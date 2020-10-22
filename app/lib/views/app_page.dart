@@ -3,12 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../models/app.dart';
-import '../models/auth.dart';
 import '../models/feed.dart';
 import '../models/subreddit.dart';
 import '../widgets/draggable_page_route.dart';
+import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
-import '../widgets/tile.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'accounts_bottom_sheet.dart';
@@ -79,8 +78,8 @@ class _AccountHeader extends StatelessWidget {
   Widget build(_) {
     return Connector(
       builder: (BuildContext context) {
-        return GestureDetector(
-          onTap: () => showAccountsBottomSheet(
+        return Pressable(
+          onPress: () => showAccountsBottomSheet(
             context: context,
             accounts: app.accounts,
             auth: app.auth),
