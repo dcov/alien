@@ -5,9 +5,49 @@ import '../logic/init.dart';
 import '../models/accounts.dart';
 import '../models/auth.dart';
 import '../models/user.dart';
+import '../widgets/pressable.dart';
 import '../widgets/tile.dart';
 
 import 'login_screen.dart';
+
+Future<bool> _showRemoveConfirmationDialog({
+    @required BuildContext context,
+    @required User user,
+  }) {
+  assert(context != null);
+  assert(user != null);
+  return showDialog<bool>(
+    context: context,
+    useRootNavigator: true,
+    child: AlertDialog(
+      title: Text(
+        'Logout ${user.name}'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true).pop(true);
+          },
+          child: Text('Confirm')),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true).pop(false);
+          },
+          child: Text('Cancel'))
+      ]));
+}
+
+void _removeUser(BuildContext context, User user) async {
+  final remove = await _showRemoveConfirmationDialog(
+    context: context,
+    user: user);
+
+  if (remove) {
+    context.dispatch(LogOutUser(user: user));
+
+    /// Pop the accounts bottom sheet
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+}
 
 class _AccountTile extends StatelessWidget {
 
@@ -15,27 +55,42 @@ class _AccountTile extends StatelessWidget {
     Key key,
     this.user,
     @required this.isCurrentAccount,
-    @required this.onTap,
+    @required this.onSelect,
+    this.onRemove,
   }) : assert(isCurrentAccount != null),
-       assert(onTap != null),
+       assert(onSelect != null),
+       assert((onRemove != null && user != null) || (onRemove == null && user == null)),
        super(key: key);
 
   final User user;
 
   final bool isCurrentAccount;
 
-  final VoidCallback onTap;
+  final VoidCallback onSelect;
+
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    return CustomTile(
-      onTap: onTap,
-      icon: Icon(Icons.person),
-      title: Text(
-        user != null ? user.name : 'Anonymous',
-        style: TextStyle(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w500)));
+    return Pressable(
+      onPress: onSelect,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+        child: Row(
+          children: <Widget>[
+            Text(
+              user != null ? user.name : 'Anonymous',
+              style: TextStyle(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w500)),
+            Spacer(),
+            if (onRemove != null)
+              Padding(
+                padding: EdgeInsets.only(left: 16.0),
+                child: PressableIcon(
+                  onPress: onRemove,
+                  icon: Icons.close))
+          ])));
   }
 }
 
@@ -91,25 +146,29 @@ void showAccountsBottomSheet({
                          return _AccountTile(
                            user: user,
                            isCurrentAccount: accounts.currentUser == user,
-                           onTap: () {
+                           onSelect: () {
                              if (user != accounts.currentUser)
                                _switchUser(context, user);
-                           });
+                           },
+                           onRemove: () => _removeUser(context, user));
                        }),
                     _AccountTile(
                       isCurrentAccount: accounts.currentUser == null,
-                      onTap: () {
+                      onSelect: () {
                         if (accounts.currentUser != null)
                           _switchUser(context, null);
                       }),
-                    CustomTile(
-                      onTap: () => showLoginScreen(context: context, auth: auth),
-                      icon: Icon(Icons.add),
-                      title: Text(
-                        'Add account',
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w500))),
+                    Pressable(
+                      onPress: () => showLoginScreen(context: context, auth: auth),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.add),
+                          Text(
+                            'Add account',
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w500)),
+                        ])),
                   ]))
             ]);
         });

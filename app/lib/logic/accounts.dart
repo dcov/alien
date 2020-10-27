@@ -204,6 +204,40 @@ class AddUser extends Action {
   }
 }
 
+class RemoveUser extends Action {
+
+  RemoveUser({
+    @required this.user
+  }) : assert(user != null);
+
+  final User user;
+
+  @override
+  dynamic update(AccountsOwner owner) {
+    assert(!owner.accounts.isInScriptMode,
+      'Cannot remove user while app is running in script mode.');
+
+    final accounts = owner.accounts;
+    assert(() {
+        for (final existingUser in accounts.users) {
+          if (existingUser.name == user.name) {
+            return true;
+          }
+          return false;
+        }
+      }(),
+      'RemoveUser dispatched with a non-existing user');
+
+    accounts.users.removeWhere((User existingUser) {
+      return existingUser.name == user.name;
+    });
+
+    return _PutPackedAccountsData(
+      usersData: packUsersList(accounts.users.cast<AppUser>()),
+      currentUserData: accounts.currentUser?.name);
+  }
+}
+
 class SetCurrentUser extends Action {
   
   SetCurrentUser({ this.to });

@@ -97,10 +97,28 @@ class SwitchUser extends Action {
   final User to;
 
   @override
-  dynamic update(App app) {
+  dynamic update(_) {
     return {
       SetCurrentUser(to: to),
       _ResetUserState()
+    };
+  }
+}
+
+class LogOutUser extends Action {
+
+  LogOutUser({
+    @required this.user
+  }) : assert(user != null);
+
+  final User user;
+
+  @override
+  dynamic update(App app) {
+    return {
+      if (app.accounts.currentUser == user)
+        SwitchUser(to: null),
+      RemoveUser(user: user)
     };
   }
 }
