@@ -1,9 +1,10 @@
 import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/theming.dart';
 
-class Themer extends StatelessWidget {
+class Themer extends StatefulWidget {
 
   Themer({
     Key key,
@@ -16,13 +17,43 @@ class Themer extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context) {
-      return AnimatedTheme(
-        data: theming.data,
-        child: this.child,
-      );
-    },
-  );
+  _ThemerState createState() => _ThemerState();
+}
+class _ThemerState extends State<Themer>
+    with ConnectionStateMixin {
+
+  ThemeType _themeType;
+  ThemeData _themeData;
+  SystemUiOverlayStyle _systemStyle;
+
+  @override
+  void capture(StateSetter setState) {
+    final theming = widget.theming;
+    if (_themeType != theming.type) {
+      setState(() {
+        _themeType = theming.type;
+        _themeData = theming.data;
+
+        switch (theming.type) {
+          case ThemeType.light:
+            _themeData = _themeData.copyWith(appBarTheme: _themeData.appBarTheme.copyWith(brightness: Brightness.light));
+            _systemStyle = SystemUiOverlayStyle.dark;
+            break;
+          case ThemeType.dark:
+            _themeData = _themeData.copyWith(appBarTheme: _themeData.appBarTheme.copyWith(brightness: Brightness.dark));
+            _systemStyle = SystemUiOverlayStyle.light;
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(_) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _systemStyle,
+      child: AnimatedTheme(
+        data: _themeData,
+        child: widget.child));
+  }
 }
 
