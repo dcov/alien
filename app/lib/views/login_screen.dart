@@ -101,9 +101,6 @@ class _LoginScreen extends StatelessWidget {
 void showLoginScreen({ @required BuildContext context }) {
   assert(context != null);
   final login = Login(status: LoginStatus.idle);
-  Navigator.of(context, rootNavigator: true)
-    .push(MaterialPageRoute(builder: (_) {
-       return _LoginScreen(login: login);
-     }));
+  context.rootNavigator.push(MaterialPageRoute(builder: (_) => _LoginScreen(login: login)));
 }
 

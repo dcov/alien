@@ -45,8 +45,7 @@ void showMediaPage({
   }) {
   assert(context != null);
   assert(media != null);
-  Navigator.of(context, rootNavigator: true)
-    .push(MaterialPageRoute(builder: (_) => _WebPage(url: media.source)));
+  context.rootNavigator.push(MaterialPageRoute(builder: (_) => _WebPage(url: media.source)));
 }
 
 class MediaThumbnail extends StatelessWidget {
