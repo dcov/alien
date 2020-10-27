@@ -81,8 +81,7 @@ class _AccountHeader extends StatelessWidget {
         return Pressable(
           onPress: () => showAccountsBottomSheet(
             context: context,
-            accounts: app.accounts,
-            auth: app.auth),
+            accounts: app.accounts),
           child: Padding(
             padding: EdgeInsets.all(12.0),
             child: Row(

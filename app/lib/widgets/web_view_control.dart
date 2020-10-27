@@ -26,8 +26,6 @@ class WebViewControl extends StatefulWidget {
 
 class _WebViewControlState extends State<WebViewControl> {
 
-  final GlobalKey _webViewKey = GlobalKey();
-
   WebViewController _controller;
 
   @override
@@ -40,14 +38,14 @@ class _WebViewControlState extends State<WebViewControl> {
 
   @override
   void dispose() {
-    super.dispose();
+    _controller?.clearCache();
     WebView.platform.clearCookies();
+    super.dispose();
   }
 
   @override
   Widget build(_) {
     return WebView(
-      key: _webViewKey,
       initialUrl: widget.url,
       javascriptMode: widget.javascriptEnabled ? JavascriptMode.unrestricted : JavascriptMode.disabled,
       onWebViewCreated: (WebViewController controller) {

@@ -1,6 +1,6 @@
 import 'package:uuid/uuid.dart';
 
-const String _kAuthorizationUrl = 'https://www.reddit.com/api/v1/authorize.compact';
+const _kAuthorizationUrl = r'https://www.reddit.com/api/v1/authorize.compact';
 
 class AuthSession {
 
@@ -8,12 +8,12 @@ class AuthSession {
     final String state = Uuid().v4().toString().substring(0, 10);
     final String url = '${_kAuthorizationUrl}'
                        '?client_id=${clientId}'
-                       '&response_type=code'
+                       r'&response_type=code'
                        '&state=${state}'
                        '&redirect_uri=${redirectUri}'
-                       '&duration=permanent'
+                       r'&duration=permanent'
                        '${scopes.isNotEmpty
-                            ? '&scope=${scopes.join(' ')}'
+                            ? '&scope=${scopes.join('+')}'
                             : ''}';
     return AuthSession._(url, state);
   }

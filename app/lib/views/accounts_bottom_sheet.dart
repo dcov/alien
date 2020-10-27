@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../logic/init.dart';
 import '../models/accounts.dart';
-import '../models/auth.dart';
 import '../models/user.dart';
 import '../widgets/pressable.dart';
-import '../widgets/tile.dart';
 
 import 'login_screen.dart';
 
@@ -105,11 +103,9 @@ void _switchUser(BuildContext context, User to) {
 void showAccountsBottomSheet({
     @required BuildContext context,
     @required Accounts accounts,
-    @required Auth auth
   }) {
   assert(context != null);
   assert(accounts != null);
-  assert(auth != null);
   final dividerColor = Colors.grey.shade700;
   showModalBottomSheet(
     context: context,
@@ -159,7 +155,7 @@ void showAccountsBottomSheet({
                           _switchUser(context, null);
                       }),
                     Pressable(
-                      onPress: () => showLoginScreen(context: context, auth: auth),
+                      onPress: () => showLoginScreen(context: context),
                       child: Row(
                         children: <Widget>[
                           Icon(Icons.add),

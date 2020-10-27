@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logic/login.dart';
-import '../models/auth.dart';
 import '../models/login.dart';
+import '../widgets/pressable.dart';
 import '../widgets/web_view_control.dart';
+import '../widgets/widget_extensions.dart';
 
 class _Indicator extends StatelessWidget {
 
@@ -40,46 +41,69 @@ class _LoginScreen extends StatelessWidget {
   final Login login;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context) {
-      switch (login.status) {
-        case LoginStatus.idle:
-          ServicesBinding.instance.addPostFrameCallback((_) {
-            context.dispatch(StartLogin(login: login));
-          });
-          continue renderSettingUpIndicator;
-        renderSettingUpIndicator:
-        case LoginStatus.settingUp:
-          return _Indicator(text: 'Setting up');
-        case LoginStatus.awaitingCode:
-          return WebViewControl(
-            url: login.session.url,
-            onPageFinished: (String pageUrl) {
-              context.dispatch(
-                TryAuthenticating(
-                  login: login,
-                  url: pageUrl));
-            });
-        case LoginStatus.authenticating:
-          return _Indicator(text: 'Authenticating');
-        case LoginStatus.succeeded:
-        case LoginStatus.failed:
-          ServicesBinding.instance.addPostFrameCallback((_) {
-            Navigator.pop(context);
-          });
-          return Material();
-      }
-      return null;
-    });
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Material(
+          child: Padding(
+            padding: EdgeInsets.only(top: context.mediaPadding.top),
+            child: SizedBox(
+              height: 48.0,
+              child: NavigationToolbar(
+                leading: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: PressableIcon(
+                    onPress: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                    },
+                    icon: Icons.close,
+                    iconColor: Colors.black)))))),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: context.mediaPadding.bottom),
+            child: Connector(
+              builder: (BuildContext context) {
+                switch (login.status) {
+                  case LoginStatus.idle:
+                    ServicesBinding.instance.addPostFrameCallback((_) {
+                      context.dispatch(StartLogin(login: login));
+                    });
+                    continue renderSettingUpIndicator;
+                  renderSettingUpIndicator:
+                  case LoginStatus.settingUp:
+                    return _Indicator(text: 'Setting up');
+                  case LoginStatus.awaitingCode:
+                    return WebViewControl(
+                      javascriptEnabled: true,
+                      gestureNavigationEnabled: true,
+                      url: login.session.url,
+                      onPageFinished: (String pageUrl) {
+                        context.dispatch(
+                          TryAuthenticating(
+                            login: login,
+                            url: pageUrl));
+                      });
+                  case LoginStatus.authenticating:
+                    return _Indicator(text: 'Authenticating');
+                  case LoginStatus.succeeded:
+                  case LoginStatus.failed:
+                    ServicesBinding.instance.addPostFrameCallback((_) {
+                      Navigator.pop(context);
+                    });
+                    return Material();
+                }
+                return null;
+              })))
+      ]);
+  }
 }
 
-void showLoginScreen({
-    @required BuildContext context,
-    @required Auth auth,
-  }) {
+void showLoginScreen({ @required BuildContext context }) {
   assert(context != null);
-  assert(auth != null);
+  final login = Login(status: LoginStatus.idle);
   Navigator.of(context, rootNavigator: true)
-    .push(MaterialPageRoute(builder: (_) => _LoginScreen(login: Login(status: LoginStatus.idle))));
+    .push(MaterialPageRoute(builder: (_) {
+       return _LoginScreen(login: login);
+     }));
 }
 
