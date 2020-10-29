@@ -8,61 +8,11 @@ import '../models/subreddit.dart';
 import '../widgets/draggable_page_route.dart';
 import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
-import '../widgets/widget_extensions.dart';
 
 import 'accounts_bottom_sheet.dart';
 import 'feed_page.dart';
+import 'settings_page.dart';
 import 'subreddit_page.dart';
-
-class AppPage extends EntryPage {
-
-  AppPage({
-    @required this.app,
-    @required String name
-  }) : super(name: name);
-
-  final App app;
-
-  static const pageName = 'app';
-
-  @override
-  Route createRoute(_) {
-    return DraggablePageRoute(
-      settings: this,
-      builder: (BuildContext context) {
-        return _AppPageView(app: app);
-      });
-  }
-}
-
-class _AppPageView extends StatelessWidget {
-
-  _AppPageView({
-    Key key,
-    @required this.app
-  }) : super(key: key);
-
-  final App app;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Material(
-          elevation: 2.0,
-          child: Padding(
-            padding: EdgeInsets.only(top: context.mediaPadding.top),
-            child: SizedBox(
-              height: 48.0,
-              child: Row(
-                children: <Widget>[
-                  _AccountHeader(app: app),
-                ])))),
-        Expanded(
-          child: _AppBody(app: app)),
-      ]);
-  }
-}
 
 class _AccountHeader extends StatelessWidget {
 
@@ -90,11 +40,39 @@ class _AccountHeader extends StatelessWidget {
                 Text(
                   app.accounts.currentUser?.name ?? 'Sign in',
                   style: TextStyle(
+                    color: Colors.black,
                     fontSize: 14.0,
                     fontWeight: FontWeight.w500)),
-                Icon(Icons.arrow_drop_down)
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black)
               ])));
       });
+  }
+}
+
+class _SublistHeader extends StatelessWidget {
+
+  _SublistHeader({
+    Key key,
+    @required this.name
+  }) : super(key: key);
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(color: Colors.grey.shade200),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Text(
+          name,
+          style: TextStyle(
+            color: Colors.grey.shade700,
+            letterSpacing: 1.0,
+            fontSize: 10.0,
+            fontWeight: FontWeight.w700))));
   }
 }
 
@@ -190,35 +168,60 @@ class _AppBodyState extends State<_AppBody> {
             subredditPageNameFrom);
         }
 
-        return ListView(
-          padding: EdgeInsets.only(bottom: 24.0),
-          children: children);
+        return SliverList(delegate: SliverChildListDelegate(children));
       });
   }
 }
 
-class _SublistHeader extends StatelessWidget {
+class _AppPageView extends StatelessWidget {
 
-  _SublistHeader({
+  _AppPageView({
     Key key,
-    @required this.name
+    @required this.app
   }) : super(key: key);
 
-  final String name;
+  final App app;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(color: Colors.grey.shade200),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Text(
-          name,
-          style: TextStyle(
-            color: Colors.grey.shade700,
-            letterSpacing: 1.0,
-            fontSize: 10.0,
-            fontWeight: FontWeight.w700))));
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          toolbarHeight: 48.0,
+          elevation: 1.0,
+          pinned: true,
+          backgroundColor: Theme.of(context).canvasColor,
+          title: _AccountHeader(app: app),
+          actions: <Widget>[
+            PressableIcon(
+              onPress: () => showSettingsPage(context: context),
+              icon: Icons.settings,
+              iconColor: Colors.black,
+              padding: EdgeInsets.symmetric(horizontal: 16.0))
+          ]),
+        _AppBody(app: app),
+      ]);
+  }
+}
+
+class AppPage extends EntryPage {
+
+  AppPage({
+    @required this.app,
+    @required String name
+  }) : super(name: name);
+
+  final App app;
+
+  static const pageName = 'app';
+
+  @override
+  Route createRoute(_) {
+    return DraggablePageRoute(
+      settings: this,
+      builder: (BuildContext context) {
+        return _AppPageView(app: app);
+      });
   }
 }
 

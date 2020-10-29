@@ -75,7 +75,7 @@ class _FeedPageView extends StatelessWidget {
                 backgroundColor: Theme.of(context).canvasColor,
                 leading: PressableIcon(
                   onPress: () => Navigator.pop(context),
-                  icon: Icons.close,
+                  icon: Icons.arrow_back_ios,
                   iconColor: Colors.black),
                 title: Text(
                   posts.type.displayName,

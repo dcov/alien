@@ -47,12 +47,13 @@ class _SubredditPageView extends StatelessWidget {
             controller: controller,
             slivers: <Widget>[
               SliverAppBar(
+                toolbarHeight: 48.0,
                 elevation: 1.0,
                 pinned: true,
                 backgroundColor: Theme.of(context).canvasColor,
                 leading: PressableIcon(
                   onPress: () => Navigator.pop(context),
-                  icon: Icons.close,
+                  icon: Icons.arrow_back_ios_rounded,
                   iconColor: Colors.black),
                 title: Text(
                   posts.subreddit.name,

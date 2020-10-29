@@ -23,7 +23,7 @@ class _PostSliver extends StatelessWidget {
 
   _PostSliver({
     Key key,
-    this.post,
+    @required this.post,
   }) : assert(post != null),
        super(key: key);
 
@@ -113,7 +113,7 @@ class _PostPageView extends StatelessWidget {
             backgroundColor: Theme.of(context).canvasColor,
             leading: PressableIcon(
               onPress: () => Navigator.pop(context),
-              icon: Icons.close,
+              icon: Icons.arrow_back_ios,
               iconColor: Colors.black),
             actions: <Widget>[
               PressableIcon(
