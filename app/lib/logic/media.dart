@@ -47,7 +47,8 @@ class _GetThumbnail extends Effect {
         media: media,
         thumbnail: thumbnail);
     } catch (_) {
-      return _GetThumbnailFailed();
+      return _GetThumbnailFailed(
+        media: media);
     }
   }
 }
@@ -76,9 +77,15 @@ class _FinishGetThumbnail extends Action {
 
 class _GetThumbnailFailed extends Action {
 
+  _GetThumbnailFailed({
+    @required this.media
+  }) : assert(media != null);
+
+  final Media media;
+
   @override
   dynamic update(_) {
-    // TODO: implement
+    media.thumbnailStatus = ThumbnailStatus.notFound;
   }
 }
 

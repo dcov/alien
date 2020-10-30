@@ -12,7 +12,7 @@ import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
 import '../widgets/slidable.dart';
 
-import 'media_pages.dart';
+import 'media_thumbnail.dart';
 import 'post_page.dart';
 import 'view_extensions.dart';
 import 'votable_utils.dart';

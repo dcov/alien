@@ -13,7 +13,7 @@ import '../widgets/formatting.dart';
 import '../widgets/pressable.dart';
 import '../widgets/routing.dart';
 
-import 'media_pages.dart';
+import 'media_thumbnail.dart';
 import 'post_comments_slivers.dart';
 import 'snudown_body.dart';
 import 'sort_bottom_sheet.dart';

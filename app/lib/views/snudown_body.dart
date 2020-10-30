@@ -5,7 +5,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../models/media.dart';
 import '../models/snudown.dart';
 
-import 'media_pages.dart';
+import 'media_page.dart';
 
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {
   final ThemeData theme = Theme.of(context);
