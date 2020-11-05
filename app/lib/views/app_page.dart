@@ -65,7 +65,9 @@ class _SublistHeader extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(color: Colors.grey.shade200),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(
+          vertical: 12.0,
+          horizontal: 16.0),
         child: Text(
           name,
           style: TextStyle(

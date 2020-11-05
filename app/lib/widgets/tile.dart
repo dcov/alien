@@ -6,7 +6,7 @@ class CustomTile extends StatelessWidget {
 
   CustomTile({
     Key key,
-    this.padding = const EdgeInsets.all(12.0),
+    this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
     this.depth,
     this.icon,
     @required this.title,

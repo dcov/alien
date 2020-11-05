@@ -156,15 +156,13 @@ void showAccountsBottomSheet({
                       }),
                     Pressable(
                       onPress: () => showLoginScreen(context: context),
-                      child: Row(
-                        children: <Widget>[
-                          Icon(Icons.add),
-                          Text(
-                            'Add account',
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w500)),
-                        ])),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                        child: Text(
+                          'Add account',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w500)))),
                   ]))
             ]);
         });
