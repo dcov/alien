@@ -193,6 +193,7 @@ class _AppPageView extends StatelessWidget {
           elevation: 1.0,
           pinned: true,
           backgroundColor: Theme.of(context).canvasColor,
+          centerTitle: true,
           title: _AccountHeader(app: app),
           actions: <Widget>[
             PressableIcon(

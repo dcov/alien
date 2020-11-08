@@ -111,6 +111,8 @@ class _PostPageView extends StatelessWidget {
             elevation: 1.0,
             pinned: true,
             backgroundColor: Theme.of(context).canvasColor,
+            toolbarHeight: 48.0,
+            centerTitle: true,
             leading: PressableIcon(
               onPress: () => Navigator.pop(context),
               icon: Icons.arrow_back_ios,

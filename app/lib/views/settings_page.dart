@@ -79,6 +79,7 @@ class _AboutPageView extends StatelessWidget {
           backgroundColor: Theme.of(context).canvasColor,
           elevation: 1.0,
           pinned: true,
+          centerTitle: true,
           leading: PressableIcon(
             onPress: () => context.rootNavigator.pop(),
             icon: Icons.arrow_back_ios_rounded,
@@ -157,6 +158,7 @@ class _SettingsPageView extends StatelessWidget {
           backgroundColor: Theme.of(context).canvasColor,
           elevation: 1.0,
           pinned: true,
+          centerTitle: true,
           leading: PressableIcon(
             onPress: () => context.rootNavigator.pop(),
             icon: Icons.arrow_back_ios_rounded,

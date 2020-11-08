@@ -51,6 +51,7 @@ class _SubredditPageView extends StatelessWidget {
                 elevation: 1.0,
                 pinned: true,
                 backgroundColor: Theme.of(context).canvasColor,
+                centerTitle: true,
                 leading: PressableIcon(
                   onPress: () => Navigator.pop(context),
                   icon: Icons.arrow_back_ios_rounded,

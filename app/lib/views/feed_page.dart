@@ -70,9 +70,11 @@ class _FeedPageView extends StatelessWidget {
             controller: controller,
             slivers: <Widget>[
               SliverAppBar(
+                toolbarHeight: 48.0,
                 elevation: 1.0,
                 pinned: true,
                 backgroundColor: Theme.of(context).canvasColor,
+                centerTitle: true,
                 leading: PressableIcon(
                   onPress: () => Navigator.pop(context),
                   icon: Icons.arrow_back_ios,
