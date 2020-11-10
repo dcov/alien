@@ -1,6 +1,6 @@
 name: alien
 description: A Reddit client built with Flutter.
-version: 0.1.0
+version: 0.1.0+1
 author: Diego Covarrubias <dcov@pm.me>
 homepage: https://github.com/dcov/alien
 
@@ -13,7 +13,7 @@ flutter:
   fonts:
     - family: AlienIcons
       fonts:
-        - asset: fonts/subreddit.ttf
+        - asset: assets/fonts/subreddit.ttf
 
 dependencies:
   flutter:
