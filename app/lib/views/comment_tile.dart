@@ -109,6 +109,11 @@ class CommentTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12.0,
                   color: Colors.black54)),
+              Text(
+                '[+]',
+                style: TextStyle(
+                  fontSize: 12.0,
+                  color: Colors.black54))
             ]))));
       }
 
