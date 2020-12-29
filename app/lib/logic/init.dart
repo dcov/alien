@@ -6,8 +6,6 @@ import 'package:stash/stash_api.dart';
 import 'package:stash_hive/stash_hive.dart' as cacheProvider;
 
 import '../effects.dart';
-import '../logic/defaults.dart';
-import '../logic/subscriptions.dart';
 import '../models/accounts.dart';
 import '../models/app.dart';
 import '../models/auth.dart';
@@ -17,6 +15,8 @@ import '../models/theming.dart';
 import '../models/user.dart';
 
 import 'accounts.dart';
+import 'defaults.dart';
+import 'subscriptions.dart';
 import 'theming.dart';
 
 class InitApp extends Initial {
