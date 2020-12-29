@@ -1,0 +1,15 @@
+name: reddit
+description: The Reddit API wrapper use in Alien for Reddit. 
+version: 0.1.0
+author: Diego Covarrubias <dcov@pm.me>
+homepage: https://github.com/dcov/alien
+
+environment:
+  sdk: '>=2.7.0 <3.0.0'
+
+dependencies:
+  http: ^0.12.0
+  uuid: ^2.0.2
+
+dev_dependencies:
+  test: ^1.6.5
