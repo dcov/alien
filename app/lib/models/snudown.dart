@@ -1,9 +1,9 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:markdown/markdown.dart';
 
 part 'snudown.g.dart';
 
-abstract class Snudown extends Model {
+abstract class Snudown implements Model {
 
   factory Snudown({
     List<Node> nodes,

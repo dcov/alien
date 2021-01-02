@@ -186,3 +186,4 @@ void showSettingsPage({ @required BuildContext context }) {
     DraggablePageRoute(
       builder: (_) => _SettingsPageView()));
 }
+

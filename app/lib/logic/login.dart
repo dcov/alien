@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -11,7 +11,7 @@ import '../models/user.dart';
 import 'accounts.dart';
 import 'init.dart';
 
-class StartLogin extends Action {
+class StartLogin implements Update {
 
   StartLogin({
     @required this.login
@@ -20,15 +20,15 @@ class StartLogin extends Action {
   final Login login;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     assert(login.status == LoginStatus.idle);
     login.status = LoginStatus.settingUp;
-    return _GetScopes(
-      login: login);
+    return Then(_GetScopes(
+      login: login));
   }
 }
 
-class _GetScopes extends Effect {
+class _GetScopes implements Effect {
 
   _GetScopes({
     @required this.login
@@ -37,21 +37,21 @@ class _GetScopes extends Effect {
   final Login login;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     return context.redditApp.asDevice()
       .getScopeDescriptions()
       .then((Iterable<ScopeData> result) {
-        return _InitializeAuthSession(
+        return Then(_InitializeAuthSession(
           login: login,
-          result: result);
+          result: result));
       })
       .catchError((_) {
-        return _GetScopesFailed(login: login);
+        return Then(_GetScopesFailed(login: login));
       });
   }
 }
 
-class _InitializeAuthSession extends Action {
+class _InitializeAuthSession implements Update {
 
   _InitializeAuthSession({
     @required this.login,
@@ -64,7 +64,7 @@ class _InitializeAuthSession extends Action {
   final Iterable<ScopeData> result;
 
   @override
-  dynamic update(AuthOwner owner) {
+  Then update(AuthOwner owner) {
     final Auth auth = owner.auth;
 
     // Initialize the login session
@@ -75,10 +75,12 @@ class _InitializeAuthSession extends Action {
 
     // Set that status to awaiting the user authentication code
     login.status = LoginStatus.awaitingCode;
+
+    return Then.done();
   }
 }
 
-class _GetScopesFailed extends Action {
+class _GetScopesFailed implements Update {
 
   _GetScopesFailed({
     @required this.login,
@@ -87,12 +89,14 @@ class _GetScopesFailed extends Action {
   final Login login;
 
   @override
-  dynamic update(AuthOwner owner) {
+  Then update(AuthOwner owner) {
     login.status = LoginStatus.failed;
+
+    return Then.done();
   }
 }
 
-class TryAuthenticating extends Action {
+class TryAuthenticating implements Update {
 
   TryAuthenticating({
     @required this.login,
@@ -105,31 +109,31 @@ class TryAuthenticating extends Action {
   final String url;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     if (login.status == LoginStatus.authenticating)
-      return;
+      return Then.done();
 
     final queryParameters = Uri.parse(url).queryParameters;
     if (queryParameters['error'] != null) {
-      return _AuthenticationFailed(
-        login: login);
+      return Then(_AuthenticationFailed(
+        login: login));
     }
 
     if (queryParameters['code'] != null) {
       if (queryParameters['state'] != login.session.state) {
-        return _AuthenticationFailed(
-          login: login);
+        return Then(_AuthenticationFailed(
+          login: login));
       }
 
       login.status = LoginStatus.authenticating;
-      return _PostCode(
+      return Then(_PostCode(
         login: login,
-        code: queryParameters['code']);
+        code: queryParameters['code']));
     }
   }
 }
 
-class _AuthenticationFailed extends Action {
+class _AuthenticationFailed implements Update {
 
   _AuthenticationFailed({
     @required this.login
@@ -138,12 +142,13 @@ class _AuthenticationFailed extends Action {
   final Login login;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     login.status = LoginStatus.failed;
+    return Then.done();
   }
 }
 
-class _PostCode extends Effect {
+class _PostCode implements Effect {
 
   _PostCode({
     @required this.login,
@@ -156,7 +161,7 @@ class _PostCode extends Effect {
   final String code;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     try {
       final reddit = context.redditApp;
       final tokenData = await reddit.postCode(code);
@@ -164,18 +169,18 @@ class _PostCode extends Effect {
           .asUser(tokenData.refreshToken)
           .getUserAccount();
 
-      return _FinishLogin(
+      return Then(_FinishLogin(
         login: login,
         tokenData: tokenData,
-        accountData: accountData);
+        accountData: accountData));
     } catch (_) {
-      return _PostCodeFailed(
-        login: login);
+      return Then(_PostCodeFailed(
+        login: login));
     }
   }
 }
 
-class _FinishLogin extends Action {
+class _FinishLogin implements Update {
   
   _FinishLogin({
     @required this.login,
@@ -192,7 +197,7 @@ class _FinishLogin extends Action {
   final AccountData accountData;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     login.status = LoginStatus.succeeded;
 
     final Accounts accounts = owner.accounts;
@@ -209,23 +214,25 @@ class _FinishLogin extends Action {
       final newUser = AppUser(
         name: accountData.username,
         token: tokenData.refreshToken);
-      return {
+      return Then.all({
         // Add the new user to the accounts data
         AddUser(user: newUser),
         // Switch to the new user
         SwitchUser(to: newUser)
-      };
+      });
     } 
 
     if (existingUser != accounts.currentUser) {
       /// The [accountData] corresponded to an existing user,
       /// but it isn't the currently signed in user so we'll switch to it.
-      return SwitchUser(to: existingUser);
+      return Then(SwitchUser(to: existingUser));
     }
+
+    return Then.done();
   }
 }
 
-class _PostCodeFailed extends Action {
+class _PostCodeFailed implements Update {
 
   _PostCodeFailed({
     @required this.login
@@ -234,8 +241,9 @@ class _PostCodeFailed extends Action {
   final Login login;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     login.status = LoginStatus.failed;
+    return Then.done();
   }
 }
 

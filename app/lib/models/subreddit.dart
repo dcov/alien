@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:reddit/reddit.dart';
 
 import 'listing.dart';
@@ -7,7 +7,7 @@ import 'thing.dart';
 
 part 'subreddit.g.dart';
 
-abstract class Subreddit extends Model implements Thing {
+abstract class Subreddit implements Model, Thing {
 
   factory Subreddit({
     bool userIsSubscriber,
@@ -21,7 +21,7 @@ abstract class Subreddit extends Model implements Thing {
   bool userIsSubscriber;
 }
 
-abstract class SubredditPosts extends Model {
+abstract class SubredditPosts implements Model {
 
   factory SubredditPosts({
     Subreddit subreddit,

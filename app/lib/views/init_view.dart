@@ -1,6 +1,6 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 
 import '../models/app.dart';
 import '../widgets/routing.dart';

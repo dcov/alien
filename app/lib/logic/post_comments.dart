@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -48,7 +48,7 @@ Iterable<ThingData> _flattenTree(Iterable<ThingData> data) sync* {
   }
 }
 
-class RefreshPostComments extends Action {
+class RefreshPostComments implements Update {
 
   RefreshPostComments({
     @required this.comments,
@@ -60,10 +60,10 @@ class RefreshPostComments extends Action {
   final CommentsSort sortBy;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     if (comments.refreshing &&
         (sortBy == null || sortBy == comments.sortBy)) {
-      return;
+      return Then.done();
     }
 
     /// Create a new marker to be used to represent this instantiation of the refresh flow.
@@ -78,14 +78,14 @@ class RefreshPostComments extends Action {
               ..things.clear();
     }
     
-    return _GetPostComments(
+    return Then(_GetPostComments(
       comments: comments,
       refreshMarker: refreshMarker,
-      user: owner.accounts.currentUser);
+      user: owner.accounts.currentUser));
   }
 }
 
-class _GetPostComments extends Effect {
+class _GetPostComments implements Effect {
 
   _GetPostComments({
     @required this.comments,
@@ -101,28 +101,28 @@ class _GetPostComments extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) {
+  Future<Then> effect(EffectContext context) {
     return context.clientFromUser(user)
       .getPostComments(
         comments.post.permalink,
         comments.sortBy)
       .then(
         (ListingData<ThingData> result) {
-          return _FinishRefreshing(
+          return Then(_FinishRefreshing(
             comments: comments,
             result: result.things,
             refreshMarker: refreshMarker
-          );
+          ));
         },
         onError: (_) {
-          return _GetPostCommentsFailed(
+          return Then(_GetPostCommentsFailed(
             comments: comments,
-            refreshMarker: refreshMarker);
+            refreshMarker: refreshMarker));
         });
   }
 }
 
-class _FinishRefreshing extends Action {
+class _FinishRefreshing implements Update {
 
   _FinishRefreshing({
     @required this.comments,
@@ -139,19 +139,20 @@ class _FinishRefreshing extends Action {
   final Object refreshMarker;
 
   @override
-  dynamic update(_) {
+   Then update(_) {
     /// If the refreshMarker that corresponds to us is not the most recent marker, don't do anything.
-    if (refreshMarker != comments.latestRefreshMarker) 
-      return;
+    if (refreshMarker == comments.latestRefreshMarker) {
+      comments
+          ..refreshing = false
+          ..things.clear()
+          ..things.addAll(_flattenTree(result).map((data) => _mapThing(data, refreshMarker)));
+    }
 
-    comments
-        ..refreshing = false
-        ..things.clear()
-        ..things.addAll(_flattenTree(result).map((data) => _mapThing(data, refreshMarker)));
+    return Then.done();
   }
 }
 
-class _GetPostCommentsFailed extends Action {
+class _GetPostCommentsFailed implements Update {
 
   _GetPostCommentsFailed({
     @required this.comments,
@@ -164,14 +165,15 @@ class _GetPostCommentsFailed extends Action {
   final Object refreshMarker;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     if (refreshMarker == comments.latestRefreshMarker) {
       comments.refreshing = false;
     }
+    return Then.done();
   }
 }
 
-class LoadMoreComments extends Action {
+class LoadMoreComments implements Update {
 
   LoadMoreComments({
     @required this.comments,
@@ -184,21 +186,23 @@ class LoadMoreComments extends Action {
   final More more;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     assert(more.refreshMarker == comments.latestRefreshMarker);
     assert(comments.things.contains(more));
-    if (more.isLoading)
-      return null;
-    
-    more.isLoading = true;
-    return _GetMoreComments(
-      comments: comments,
-      more: more,
-      user: owner.accounts.currentUser);
+
+    if (!more.isLoading) {
+      more.isLoading = true;
+      return Then(_GetMoreComments(
+        comments: comments,
+        more: more,
+        user: owner.accounts.currentUser));
+    }
+
+    return Then.done();
   }
 }
 
-class _GetMoreComments extends Effect {
+class _GetMoreComments implements Effect {
 
   _GetMoreComments({
     @required this.comments,
@@ -214,27 +218,27 @@ class _GetMoreComments extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) {
+  Future<Then> effect(EffectContext context) {
     return context.clientFromUser(user)
       .getMoreComments(
         comments.post.fullId,
         more.id,
         more.thingIds)
-      .then<Action>((ListingData<ThingData> result) {
-          return _InsertMoreComments(
+      .then((ListingData<ThingData> result) {
+          return Then(_InsertMoreComments(
             comments: comments,
             more: more,
             result: result.things
-          );
+          ));
         },
         onError: (e) {
-          return _GetMoreCommentsFailed(
-            more: more);
+          return Then(_GetMoreCommentsFailed(
+            more: more));
         });
   }
 }
 
-class _InsertMoreComments extends Action {
+class _InsertMoreComments implements Update {
 
   _InsertMoreComments({
     @required this.comments,
@@ -251,22 +255,23 @@ class _InsertMoreComments extends Action {
   final Iterable<ThingData> result ;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     assert(more.isLoading);
     more.isLoading = false;
 
-    if (more.refreshMarker != comments.latestRefreshMarker)
-      return;
+    if (more.refreshMarker == comments.latestRefreshMarker) {
+      final things = _flattenTree(result).map((data) => _mapThing(data, more.refreshMarker));
+      final insertIndex = comments.things.indexOf(more);
+      comments.things
+          ..removeAt(insertIndex)
+          ..insertAll(insertIndex, things);
+    }
 
-    final things = _flattenTree(result).map((data) => _mapThing(data, more.refreshMarker));
-    final insertIndex = comments.things.indexOf(more);
-    comments.things
-        ..removeAt(insertIndex)
-        ..insertAll(insertIndex, things);
+    return Then.done();
   }
 }
 
-class _GetMoreCommentsFailed extends Action {
+class _GetMoreCommentsFailed implements Update {
 
   _GetMoreCommentsFailed({
     @required this.more
@@ -275,8 +280,9 @@ class _GetMoreCommentsFailed extends Action {
   final More more;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     more.isLoading = false;
+    return Then.done();
   }
 }
 

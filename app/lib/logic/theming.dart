@@ -1,10 +1,10 @@
-import 'package:elmer/elmer.dart';
 import 'package:flutter/material.dart' show ThemeData;
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 
 import '../models/theming.dart';
 
-class UpdateTheme extends Action {
+class UpdateTheme implements Update {
 
   UpdateTheme({
     @required this.theming,
@@ -16,7 +16,7 @@ class UpdateTheme extends Action {
   final ThemeType type;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     theming
       ..data = () {
           switch (type) {
@@ -27,6 +27,8 @@ class UpdateTheme extends Action {
           }
         }()
       ..type  = type;
+
+      return Then.done();
   }
 }
 

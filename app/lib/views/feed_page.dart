@@ -1,5 +1,5 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../logic/feeds.dart';
@@ -55,10 +55,10 @@ class _FeedPageView extends StatelessWidget {
       child: ListingScrollView(
         listing: posts.listing,
         onTransitionListing: (ListingStatus to) {
-          context.dispatch(
-            TransitionFeedPosts(
+          context.then(
+            Then(TransitionFeedPosts(
               posts: posts,
-              to: to));
+              to: to)));
         },
         thingBuilder: (BuildContext context, Post post) {
           return PostTile(
@@ -100,12 +100,12 @@ class _FeedPageView extends StatelessWidget {
                     currentSortBy: posts.sortBy,
                     currentSortFrom: posts.sortFrom,
                     onSort: (Parameter parameter, TimeSort sortFrom) {
-                      context.dispatch(
-                        TransitionFeedPosts(
+                      context.then(
+                        Then(TransitionFeedPosts(
                           posts: posts,
                           to: ListingStatus.refreshing,
                           sortBy: parameter,
-                          sortFrom: sortFrom));
+                          sortFrom: sortFrom)));
                     });
                 }),
               listSliver
@@ -153,10 +153,10 @@ void _showFeedPage({
         name: pageName));
 
   /// Dispatch a refresh event
-  context.dispatch(
-      TransitionFeedPosts(
+  context.then(
+      Then(TransitionFeedPosts(
         posts: posts,
-        to: ListingStatus.refreshing));
+        to: ListingStatus.refreshing)));
 }
 
 class FeedTile extends StatelessWidget {

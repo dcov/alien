@@ -1,6 +1,6 @@
 import 'dart:convert' show json;
 
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -37,7 +37,7 @@ List<AppUser> unpackUsersList(String jsonData) {
 ///
 /// [onInitialized] is called once the data has been retrieved and unpacked successfully, otherwise [onFailed] is called
 /// if along the way there is an error.
-class InitAccounts extends Action {
+class InitAccounts implements Update {
 
   InitAccounts({
     @required this.onInitialized,
@@ -46,28 +46,28 @@ class InitAccounts extends Action {
        assert(onFailed != null);
 
   /// Called once the [Accounts] data has been initialized.
-  final ActionCallback onInitialized;
+  final ThenCallback onInitialized;
 
   /// Called if there is an error in initializing the [Accounts] data.
-  final ActionCallback onFailed;
+  final ThenCallback onFailed;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     // Check if we're running in script mode, in which case we need to get the script user's data.
     if (owner.accounts.isInScriptMode) {
-      return _GetScriptUserData(
+      return Then(_GetScriptUserData(
         onInitialized: onInitialized,
-        onFailed: onFailed);
+        onFailed: onFailed));
     }
 
     // Kick off a side effect to retrieve any stored users data.
-    return _GetPackedAccountsData(
+    return Then(_GetPackedAccountsData(
       onInitialized: onInitialized,
-      onFailed: onFailed);
+      onFailed: onFailed));
   }
 }
 
-class _GetScriptUserData extends Effect {
+class _GetScriptUserData implements Effect {
 
   _GetScriptUserData({
     this.onInitialized,
@@ -75,24 +75,24 @@ class _GetScriptUserData extends Effect {
   }) : assert(onInitialized != null),
        assert(onFailed != null);
 
-  final ActionCallback onInitialized;
+  final ThenCallback onInitialized;
 
-  final ActionCallback onFailed;
+  final ThenCallback onFailed;
 
   @override
-  dynamic perform(EffectContext context) {
+  Future<Then> effect(EffectContext context) async {
     return context.scriptClient
       .getUserAccount()
       .then((AccountData data) {
-         return _AddScriptUser(
+         return Then(_AddScriptUser(
             data: data,
-            onInitialized: onInitialized);
+            onInitialized: onInitialized));
        },
        onError: (_) => onFailed());
   }
 }
 
-class _AddScriptUser extends Action {
+class _AddScriptUser implements Update {
 
   _AddScriptUser({
    @required this.data,
@@ -102,10 +102,10 @@ class _AddScriptUser extends Action {
 
   final AccountData data;
 
-  final ActionCallback onInitialized;
+  final ThenCallback onInitialized;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     final user = ScriptUser(data.username);
     owner.accounts..users.add(user)
                   ..currentUser = user;
@@ -113,7 +113,7 @@ class _AddScriptUser extends Action {
   }
 }
 
-class _GetPackedAccountsData extends Effect {
+class _GetPackedAccountsData implements Effect {
 
   _GetPackedAccountsData({
     @required this.onInitialized,
@@ -121,27 +121,27 @@ class _GetPackedAccountsData extends Effect {
   }) : assert(onInitialized != null),
        assert(onFailed != null);
 
-  final ActionCallback onInitialized;
+  final ThenCallback onInitialized;
 
-  final ActionCallback onFailed;
+  final ThenCallback onFailed;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     try {
       final accountsBox = await context.hive.openBox<String>(_kAccountsBoxKey);
       final usersData = accountsBox.get(_kUsersDataKey);
       final currentUserData = accountsBox.get(_kCurrentUserDataKey);
-      return _UnpackAccountsData(
+      return Then(_UnpackAccountsData(
         usersData: usersData,
         currentUserData: currentUserData,
-        onInitialized: onInitialized);
+        onInitialized: onInitialized));
     } catch (_) {
       return onFailed();
     }
   }
 }
 
-class _UnpackAccountsData extends Action {
+class _UnpackAccountsData implements Update {
 
   _UnpackAccountsData({
     this.usersData,
@@ -153,10 +153,10 @@ class _UnpackAccountsData extends Action {
 
   final String currentUserData;
 
-  final ActionCallback onInitialized;
+  final ThenCallback onInitialized;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     if (usersData != null) {
       final accounts = owner.accounts;
       accounts.users.addAll(unpackUsersList(usersData));
@@ -172,7 +172,7 @@ class _UnpackAccountsData extends Action {
   }
 }
 
-class AddUser extends Action {
+class AddUser implements Update {
 
   AddUser({
     @required this.user,
@@ -181,7 +181,7 @@ class AddUser extends Action {
   final User user;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     assert(!owner.accounts.isInScriptMode,
       'Cannot add user while app is running in script mode.');
 
@@ -198,13 +198,13 @@ class AddUser extends Action {
 
     accounts.users.add(user);
 
-    return _PutPackedAccountsData(
+    return Then(_PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name);
+      currentUserData: accounts.currentUser?.name));
   }
 }
 
-class RemoveUser extends Action {
+class RemoveUser implements Update {
 
   RemoveUser({
     @required this.user
@@ -213,7 +213,7 @@ class RemoveUser extends Action {
   final User user;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     assert(!owner.accounts.isInScriptMode,
       'Cannot remove user while app is running in script mode.');
 
@@ -232,20 +232,20 @@ class RemoveUser extends Action {
       return existingUser.name == user.name;
     });
 
-    return _PutPackedAccountsData(
+    return Then(_PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name);
+      currentUserData: accounts.currentUser?.name));
   }
 }
 
-class SetCurrentUser extends Action {
+class SetCurrentUser implements Update {
   
   SetCurrentUser({ this.to });
 
   final User to;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     final accounts = owner.accounts;
     assert(to != accounts.currentUser,
       'Tried to set currentUser but was already currentUser');
@@ -254,15 +254,15 @@ class SetCurrentUser extends Action {
 
     /// If we're in script mode we don't store any changes to currentUser.
     if (accounts.isInScriptMode)
-      return;
+      return Then.done();
 
-    return _PutPackedAccountsData(
+    return Then(_PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name);
+      currentUserData: accounts.currentUser?.name));
   }
 }
 
-class _PutPackedAccountsData extends Effect {
+class _PutPackedAccountsData implements Effect {
 
   _PutPackedAccountsData({
     @required this.usersData,
@@ -274,7 +274,7 @@ class _PutPackedAccountsData extends Effect {
   final String currentUserData;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     try {
       final box = await context.hive.openBox<String>(_kAccountsBoxKey);
       await box.putAll({
@@ -285,6 +285,8 @@ class _PutPackedAccountsData extends Effect {
     } catch (_) {
       // TODO: better handle this error case
     }
+
+    return Then.done();
   }
 }
 

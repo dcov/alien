@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:reddit/reddit.dart';
 
 import 'thing.dart';
@@ -11,7 +11,7 @@ enum ListingStatus {
   loadingMore,
 }
 
-abstract class Listing<T extends Thing> extends Model {
+abstract class Listing<T extends Thing> implements Model {
 
   factory Listing({
     ListingStatus status,

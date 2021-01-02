@@ -1,8 +1,8 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 
 part 'refreshable.g.dart';
 
-abstract class Refreshable<T> extends Model {
+abstract class Refreshable<T> implements Model {
 
   factory Refreshable({
     bool refreshing,

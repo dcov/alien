@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -10,7 +10,7 @@ import '../models/votable.dart';
 import 'thing.dart';
 import 'user.dart';
 
-class Upvote extends Action {
+class Upvote implements Update {
 
   Upvote({
     @required this.votable,
@@ -22,7 +22,7 @@ class Upvote extends Action {
   final User user;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.up) {
@@ -33,14 +33,14 @@ class Upvote extends Action {
              ..voteDir = VoteDir.up;
     }
 
-    return _PostVote(
+    return Then(_PostVote(
       votable: votable,
       user: user ?? owner.accounts.currentUser,
-      oldVoteDir: oldVoteDir);
+      oldVoteDir: oldVoteDir));
   }
 }
 
-class Downvote extends Action {
+class Downvote implements Update {
 
   Downvote({
     @required this.votable,
@@ -52,7 +52,7 @@ class Downvote extends Action {
   final User user;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.down) {
@@ -63,14 +63,14 @@ class Downvote extends Action {
              ..voteDir = VoteDir.down;
     }
 
-    return _PostVote(
+    return Then(_PostVote(
       votable: votable,
       oldVoteDir: oldVoteDir,
-      user: user ?? owner.accounts.currentUser);
+      user: user ?? owner.accounts.currentUser));
   }
 }
 
-class _PostVote extends Effect {
+class _PostVote implements Effect {
 
   _PostVote({
     @required this.votable,
@@ -87,9 +87,10 @@ class _PostVote extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) {
+  Future<Then> effect(EffectContext context) {
     return context.clientFromUser(user)
       .postVote(votable.fullId, votable.voteDir)
+      .then((_) => Then.done())
       .catchError((_) {
         return _PostVoteFailed(
           votable: votable,
@@ -98,7 +99,7 @@ class _PostVote extends Effect {
   }
 }
 
-class _PostVoteFailed extends Action {
+class _PostVoteFailed implements Update {
 
   _PostVoteFailed({
     @required this.votable,
@@ -111,7 +112,7 @@ class _PostVoteFailed extends Action {
   final VoteDir oldVoteDir;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     switch (oldVoteDir) {
       // votable was previously not voted in any direction so we have to add or remove a point.
       case VoteDir.none:
@@ -124,7 +125,10 @@ class _PostVoteFailed extends Action {
       // votable was previously downvoted so we have to remove points.
       case VoteDir.down:
         votable.score -= votable.voteDir == VoteDir.none ? 1 : 2;
+        break;
     }
+
+    return Then.done();
   }
 }
 

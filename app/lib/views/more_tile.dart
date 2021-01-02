@@ -1,5 +1,5 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 
 import '../logic/post_comments.dart';
 import '../models/more.dart';
@@ -23,10 +23,10 @@ class MoreTile extends StatelessWidget {
     builder: (BuildContext context) {
 
       void dispatchLoadMoreComments() {
-        context.dispatch(
-          LoadMoreComments(
+        context.then(
+          Then(LoadMoreComments(
             comments: comments,
-            more: more));
+            more: more)));
       }
 
       final style = TextStyle(

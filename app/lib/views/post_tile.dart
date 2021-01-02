@@ -1,5 +1,5 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../models/post.dart';
@@ -29,7 +29,7 @@ void _showPostOptionsBottomSheet({
       if (context.userIsSignedIn)
         Option(
           onSelected: () {
-            context.dispatch(ToggleSaved(saveable: post));
+            context.then(Then(ToggleSaved(saveable: post)));
           },
           title: post.isSaved ? 'Unsave' : 'Save',
           icon: post.isSaved ? Icons.save : Icons.save_outlined)
@@ -170,7 +170,7 @@ class PostTile extends StatelessWidget {
                 ...[
                   SlidableAction(
                     onTriggered: () {
-                      context.dispatch(Upvote(votable: post));
+                      context.then(Then(Upvote(votable: post)));
                     },
                     icon: Icons.arrow_upward,
                     iconColor: Colors.white,
@@ -178,7 +178,7 @@ class PostTile extends StatelessWidget {
                     preBackgroundColor: Colors.grey),
                   SlidableAction(
                     onTriggered: () {
-                      context.dispatch(Downvote(votable: post));
+                      context.then(Then(Downvote(votable: post)));
                     },
                     icon: Icons.arrow_downward,
                     iconColor: Colors.white,

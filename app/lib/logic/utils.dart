@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 
-typedef ActionCallback = Action Function();
+typedef ThenCallback = Then Function();
 

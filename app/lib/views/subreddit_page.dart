@@ -1,5 +1,5 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../logic/subreddit_posts.dart';
@@ -32,10 +32,10 @@ class _SubredditPageView extends StatelessWidget {
       child: ListingScrollView(
         listing: posts.listing,
         onTransitionListing: (ListingStatus to) {
-          context.dispatch(
-            TransitionSubredditPosts(
+          context.then(
+            Then(TransitionSubredditPosts(
               posts: posts,
-              to: to));
+              to: to)));
         },
         thingBuilder: (BuildContext context, Post post) {
           return PostTile(
@@ -83,12 +83,12 @@ class _SubredditPageView extends StatelessWidget {
                     currentSortBy: posts.sortBy,
                     currentSortFrom: posts.sortFrom,
                     onSort: (SubredditSort sortBy, TimeSort sortFrom) {
-                      context.dispatch(
-                        TransitionSubredditPosts(
+                      context.then(
+                        Then(TransitionSubredditPosts(
                           posts: posts,
                           to: ListingStatus.refreshing,
                           sortBy: sortBy,
-                          sortFrom: sortFrom));
+                          sortFrom: sortFrom)));
                     });
                 }),
               listSliver
@@ -143,10 +143,10 @@ void _showSubredditPage({
     });
 
   /// Dispatch a posts refresh event
-  context.dispatch(
-    TransitionSubredditPosts(
+  context.then(
+    Then(TransitionSubredditPosts(
       posts: posts,
-      to: ListingStatus.refreshing));
+      to: ListingStatus.refreshing)));
 }
 
 

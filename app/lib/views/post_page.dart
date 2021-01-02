@@ -1,5 +1,5 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../logic/post.dart';
@@ -142,10 +142,10 @@ class _PostPageView extends StatelessWidget {
                 ],
                 currentSortBy: comments.sortBy,
                 onSort: (CommentsSort parameter, _) {
-                  context.dispatch(
-                    RefreshPostComments(
+                  context.then(
+                    Then(RefreshPostComments(
                       comments: comments,
-                      sortBy: parameter));
+                      sortBy: parameter)));
                 });
             }),
           PostCommentsTreeSliver(
@@ -195,7 +195,7 @@ void showPostPage({
             comments: comments,
             name: pageName);
         })
-    ..dispatch(MarkPostAsViewed(post: post))
-    ..dispatch(RefreshPostComments(comments: comments));
+    ..then(Then(MarkPostAsViewed(post: post)))
+    ..then(Then(RefreshPostComments(comments: comments)));
 }
 

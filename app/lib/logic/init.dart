@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
@@ -19,7 +19,7 @@ import 'defaults.dart';
 import 'subscriptions.dart';
 import 'theming.dart';
 
-class InitApp extends Initial {
+class InitApp implements Initial {
   
   InitApp({
     @required this.appId,
@@ -46,16 +46,16 @@ class InitApp extends Initial {
           appId: appId,
           appRedirect: appRedirect),
         theming: Theming()),
-      then: _InitEffectContext());
+      then: Then(_InitEffectContext()));
   }
 }
 
-class _InitEffectContext extends Effect {
+class _InitEffectContext implements Effect {
 
   _InitEffectContext();
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     /// Initialize the scraper
     await context.scraper.init();
 
@@ -70,42 +70,42 @@ class _InitEffectContext extends Effect {
         expiryPolicy: const TouchedExpiryPolicy(Duration(days: 2)),
         evictionPolicy: const LruEvictionPolicy());
 
-    return _InitCoreState();
+    return Then(_InitCoreState());
   }
 }
 
-class _InitCoreState extends Action {
+class _InitCoreState implements Update {
 
   _InitCoreState();
 
   @override
-  dynamic update(App app) {
-    return {
+  Then update(App app) {
+    return Then.all({
       UpdateTheme(theming: app.theming),
       InitAccounts(
-        onInitialized: () => _ResetUserState(),
-        onFailed: () => _ResetUserState()),
-    };
+        onInitialized: () => Then(_ResetUserState()),
+        onFailed: () => Then(_ResetUserState())),
+    });
   }
 }
 
 /// Switches the currently signed in user, and resets the main state of the application.
-class SwitchUser extends Action {
+class SwitchUser implements Update {
 
   SwitchUser({ this.to });
 
   final User to;
 
   @override
-  dynamic update(_) {
-    return {
+  Then update(_) {
+    return Then.all({
       SetCurrentUser(to: to),
       _ResetUserState()
-    };
+    });
   }
 }
 
-class LogOutUser extends Action {
+class LogOutUser implements Update {
 
   LogOutUser({
     @required this.user
@@ -114,21 +114,21 @@ class LogOutUser extends Action {
   final User user;
 
   @override
-  dynamic update(App app) {
-    return {
+  Then update(App app) {
+    return Then.all({
       if (app.accounts.currentUser == user)
         SwitchUser(to: null),
       RemoveUser(user: user)
-    };
+    });
   }
 }
 
-class _ResetUserState extends Action {
+class _ResetUserState implements Update {
 
   _ResetUserState();
 
   @override
-  dynamic update(App app) {
+  Then update(App app) {
     app.initialized = true;
 
     app.feeds
@@ -139,12 +139,12 @@ class _ResetUserState extends Action {
     if (app.accounts.currentUser == null) {
       app..subscriptions = null
          ..defaults = Refreshable(refreshing: false);
-      return RefreshDefaults(defaults: app.defaults);
+      return Then(RefreshDefaults(defaults: app.defaults));
     } else {
       app..defaults = null
          ..subscriptions = Refreshable(refreshing: false)
          ..feeds.insert(0, Feed.home);
-      return RefreshSubscriptions(subscriptions: app.subscriptions); 
+      return Then(RefreshSubscriptions(subscriptions: app.subscriptions)); 
     }
   }
 }

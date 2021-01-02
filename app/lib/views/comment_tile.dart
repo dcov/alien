@@ -1,5 +1,5 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../logic/saveable.dart';
@@ -26,7 +26,7 @@ void _showCommentOptionsBottomSheet({
       if (context.userIsSignedIn)
         Option(
           onSelected: () {
-            context.dispatch(ToggleSaved(saveable: comment));
+            context.then(Then(ToggleSaved(saveable: comment)));
           },
           title: comment.isSaved ? 'Unsave' : 'Save',
           icon: comment.isSaved ? Icons.save : Icons.save_outlined)
@@ -167,7 +167,7 @@ class CommentTile extends StatelessWidget {
             ...[
               SlidableAction(
                 onTriggered: () {
-                  context.dispatch(Upvote(votable: comment));
+                  context.then(Then(Upvote(votable: comment)));
                 },
                 icon: Icons.arrow_upward_rounded,
                 iconColor: Colors.white,
@@ -175,7 +175,7 @@ class CommentTile extends StatelessWidget {
                 preBackgroundColor: Colors.grey),
               SlidableAction(
                 onTriggered: () {
-                  context.dispatch(Downvote(votable: comment));
+                  context.then(Then(Downvote(votable: comment)));
                 },
                 icon: Icons.arrow_downward,
                 iconColor: Colors.white,

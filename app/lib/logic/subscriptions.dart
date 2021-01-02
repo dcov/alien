@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -12,7 +12,7 @@ import 'subreddit.dart';
 import 'thing.dart';
 import 'user.dart';
 
-class RefreshSubscriptions extends Action {
+class RefreshSubscriptions implements Update {
 
   RefreshSubscriptions({
     @required this.subscriptions
@@ -21,20 +21,20 @@ class RefreshSubscriptions extends Action {
   final Refreshable<Subreddit> subscriptions;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     // If it's already refreshing we don't need to do anything.
     if (subscriptions.refreshing)
-      return;
+      return Then.done();
 
     subscriptions.refreshing = true;
 
-    return _GetSubscriptions(
+    return Then(_GetSubscriptions(
       subscriptions: subscriptions,
-      user: owner.accounts.currentUser);
+      user: owner.accounts.currentUser));
   }
 }
 
-class _GetSubscriptions extends Effect {
+class _GetSubscriptions implements Effect {
 
   _GetSubscriptions({
     @required this.subscriptions,
@@ -47,7 +47,7 @@ class _GetSubscriptions extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     try {
       final List<SubredditData> result = List<SubredditData>();
       Pagination pagination = Pagination.maxLimit();
@@ -61,17 +61,16 @@ class _GetSubscriptions extends Effect {
         pagination = pagination.forward(listing);
       } while (pagination.nextPageExists);
 
-      return _FinishRefreshing(
+      return Then(_FinishRefreshing(
         subscriptions: subscriptions,
-        result: result);
+        result: result));
     } catch (e) {
-      print(e);
-      return _GetSubscriptionsFailed(subscriptions: subscriptions);
+      return Then(_GetSubscriptionsFailed(subscriptions: subscriptions));
     }
   }
 }
 
-class _FinishRefreshing extends Action {
+class _FinishRefreshing implements Update {
 
   _FinishRefreshing({
     @required this.subscriptions,
@@ -84,16 +83,18 @@ class _FinishRefreshing extends Action {
   final List<SubredditData> result;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     subscriptions
       ..refreshing = false
       ..items.clear()
       ..items.addAll(result.map(subredditFromData))
       ..items.sort((s1, s2) => s1.name.toLowerCase().compareTo(s2.name.toLowerCase()));
+
+    return Then.done();
   }
 }
 
-class _GetSubscriptionsFailed extends Action {
+class _GetSubscriptionsFailed implements Update {
 
   _GetSubscriptionsFailed({
     @required this.subscriptions,
@@ -102,13 +103,15 @@ class _GetSubscriptionsFailed extends Action {
   final Refreshable<Subreddit> subscriptions;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     // TODO: implement better error handling
     subscriptions.refreshing = false;
+
+    return Then.done();
   }
 }
 
-class ToggleSubscribed extends Action {
+class ToggleSubscribed implements Update {
 
   ToggleSubscribed({
     @required this.subreddit
@@ -117,40 +120,41 @@ class ToggleSubscribed extends Action {
   final Subreddit subreddit;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     final User user = owner.accounts.currentUser;
     assert(user != null);
 
     subreddit.userIsSubscriber = !subreddit.userIsSubscriber;
 
     if (subreddit.userIsSubscriber)
-      return <Message>{
+      return Then.all({
         RemoveSubscription(),
         PostUnsubscribe(
           subreddit: subreddit,
           user: user)
-      };
+      });
 
-    return <Message>{
+    return Then.all({
       AddSubscription(),
       PostSubscribe(
         subreddit: subreddit,
         user: user)
-    };
+    });
   }
 }
 
-class AddSubscription extends Action {
+class AddSubscription implements Update {
 
   AddSubscription();
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     // TODO: implement
+    return Then.done();
   }
 }
 
-class PostSubscribe extends Effect {
+class PostSubscribe implements Effect {
 
   PostSubscribe({
     @required this.subreddit,
@@ -163,26 +167,29 @@ class PostSubscribe extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) {
     return context.clientFromUser(user)
       .postSubscribe(subreddit.fullId)
+      .then((_) => Then.done())
       .catchError((_) {
          // TODO: error handling
+        return Then.done();
        });
   }
 }
 
-class RemoveSubscription extends Action {
+class RemoveSubscription implements Update {
 
   RemoveSubscription();
 
   @override
-  dynamic update(_) {
-   // TODO: Implement
+  Then update(_) {
+    // TODO: Implement
+    return Then.done();
   }
 }
 
-class PostUnsubscribe extends Effect {
+class PostUnsubscribe implements Effect {
 
   PostUnsubscribe({
     @required this.subreddit,
@@ -195,11 +202,13 @@ class PostUnsubscribe extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) {
     return context.clientFromUser(user)
       .postUnsubscribe(subreddit.fullId)
+      .then((_) => Then.done())
       .catchError((_) {
          // TODO: error handling
+         return Then.done();
        });
   }
 }

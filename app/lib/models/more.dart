@@ -1,10 +1,10 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 
 import 'thing.dart';
 
 part 'more.g.dart';
 
-abstract class More extends Model implements Thing {
+abstract class More implements Model, Thing {
 
   factory More({
     bool isLoading,

@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -11,7 +11,7 @@ import '../models/user.dart';
 import 'subreddit.dart';
 import 'user.dart';
 
-class RefreshDefaults extends Action {
+class RefreshDefaults implements Update {
 
   RefreshDefaults({
     @required this.defaults
@@ -20,20 +20,20 @@ class RefreshDefaults extends Action {
   final Refreshable<Subreddit> defaults;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     if (defaults.refreshing)
       return null;
     
     defaults..refreshing = true
             ..items.clear();
 
-    return GetDefaults(
+    return Then(GetDefaults(
       defaults: defaults,
-      user: owner.accounts.currentUser);
+      user: owner.accounts.currentUser));
   }
 }
 
-class GetDefaults extends Effect {
+class GetDefaults implements Effect {
 
   GetDefaults({
     @required this.defaults,
@@ -45,25 +45,25 @@ class GetDefaults extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) {
+  Future<Then> effect(EffectContext context) {
     return context.clientFromUser(user)
       .getSubreddits(
           Subreddits.defaults,
           Page(limit: Page.kMaxLimit))
       .then(
           (ListingData<SubredditData> result) {
-            return GetDefaultsSuccess(
+            return Then(GetDefaultsSuccess(
               defaults: defaults,
-              result: result.things);
+              result: result.things));
           },
           onError: (e) {
-            return GetDefaultsFailure(
-              defaults: defaults);
+            return Then(GetDefaultsFailure(
+              defaults: defaults));
           });
   }
 }
 
-class GetDefaultsSuccess extends Action {
+class GetDefaultsSuccess implements Update {
 
   GetDefaultsSuccess({
     @required this.defaults,
@@ -75,21 +75,22 @@ class GetDefaultsSuccess extends Action {
   final Iterable<SubredditData> result;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     // Ensure we're still expecting this.
-    if (!defaults.refreshing)
-      return;
+    if (defaults.refreshing) {
+      defaults
+        ..refreshing = false
+        ..items.addAll(result.map(subredditFromData))
+        ..items.sort((s1, s2) {
+            return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
+          });
+    }
 
-    defaults
-      ..refreshing = false
-      ..items.addAll(result.map(subredditFromData))
-      ..items.sort((s1, s2) {
-          return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
-        });
+    return Then.done();
   }
 }
 
-class GetDefaultsFailure extends Action {
+class GetDefaultsFailure implements Update {
 
   GetDefaultsFailure({
     @required this.defaults
@@ -98,9 +99,11 @@ class GetDefaultsFailure extends Action {
   final Refreshable<Subreddit> defaults;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     // TODO: better handle this error case
     defaults.refreshing = false;
+
+    return Then.done();
   }
 }
 

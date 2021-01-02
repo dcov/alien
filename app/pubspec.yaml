@@ -21,10 +21,15 @@ dependencies:
 
   cached_network_image: 2.3.3
 
-  elmer_flutter:
+  mal:
     git:
-      url: git://github.com/dcov/elmer.git
-      path: elmer_flutter
+      url: git://github.com/dcov/mal.git
+      path: mal
+
+  mal_flutter:
+    git:
+      url: git://github.com/dcov/mal.git
+      path: mal_flutter
   
   flutter_markdown:
     git:
@@ -59,12 +64,13 @@ dev_dependencies:
 
   mockito: ^4.1.1
 
-  elmer_gen:
+  mal_gen:
     git:
-      url: git://github.com/dcov/elmer.git
-      path: elmer_gen
+      url: git://github.com/dcov/mal.git
+      path: mal_gen
 
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/icons/alien-icon-v0.1.0.png"
+

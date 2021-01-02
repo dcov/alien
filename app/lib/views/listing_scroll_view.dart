@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 
 import '../models/listing.dart';
 import '../models/thing.dart';

@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:reddit/reddit.dart';
 
 import 'post.dart';
@@ -6,7 +6,7 @@ import 'thing.dart';
 
 part 'post_comments.g.dart';
 
-abstract class PostComments extends Model {
+abstract class PostComments implements Model {
 
   factory PostComments({
     Post post,

@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -21,7 +21,7 @@ SubredditPosts postsFromSubreddit(Subreddit subreddit) {
       status: ListingStatus.idle));
 }
 
-class TransitionSubredditPosts extends Action {
+class TransitionSubredditPosts implements Update {
 
   TransitionSubredditPosts({
     @required this.posts,
@@ -40,7 +40,7 @@ class TransitionSubredditPosts extends Action {
   final TimeSort sortFrom;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
 
     bool changedSort = false;
     if (sortBy != null && (sortBy != posts.sortBy || sortFrom != posts.sortFrom)) {
@@ -53,19 +53,21 @@ class TransitionSubredditPosts extends Action {
       changedSort = true;
     }
 
-    return TransitionListing(
+    return Then(TransitionListing(
       listing: posts.listing,
       to: to,
       forceIfRefreshing: changedSort,
-      effectFactory: (Page page, Object transitionMarker) => GetSubredditPosts(
-        posts: posts,
-        page: page,
-        transitionMarker: transitionMarker,
-        user: owner.accounts.currentUser));
+      effectFactory: (Page page, Object transitionMarker) {
+        return Then(GetSubredditPosts(
+          posts: posts,
+          page: page,
+          transitionMarker: transitionMarker,
+          user: owner.accounts.currentUser));
+      }));
   }
 }
 
-class GetSubredditPosts extends Effect {
+class GetSubredditPosts implements Effect {
 
   GetSubredditPosts({
     @required this.posts,
@@ -85,7 +87,7 @@ class GetSubredditPosts extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     try {
       final listing = await context
           .clientFromUser(user)
@@ -94,17 +96,17 @@ class GetSubredditPosts extends Effect {
       /// We will use this when [FinishListingTransition] calls the [thingFactory].
       final hasBeenViewed = await context.getPostListingDataHasBeenViewed(listing);
       
-      return FinishListingTransition(
+      return Then(FinishListingTransition(
         listing: posts.listing,
         transitionMarker: transitionMarker,
         data: listing,
         thingFactory: (PostData data) {
           return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]);
-        });
+        }));
     } catch (_) {
-      return ListingTransitionFailed(
+      return Then(ListingTransitionFailed(
         listing: posts.listing,
-        transitionMarker: transitionMarker);
+        transitionMarker: transitionMarker));
     }
   }
 }

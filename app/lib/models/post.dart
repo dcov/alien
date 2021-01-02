@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:reddit/reddit.dart' show VoteDir;
 
 import 'media.dart';
@@ -8,7 +8,7 @@ import 'votable.dart';
 
 part 'post.g.dart';
 
-abstract class Post extends Model implements Saveable, Votable {
+abstract class Post implements Model, Saveable, Votable {
 
   factory Post({
     int commentCount,

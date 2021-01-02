@@ -1,10 +1,10 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 
 import '../effects.dart';
 import '../models/media.dart';
 
-class LoadThumbnail extends Action {
+class LoadThumbnail implements Update {
 
   LoadThumbnail({
     @required this.media
@@ -13,14 +13,14 @@ class LoadThumbnail extends Action {
   final Media media;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     assert(media.thumbnailStatus == ThumbnailStatus.notLoaded);
     media.thumbnailStatus = ThumbnailStatus.loading;
-    return _GetThumbnail(media: media);
+    return Then(_GetThumbnail(media: media));
   }
 }
 
-class _GetThumbnail extends Effect {
+class _GetThumbnail implements Effect {
 
   _GetThumbnail({
     @required this.media
@@ -31,7 +31,7 @@ class _GetThumbnail extends Effect {
   String get _thumbnailCacheKey => 'thumbnail-${media.source}';
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     try {
       String thumbnail;
       if (await context.cache.containsKey(_thumbnailCacheKey)) {
@@ -43,19 +43,19 @@ class _GetThumbnail extends Effect {
         await context.cache.put(_thumbnailCacheKey, thumbnail);
       }
 
-      return _FinishGetThumbnail(
+      return Then(_UpdateThumbnail(
         media: media,
-        thumbnail: thumbnail);
+        thumbnail: thumbnail));
     } catch (_) {
-      return _GetThumbnailFailed(
-        media: media);
+      return Then(_GetThumbnailFailed(
+        media: media));
     }
   }
 }
 
-class _FinishGetThumbnail extends Action {
+class _UpdateThumbnail implements Update {
 
-  _FinishGetThumbnail({
+  _UpdateThumbnail({
     @required this.media,
     @required this.thumbnail
   }) : assert(media != null),
@@ -66,16 +66,18 @@ class _FinishGetThumbnail extends Action {
   final String thumbnail;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     media
       ..thumbnailStatus = thumbnail != null
           ? ThumbnailStatus.loaded
           : ThumbnailStatus.notFound
       ..thumbnail = thumbnail;
+
+    return Then.done();
   }
 }
 
-class _GetThumbnailFailed extends Action {
+class _GetThumbnailFailed implements Update {
 
   _GetThumbnailFailed({
     @required this.media
@@ -84,8 +86,9 @@ class _GetThumbnailFailed extends Action {
   final Media media;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     media.thumbnailStatus = ThumbnailStatus.notFound;
+    return Then.done();
   }
 }
 

@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:reddit/reddit.dart' show VoteDir;
 
 import 'saveable.dart';
@@ -7,7 +7,7 @@ import 'votable.dart';
 
 part 'comment.g.dart';
 
-abstract class Comment extends Model implements Saveable, Votable {
+abstract class Comment implements Model, Saveable, Votable {
 
   factory Comment({
     String authorFlairText,

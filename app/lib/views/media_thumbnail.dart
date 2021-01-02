@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 
 import '../logic/media.dart';
 import '../models/media.dart';
@@ -25,7 +25,7 @@ class MediaThumbnail extends StatelessWidget {
       switch (media.thumbnailStatus) {
         case ThumbnailStatus.notLoaded:
           SchedulerBinding.instance.addPostFrameCallback((_) {
-            context.dispatch(LoadThumbnail(media: this.media));
+            context.then(Then(LoadThumbnail(media: this.media)));
           });
           continue renderStatic;
         renderStatic:

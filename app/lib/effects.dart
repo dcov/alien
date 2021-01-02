@@ -1,5 +1,5 @@
-import 'package:elmer/elmer.dart';
-import 'package:elmer_flutter/elmer_flutter.dart';
+import 'package:mal/mal.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
 import 'package:meta/meta.dart';

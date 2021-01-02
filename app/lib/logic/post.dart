@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -69,7 +69,7 @@ extension PostEffectsExtensions on EffectContext {
   }
 }
 
-class MarkPostAsViewed extends Action {
+class MarkPostAsViewed implements Update {
 
   MarkPostAsViewed({
     @required this.post
@@ -78,16 +78,16 @@ class MarkPostAsViewed extends Action {
   final Post post;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     if (post.hasBeenViewed)
-      return;
+      return Then.done();
 
     post.hasBeenViewed = true;
-    return _CachePostAsViewed(post: post);
+    return Then(_CachePostAsViewed(post: post));
   }
 }
 
-class _CachePostAsViewed extends Effect {
+class _CachePostAsViewed implements Effect {
 
   _CachePostAsViewed({
     @required this.post
@@ -96,8 +96,9 @@ class _CachePostAsViewed extends Effect {
   final Post post;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     await context.cache.put(_postIdToViewedKey(post.id), '');
+    return Then.done();
   }
 }
 

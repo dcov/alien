@@ -1,5 +1,5 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 
 import '../logic/init.dart';
 import '../models/accounts.dart';
@@ -40,7 +40,7 @@ void _removeUser(BuildContext context, User user) async {
     user: user);
 
   if (remove) {
-    context.dispatch(LogOutUser(user: user));
+    context.then(Then(LogOutUser(user: user)));
 
     /// Pop the accounts bottom sheet
     Navigator.of(context, rootNavigator: true).pop();
@@ -94,7 +94,7 @@ class _AccountTile extends StatelessWidget {
 
 void _switchUser(BuildContext context, User to) {
   /// Switch the currently signed in user
-  context.dispatch(SwitchUser(to: to));
+  context.then(Then(SwitchUser(to: to)));
 
   /// Pop the bottom sheet
   Navigator.of(context, rootNavigator: true).pop();

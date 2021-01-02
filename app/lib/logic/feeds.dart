@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -57,7 +57,7 @@ extension FeedExtensions on Feed {
   }
 }
 
-class TransitionFeedPosts extends Action {
+class TransitionFeedPosts implements Update {
 
   TransitionFeedPosts({
     @required this.posts,
@@ -75,7 +75,7 @@ class TransitionFeedPosts extends Action {
   final TimeSort sortFrom;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     assert(posts.type != Feed.home || owner.accounts.currentUser != null);
 
     bool changedSort = false;
@@ -87,21 +87,21 @@ class TransitionFeedPosts extends Action {
       changedSort = true;
     }
 
-    return TransitionListing(
+    return Then(TransitionListing(
       listing: posts.listing,
       to: to,
       forceIfRefreshing: changedSort,
       effectFactory: (Page page, Object transitionMarker) {
-        return GetFeedPosts(
+        return Then(GetFeedPosts(
           posts: posts,
           page: page,
           transitionMarker: transitionMarker,
-          user: owner.accounts.currentUser);
-      });
+          user: owner.accounts.currentUser));
+      }));
   }
 }
 
-class GetFeedPosts extends Effect {
+class GetFeedPosts implements Effect {
 
   GetFeedPosts({
     @required this.posts,
@@ -121,7 +121,7 @@ class GetFeedPosts extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     assert(posts.type != Feed.home || user != null);
     try {
       ListingData<PostData> listing;
@@ -137,17 +137,17 @@ class GetFeedPosts extends Effect {
 
       final hasBeenViewed = await context.getPostListingDataHasBeenViewed(listing);
 
-      return FinishListingTransition(
+      return Then(FinishListingTransition(
         listing: posts.listing,
         transitionMarker: transitionMarker,
         data: listing,
         thingFactory: (PostData data) {
           return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]);
-        });
+        }));
     } catch (_) {
-      return ListingTransitionFailed(
+      return Then(ListingTransitionFailed(
         listing: posts.listing,
-        transitionMarker: transitionMarker);
+        transitionMarker: transitionMarker));
     }
   }
 }

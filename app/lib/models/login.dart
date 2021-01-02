@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:reddit/reddit.dart' show AuthSession;
 
 part 'login.g.dart';
@@ -12,7 +12,7 @@ enum LoginStatus {
   failed
 }
 
-abstract class Login extends Model {
+abstract class Login implements Model {
 
   factory Login({
     LoginStatus status,

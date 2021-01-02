@@ -1,10 +1,10 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 
 import '../models/user.dart';
 
 part 'accounts.g.dart';
 
-abstract class Accounts extends Model {
+abstract class Accounts implements Model {
 
   factory Accounts({
     List<User> users,

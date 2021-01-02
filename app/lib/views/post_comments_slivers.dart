@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../logic/post_comments.dart';
@@ -263,7 +263,7 @@ class _PostCommentsRefreshSliverState extends State<PostCommentsRefreshSliver> {
   Future<void> _handleRefresh() {
     if (_refreshCompleter == null) {
       _refreshCompleter = Completer<void>();
-      context.dispatch(RefreshPostComments(comments: widget.comments));
+      context.then(Then(RefreshPostComments(comments: widget.comments)));
     }
     return _refreshCompleter.future;
   }

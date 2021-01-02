@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:reddit/reddit.dart';
 
 import 'listing.dart';
@@ -12,7 +12,7 @@ enum Feed {
   all
 }
 
-abstract class FeedPosts extends Model {
+abstract class FeedPosts implements Model {
 
   factory FeedPosts({
     Feed type,

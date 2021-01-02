@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 
 import 'accounts.dart';
 import 'auth.dart';
@@ -9,7 +9,7 @@ import 'theming.dart';
 
 part 'app.g.dart';
 
-abstract class App extends Model implements AccountsOwner, AuthOwner, ThemingOwner {
+abstract class App implements Model, AccountsOwner, AuthOwner, ThemingOwner {
 
   factory App({
     bool initialized,

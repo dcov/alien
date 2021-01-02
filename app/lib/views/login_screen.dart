@@ -1,6 +1,6 @@
-import 'package:elmer_flutter/elmer_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mal_flutter/mal_flutter.dart';
 
 import '../logic/login.dart';
 import '../models/login.dart';
@@ -66,7 +66,7 @@ class _LoginScreen extends StatelessWidget {
                 switch (login.status) {
                   case LoginStatus.idle:
                     ServicesBinding.instance.addPostFrameCallback((_) {
-                      context.dispatch(StartLogin(login: login));
+                      context.then(Then(StartLogin(login: login)));
                     });
                     continue renderSettingUpIndicator;
                   renderSettingUpIndicator:
@@ -78,10 +78,10 @@ class _LoginScreen extends StatelessWidget {
                       gestureNavigationEnabled: true,
                       url: login.session.url,
                       onPageFinished: (String pageUrl) {
-                        context.dispatch(
-                          TryAuthenticating(
+                        context.then(
+                          Then(TryAuthenticating(
                             login: login,
-                            url: pageUrl));
+                            url: pageUrl)));
                       });
                   case LoginStatus.authenticating:
                     return _Indicator(text: 'Authenticating');

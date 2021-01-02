@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
@@ -10,7 +10,7 @@ import '../models/user.dart';
 import 'thing.dart';
 import 'user.dart';
 
-class ToggleSaved extends Action {
+class ToggleSaved implements Update {
 
   ToggleSaved({
     @required this.saveable,
@@ -22,16 +22,16 @@ class ToggleSaved extends Action {
   final User user;
 
   @override
-  dynamic update(AccountsOwner owner) {
+  Then update(AccountsOwner owner) {
     saveable.isSaved = !saveable.isSaved;
-    return _PostSaved(
+    return Then(_PostSaved(
       saveable: saveable,
       user: user ?? owner.accounts.currentUser,
-    );
+    ));
   }
 }
 
-class _PostSaved extends Effect {
+class _PostSaved implements Effect {
 
   _PostSaved({
     @required this.saveable,
@@ -44,20 +44,21 @@ class _PostSaved extends Effect {
   final User user;
 
   @override
-  dynamic perform(EffectContext context) async {
+  Future<Then> effect(EffectContext context) async {
     try {
       if (saveable.isSaved) {
         context.clientFromUser(user).postSave(saveable.fullId);
       } else {
         context.clientFromUser(user).postUnsave(saveable.fullId);
       }
+      return Then.done();
     } catch (_) {
-      return _PostSavedFailed(saveable: saveable);
+      return Then(_PostSavedFailed(saveable: saveable));
     }
   }
 }
 
-class _PostSavedFailed extends Action {
+class _PostSavedFailed implements Update {
 
   _PostSavedFailed({
     @required this.saveable
@@ -66,8 +67,9 @@ class _PostSavedFailed extends Action {
   final Saveable saveable;
 
   @override
-  dynamic update(_) {
+  Then update(_) {
     saveable.isSaved = !saveable.isSaved;
+    return Then.done();
   }
 }
 

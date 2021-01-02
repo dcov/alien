@@ -1,4 +1,4 @@
-import 'package:elmer/elmer.dart';
+import 'package:mal/mal.dart';
 
 part 'media.g.dart';
 
@@ -9,7 +9,7 @@ enum ThumbnailStatus {
   loaded
 }
 
-abstract class Media extends Model {
+abstract class Media implements Model {
 
   factory Media({
     String source,
