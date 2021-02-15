@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:mal_flutter/mal_flutter.dart';
+import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/accounts.dart';
 

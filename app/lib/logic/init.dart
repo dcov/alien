@@ -1,4 +1,4 @@
-import 'package:mal/mal.dart';
+import 'package:muex/muex.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;

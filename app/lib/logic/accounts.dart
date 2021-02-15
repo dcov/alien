@@ -1,6 +1,6 @@
 import 'dart:convert' show json;
 
-import 'package:mal/mal.dart';
+import 'package:muex/muex.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 

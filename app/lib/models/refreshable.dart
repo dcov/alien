@@ -1,4 +1,4 @@
-import 'package:mal/mal.dart';
+import 'package:muex/muex.dart';
 
 part 'refreshable.g.dart';
 

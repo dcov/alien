@@ -1,4 +1,4 @@
-import 'package:mal/mal.dart';
+import 'package:muex/muex.dart';
 
 import 'accounts.dart';
 import 'auth.dart';

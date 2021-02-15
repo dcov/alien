@@ -1,4 +1,4 @@
-import 'package:mal/mal.dart';
+import 'package:muex/muex.dart';
 import 'package:flutter/material.dart';
 
 part 'theming.g.dart';

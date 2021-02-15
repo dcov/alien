@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mal_flutter/mal_flutter.dart';
+import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/app.dart';
 import '../models/feed.dart';

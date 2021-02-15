@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:mal_flutter/mal_flutter.dart';
+import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/media.dart';
 import '../models/snudown.dart';

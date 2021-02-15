@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mal_flutter/mal_flutter.dart';
+import 'package:muex_flutter/muex_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../logic/post_comments.dart';

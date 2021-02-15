@@ -21,15 +21,15 @@ dependencies:
 
   cached_network_image: 2.3.3
 
-  mal:
+  muex:
     git:
-      url: git://github.com/dcov/mal.git
-      path: mal
+      url: git://github.com/dcov/muex.git
+      path: muex
 
-  mal_flutter:
+  muex_flutter:
     git:
-      url: git://github.com/dcov/mal.git
-      path: mal_flutter
+      url: git://github.com/dcov/muex.git
+      path: muex_flutter
   
   flutter_markdown:
     git:
@@ -64,10 +64,10 @@ dev_dependencies:
 
   mockito: ^4.1.1
 
-  mal_gen:
+  muex_gen:
     git:
-      url: git://github.com/dcov/mal.git
-      path: mal_gen
+      url: git://github.com/dcov/muex.git
+      path: muex_gen
 
 flutter_icons:
   android: true
