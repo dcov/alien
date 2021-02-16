@@ -110,26 +110,27 @@ class TryAuthenticating implements Update {
 
   @override
   Then update(_) {
-    if (login.status == LoginStatus.authenticating)
-      return Then.done();
-
-    final queryParameters = Uri.parse(url).queryParameters;
-    if (queryParameters['error'] != null) {
-      return Then(_AuthenticationFailed(
-        login: login));
-    }
-
-    if (queryParameters['code'] != null) {
-      if (queryParameters['state'] != login.session.state) {
+    if (login.status != LoginStatus.authenticating) {
+      final queryParameters = Uri.parse(url).queryParameters;
+      if (queryParameters['error'] != null) {
         return Then(_AuthenticationFailed(
           login: login));
       }
 
-      login.status = LoginStatus.authenticating;
-      return Then(_PostCode(
-        login: login,
-        code: queryParameters['code']));
+      if (queryParameters['code'] != null) {
+        if (queryParameters['state'] != login.session.state) {
+          return Then(_AuthenticationFailed(
+            login: login));
+        }
+
+        login.status = LoginStatus.authenticating;
+        return Then(_PostCode(
+          login: login,
+          code: queryParameters['code']));
+      }
     }
+
+    return Then.done();
   }
 }
 
