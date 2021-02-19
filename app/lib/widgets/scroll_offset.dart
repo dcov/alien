@@ -9,7 +9,7 @@ class ScrollOffset {
 mixin ScrollOffsetMixin<W extends StatefulWidget> on State<W> {
 
   @protected
-  ScrollController controller;
+  late ScrollController controller;
 
   @protected
   ScrollOffset get offset;
@@ -37,8 +37,8 @@ mixin ScrollOffsetMixin<W extends StatefulWidget> on State<W> {
 class TrackingScrollView extends StatefulWidget {
 
   TrackingScrollView({
-    Key key,
-    @required this.offset,
+    Key? key,
+    required this.offset,
     this.slivers = const <Widget>[],
   }) : super(key: key);
 
@@ -63,4 +63,3 @@ class _TrackingScrollViewState extends State<TrackingScrollView> with ScrollOffs
     );
   }
 }
-

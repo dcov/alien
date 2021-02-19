@@ -4,10 +4,11 @@ import 'package:flutter/widgets.dart';
 
 class CustomScrollPhysics extends ClampingScrollPhysics {
 
-  const CustomScrollPhysics({ ScrollPhysics parent }) : super(parent: parent);
+  const CustomScrollPhysics({ ScrollPhysics? parent })
+      : super(parent: parent);
 
   @override
-  CustomScrollPhysics applyTo(ScrollPhysics ancestor) {
+  CustomScrollPhysics applyTo(ScrollPhysics? ancestor) {
     return CustomScrollPhysics(parent: buildParent(ancestor));
   }
 
@@ -92,4 +93,3 @@ class CustomScrollBehavior extends ScrollBehavior {
     }
   }
 }
-

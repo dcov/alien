@@ -13,21 +13,21 @@ MarkdownStyleSheet _createStyleSheet(BuildContext context) {
     a: const TextStyle(
       color: Colors.blue,
       decoration: TextDecoration.underline),
-    p: theme.textTheme.body1,
+    p: theme.textTheme.bodyText2,
     code: TextStyle(
       color: Colors.grey.shade700,
       fontFamily: "monospace",
-      fontSize: theme.textTheme.body1.fontSize * 0.85),
-    h1: theme.textTheme.headline,
-    h2: theme.textTheme.title,
-    h3: theme.textTheme.subhead,
-    h4: theme.textTheme.body2,
-    h5: theme.textTheme.body2,
-    h6: theme.textTheme.body2,
+      fontSize: theme.textTheme.bodyText2!.fontSize! * 0.85),
+    h1: theme.textTheme.headline5,
+    h2: theme.textTheme.headline6,
+    h3: theme.textTheme.subtitle1,
+    h4: theme.textTheme.bodyText1,
+    h5: theme.textTheme.bodyText1,
+    h6: theme.textTheme.bodyText1,
     em: const TextStyle(fontStyle: FontStyle.italic),
     strong: const TextStyle(fontWeight: FontWeight.bold),
-    blockquote: theme.textTheme.body1,
-    img: theme.textTheme.body1,
+    blockquote: theme.textTheme.bodyText2,
+    img: theme.textTheme.bodyText2,
     blockSpacing: 8.0,
     listIndent: 32.0,
     blockquotePadding: EdgeInsets.all(8.0),
@@ -50,9 +50,9 @@ MarkdownStyleSheet _createStyleSheet(BuildContext context) {
 class SnudownBody extends StatelessWidget {
 
   SnudownBody({
-    Key key,
-    @required this.snudown,
-    @required this.scrollable,
+    Key? key,
+    required this.snudown,
+    required this.scrollable,
   }) : super(key: key);
 
   final Snudown snudown;
@@ -65,8 +65,8 @@ class SnudownBody extends StatelessWidget {
       return Markdown(
         nodes: snudown.nodes,
         styleSheet: _createStyleSheet(context),
-        onTapLink: (String ref) {
-          final link = snudown.links[ref];
+        onTapLink: (String text, String? ref, String title) {
+          final link = snudown.links[ref!];
           if (link is Media) {
             showMediaPage(
               context: context,
@@ -76,4 +76,3 @@ class SnudownBody extends StatelessWidget {
         scrollable: scrollable);
     });
 }
-

@@ -5,4 +5,3 @@ abstract class Thing {
 
   String get kind;
 }
-

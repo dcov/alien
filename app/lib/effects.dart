@@ -10,11 +10,10 @@ import 'package:stash/stash_api.dart';
 class _EffectRendererScope extends InheritedWidget {
 
   _EffectRendererScope({
-    Key key,
-    @required this.state,
-    Widget child,
-  }) : assert(state != null),
-       super(key: key, child: child);
+    Key? key,
+    required this.state,
+    required Widget child,
+  }) : super(key: key, child: child);
 
   final EffectRendererState state;
 
@@ -27,10 +26,9 @@ class _EffectRendererScope extends InheritedWidget {
 class EffectRenderer extends StatefulWidget {
 
   EffectRenderer({
-    Key key,
-    @required this.child
-  }) : assert(child != null),
-       super(key: key);
+    Key? key,
+    required this.child
+  }) : super(key: key);
 
   final Widget child;
 
@@ -42,7 +40,7 @@ class EffectRendererState extends State<EffectRenderer> {
 
   final Map<Object, Object> _children = Map<Object, Object>();
 
-  Object withId(Object id) => _children[id];
+  Object withId(Object id) => _children[id]!;
 
   void _add(Object id, Object renderer) {
     assert(!_children.containsKey(id), 'Attempted to re-add a renderer with id: $id');
@@ -65,20 +63,19 @@ class EffectRendererState extends State<EffectRenderer> {
 
 mixin EffectRendererMixin<W extends StatefulWidget> on State<W> {
 
-  EffectRendererState _owner;
+  EffectRendererState? _owner;
 
   @protected
   Object get rendererId;
 
   @protected
-  Object get renderer => this;
-
+  Object get renderer => this; 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final _EffectRendererScope scope = context.dependOnInheritedWidgetOfExactType();
+    final _EffectRendererScope? scope = context.dependOnInheritedWidgetOfExactType();
     assert(scope != null);
-    if (scope.state != _owner) {
+    if (scope!.state != _owner) {
       _owner?._remove(rendererId);
       scope.state._add(rendererId, renderer);
       _owner = scope.state;
@@ -95,19 +92,19 @@ mixin EffectRendererMixin<W extends StatefulWidget> on State<W> {
 class EffectContext {
 
   factory EffectContext({
-    @required String appId,
-    @required String appRedirect,
-    String scriptId,
-    String scriptSecret,
-    String scriptUsername,
-    String scriptPassword,
-    @required GlobalKey<EffectRendererState> rendererKey
+    required String appId,
+    required String appRedirect,
+    String? scriptId,
+    String? scriptSecret,
+    String? scriptUsername,
+    String? scriptPassword,
+    required GlobalKey<EffectRendererState> rendererKey
   }) {
-    RedditClient client;
+    late RedditClient client;
     if (scriptId != null) {
       client = createScriptClient(
         clientId: scriptId,
-        clientSecret: scriptSecret,
+        clientSecret: scriptSecret!,
         username: scriptUsername,
         password: scriptPassword);
     }
@@ -136,21 +133,21 @@ class EffectContext {
 
   final Scraper scraper;
 
-  Cache cache;
+  late Cache cache;
 
-  EffectRendererState get renderer => _rendererKey.currentState;
+  EffectRendererState get renderer => _rendererKey.currentState!;
   final GlobalKey<EffectRendererState> _rendererKey;
 }
 
 void runLoopWithEffects({
-  @required String appId,
-  @required String appRedirect,
-  String scriptId,
-  String scriptSecret,
-  String scriptUsername,
-  String scriptPassword,
-  @required Initial initial,
-  @required Widget view,
+  required String appId,
+  required String appRedirect,
+  String? scriptId,
+  String? scriptSecret,
+  String? scriptUsername,
+  String? scriptPassword,
+  required Initial initial,
+  required Widget view,
 }) {
   final rendererKey = GlobalKey<EffectRendererState>();
   runLoop(
@@ -167,4 +164,3 @@ void runLoopWithEffects({
       key: rendererKey,
       child: view));
 }
-

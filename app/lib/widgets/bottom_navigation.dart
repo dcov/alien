@@ -3,20 +3,16 @@ import 'package:flutter/widgets.dart';
 class BottomNavigation extends StatelessWidget implements PreferredSizeWidget {
 
   BottomNavigation({
-    Key key,
-    @required this.items,
+    Key? key,
+    required this.items,
     this.onTap,
     this.currentIndex = 0,
-    this.activeColor,
-    this.inactiveColor,
+    required this.activeColor,
+    required this.inactiveColor,
     this.iconSize = 30.0,
     double height = kDefaultHeight,
-  }) : assert(items != null),
-       assert(items.length >= 2),
-       assert(currentIndex != null),
+  }) : assert(items.length >= 2),
        assert(0 <= currentIndex && currentIndex < items.length),
-       assert(iconSize != null),
-       assert(height != null),
        this.preferredSize = Size.fromHeight(height),
        super(key: key);
 
@@ -24,7 +20,7 @@ class BottomNavigation extends StatelessWidget implements PreferredSizeWidget {
 
   final List<BottomNavigationBarItem> items;
 
-  final ValueChanged<int> onTap;
+  final ValueChanged<int>? onTap;
 
   final int currentIndex;
 
@@ -68,7 +64,7 @@ class BottomNavigation extends StatelessWidget implements PreferredSizeWidget {
               hint: 'tab, ${index + 1} of ${items.length}',
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: onTap == null ? null : () { onTap(index); },
+                onTap: onTap == null ? null : () { onTap!(index); },
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 4.0),
                   child: Column(
@@ -92,12 +88,12 @@ class BottomNavigation extends StatelessWidget implements PreferredSizeWidget {
       Expanded(
         child: Center(child: active ? item.activeIcon : item.icon),
       ),
-      if (item.title != null) item.title,
+      if (item.title != null) item.title!,
     ];
   }
 
   /// Change the active tab item's icon and title colors to active.
-  Widget _wrapActiveItem(BuildContext context, Widget item, { @required bool active }) {
+  Widget _wrapActiveItem(BuildContext context, Widget item, { required bool active }) {
     if (!active)
       return item;
 
@@ -110,4 +106,3 @@ class BottomNavigation extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-

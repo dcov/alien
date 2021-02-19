@@ -12,21 +12,23 @@ part 'app.g.dart';
 abstract class App implements Model, AccountsOwner, AuthOwner, ThemingOwner {
 
   factory App({
-    bool initialized,
+    required bool initialized,
     List<Feed> feeds,
     Refreshable<Subreddit> defaults,
     Refreshable<Subreddit> subscriptions,
-    Accounts accounts,
-    Auth auth,
-    Theming theming,
+    required Accounts accounts,
+    required Auth auth,
+    required Theming theming,
   }) = _$App;
 
-  bool initialized;
+  bool get initialized;
+  set initialized(bool value);
 
   List<Feed> get feeds;
 
-  Refreshable<Subreddit> defaults;
+  Refreshable<Subreddit>? get defaults;
+  set defaults(Refreshable<Subreddit>? value);
 
-  Refreshable<Subreddit> subscriptions;
+  Refreshable<Subreddit>? get subscriptions;
+  set subscriptions(Refreshable<Subreddit>? value);
 }
-

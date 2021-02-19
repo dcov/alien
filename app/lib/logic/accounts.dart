@@ -40,10 +40,9 @@ List<AppUser> unpackUsersList(String jsonData) {
 class InitAccounts implements Update {
 
   InitAccounts({
-    @required this.onInitialized,
-    @required this.onFailed,
-  }) : assert(onInitialized != null),
-       assert(onFailed != null);
+    required this.onInitialized,
+    required this.onFailed,
+  });
 
   /// Called once the [Accounts] data has been initialized.
   final ThenCallback onInitialized;
@@ -70,10 +69,9 @@ class InitAccounts implements Update {
 class _GetScriptUserData implements Effect {
 
   _GetScriptUserData({
-    this.onInitialized,
-    this.onFailed
-  }) : assert(onInitialized != null),
-       assert(onFailed != null);
+    required this.onInitialized,
+    required this.onFailed
+  });
 
   final ThenCallback onInitialized;
 
@@ -82,7 +80,7 @@ class _GetScriptUserData implements Effect {
   @override
   Future<Then> effect(EffectContext context) async {
     return context.scriptClient
-      .getUserAccount()
+      .getMe()
       .then((AccountData data) {
          return Then(_AddScriptUser(
             data: data,
@@ -95,10 +93,9 @@ class _GetScriptUserData implements Effect {
 class _AddScriptUser implements Update {
 
   _AddScriptUser({
-   @required this.data,
-   @required this.onInitialized
-  }) : assert(data != null),
-       assert(onInitialized != null);
+   required this.data,
+   required this.onInitialized
+  });
 
   final AccountData data;
 
@@ -116,10 +113,9 @@ class _AddScriptUser implements Update {
 class _GetPackedAccountsData implements Effect {
 
   _GetPackedAccountsData({
-    @required this.onInitialized,
-    @required this.onFailed
-  }) : assert(onInitialized != null),
-       assert(onFailed != null);
+    required this.onInitialized,
+    required this.onFailed
+  });
 
   final ThenCallback onInitialized;
 
@@ -128,7 +124,7 @@ class _GetPackedAccountsData implements Effect {
   @override
   Future<Then> effect(EffectContext context) async {
     try {
-      final accountsBox = await context.hive.openBox<String>(_kAccountsBoxKey);
+      final accountsBox = await context.hive.openBox<String?>(_kAccountsBoxKey);
       final usersData = accountsBox.get(_kUsersDataKey);
       final currentUserData = accountsBox.get(_kCurrentUserDataKey);
       return Then(_UnpackAccountsData(
@@ -146,12 +142,12 @@ class _UnpackAccountsData implements Update {
   _UnpackAccountsData({
     this.usersData,
     this.currentUserData,
-    @required this.onInitialized,
-  }) : assert(onInitialized != null);
+    required this.onInitialized,
+  });
 
-  final String usersData;
+  final String? usersData;
 
-  final String currentUserData;
+  final String? currentUserData;
 
   final ThenCallback onInitialized;
 
@@ -159,12 +155,11 @@ class _UnpackAccountsData implements Update {
   Then update(AccountsOwner owner) {
     if (usersData != null) {
       final accounts = owner.accounts;
-      accounts.users.addAll(unpackUsersList(usersData));
+      accounts.users.addAll(unpackUsersList(usersData!));
       
       if (currentUserData != null) {
         accounts.currentUser = accounts.users.firstWhere(
-            (User user) => user.name == currentUserData,
-            orElse: () => null);
+            (User user) => user.name == currentUserData);
       }
     }
 
@@ -175,8 +170,8 @@ class _UnpackAccountsData implements Update {
 class AddUser implements Update {
 
   AddUser({
-    @required this.user,
-  }) : assert(user != null);
+    required this.user,
+  });
 
   final User user;
 
@@ -207,8 +202,8 @@ class AddUser implements Update {
 class RemoveUser implements Update {
 
   RemoveUser({
-    @required this.user
-  }) : assert(user != null);
+    required this.user
+  });
 
   final User user;
 
@@ -223,8 +218,8 @@ class RemoveUser implements Update {
           if (existingUser.name == user.name) {
             return true;
           }
-          return false;
         }
+        return false;
       }(),
       'RemoveUser dispatched with a non-existing user');
 
@@ -242,7 +237,7 @@ class SetCurrentUser implements Update {
   
   SetCurrentUser({ this.to });
 
-  final User to;
+  final User? to;
 
   @override
   Then update(AccountsOwner owner) {
@@ -265,23 +260,22 @@ class SetCurrentUser implements Update {
 class _PutPackedAccountsData implements Effect {
 
   _PutPackedAccountsData({
-    @required this.usersData,
+    required this.usersData,
     this.currentUserData,
-  }) : assert(usersData != null);
+  });
 
   final String usersData;
 
-  final String currentUserData;
+  final String? currentUserData;
 
   @override
   Future<Then> effect(EffectContext context) async {
     try {
-      final box = await context.hive.openBox<String>(_kAccountsBoxKey);
+      final box = await context.hive.openBox<String?>(_kAccountsBoxKey);
       await box.putAll({
         _kUsersDataKey : usersData,
         _kCurrentUserDataKey : currentUserData
       });
-
     } catch (_) {
       // TODO: better handle this error case
     }
@@ -289,4 +283,3 @@ class _PutPackedAccountsData implements Effect {
     return Then.done();
   }
 }
-

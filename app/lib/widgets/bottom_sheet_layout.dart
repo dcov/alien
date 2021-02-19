@@ -9,12 +9,10 @@ typedef BottomSheetWidgetBuilder = Widget Function(
 class BottomSheetLayout extends StatefulWidget {
 
   BottomSheetLayout({
-    Key key,
-    @required this.body,
-    @required this.sheetBuilder,
-  }) : assert(body != null),
-       assert(sheetBuilder != null),
-       super(key: key);
+    Key? key,
+    required this.body,
+    required this.sheetBuilder,
+  }) : super(key: key);
 
   final Widget body;
 
@@ -26,7 +24,7 @@ class BottomSheetLayout extends StatefulWidget {
 
 class _BottomSheetLayoutState extends State<BottomSheetLayout> with TickerProviderStateMixin {
 
-  _BottomSheetLayoutDelegate _delegate;
+  late _BottomSheetLayoutDelegate _delegate;
 
   @override
   void initState() {
@@ -55,7 +53,7 @@ class _BottomSheetLayoutState extends State<BottomSheetLayout> with TickerProvid
           id: _BottomSheetLayoutSlot.body,
           child: ValueListenableBuilder(
             valueListenable: _delegate.controller,
-            builder: (_, double value, Widget child) {
+            builder: (_, double value, Widget? child) {
               return IgnorePointer(
                 ignoring: value != 0,
                 child: DecoratedBox(
@@ -98,21 +96,21 @@ const double _kPeekHeight = 48.0;
 
 class _BottomSheetLayoutDelegate extends MultiChildLayoutDelegate {
 
-  _BottomSheetLayoutDelegate({ @required this.controller })
-      : assert(controller != null),
-        super(relayout: controller);
+  _BottomSheetLayoutDelegate({
+    required this.controller
+  }) : super(relayout: controller);
 
   final AnimationController controller;
 
-  double _draggableAmount;
+  late double _draggableAmount;
 
   void handleDragUpdate(DragUpdateDetails details) {
-    controller.value -= details.primaryDelta / _draggableAmount;
+    controller.value -= details.primaryDelta! / _draggableAmount;
   }
 
   void handleDragEnd(DragEndDetails details) {
-    if (details.primaryVelocity.abs() >= 700) {
-      controller.fling(velocity: -details.primaryVelocity / _draggableAmount);
+    if (details.primaryVelocity!.abs() >= 700) {
+      controller.fling(velocity: -details.primaryVelocity! / _draggableAmount);
     } else if (controller.value >= 0.5) {
       controller.fling(velocity: 1.0);
     } else {
@@ -158,4 +156,3 @@ class _BottomSheetLayoutDelegate extends MultiChildLayoutDelegate {
   @override
   bool shouldRelayout(_BottomSheetLayoutDelegate oldDelegate) => true;
 }
-

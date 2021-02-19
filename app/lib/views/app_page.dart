@@ -17,10 +17,9 @@ import 'subreddit_page.dart';
 class _AccountHeader extends StatelessWidget {
 
   _AccountHeader({
-    Key key,
-    @required this.app
-  }) : assert(app != null),
-       super(key: key);
+    Key? key,
+    required this.app
+  }) : super(key: key);
 
   final App app;
 
@@ -54,8 +53,8 @@ class _AccountHeader extends StatelessWidget {
 class _SublistHeader extends StatelessWidget {
 
   _SublistHeader({
-    Key key,
-    @required this.name
+    Key? key,
+    required this.name
   }) : super(key: key);
 
   final String name;
@@ -81,8 +80,8 @@ class _SublistHeader extends StatelessWidget {
 class _AppBody extends StatefulWidget {
 
   _AppBody({
-    Key key,
-    @required this.app,
+    Key? key,
+    required this.app,
   }) : super(key: key);
 
   final App app;
@@ -100,7 +99,7 @@ class _AppBodyState extends State<_AppBody> {
     _entries.clear();
 
     String parentName;
-    List<RoutingEntry> childEntries;
+    late List<RoutingEntry> childEntries;
     for (final entry in context.routingEntries) {
       if (entry.depth == 0) {
         assert(entry.page.name == AppPage.pageName);
@@ -108,11 +107,11 @@ class _AppBodyState extends State<_AppBody> {
       }
 
       if (entry.depth == 1) {
-        parentName = entry.page.name;
-        childEntries = List<RoutingEntry>();
+        parentName = entry.page.name!;
+        childEntries = <RoutingEntry>[];
         _entries[parentName] = childEntries;
       } else {
-        childEntries ??= List<RoutingEntry>();
+        childEntries = <RoutingEntry>[];
         childEntries.add(entry);
       }
     }
@@ -134,7 +133,7 @@ class _AppBodyState extends State<_AppBody> {
     return Connector(
       builder: (BuildContext context) {
         final app = widget.app;
-        final children = List<Widget>();
+        final children = <Widget>[];
         void mapValues<T>(List<T> values, Widget mapToWidget(T value), String mapToPageName(T value)) {
           for (final value in values) {
             children.add(mapToWidget(value));
@@ -158,14 +157,14 @@ class _AppBodyState extends State<_AppBody> {
           assert(app.subscriptions == null);
           children.add(_SublistHeader(name: 'DEFAULTS'));
           mapValues(
-            app.defaults.items,
+            app.defaults!.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
             subredditPageNameFrom);
         } else {
           assert(app.subscriptions != null);
           children.add(_SublistHeader(name: 'SUBSCRIPTIONS'));
           mapValues(
-            app.subscriptions.items,
+            app.subscriptions!.items,
             (Subreddit subreddit) => SubredditTile(subreddit: subreddit),
             subredditPageNameFrom);
         }
@@ -178,8 +177,8 @@ class _AppBodyState extends State<_AppBody> {
 class _AppPageView extends StatelessWidget {
 
   _AppPageView({
-    Key key,
-    @required this.app
+    Key? key,
+    required this.app
   }) : super(key: key);
 
   final App app;
@@ -210,8 +209,8 @@ class _AppPageView extends StatelessWidget {
 class AppPage extends EntryPage {
 
   AppPage({
-    @required this.app,
-    @required String name
+    required this.app,
+    required String name
   }) : super(name: name);
 
   final App app;
@@ -227,4 +226,3 @@ class AppPage extends EntryPage {
       });
   }
 }
-

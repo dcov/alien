@@ -16,10 +16,9 @@ import 'view_extensions.dart';
 import 'votable_utils.dart';
 
 void _showCommentOptionsBottomSheet({
-    @required BuildContext context,
-    @required Comment comment,
+    required BuildContext context,
+    required Comment comment,
   }) {
-  assert(context != null);
   showOptionsBottomSheet(
     context: context,
     options: <Option>[
@@ -36,17 +35,14 @@ void _showCommentOptionsBottomSheet({
 class CommentTile extends StatelessWidget {
 
   CommentTile({
-    Key key,
-    @required this.comment,
-    @required this.includeDepthPadding,
+    Key? key,
+    required this.comment,
+    required this.includeDepthPadding,
     this.collapsed = false,
     this.onCollapse,
     this.onCollapseToRoot,
     this.onUncollapse
-  }) : assert(comment != null),
-       assert(includeDepthPadding != null),
-       assert(collapsed != null),
-       assert(!collapsed ||
+  }) : assert(!collapsed ||
               (onCollapse != null &&
                onCollapseToRoot != null &&
                onUncollapse != null)),
@@ -58,11 +54,11 @@ class CommentTile extends StatelessWidget {
 
   final bool collapsed;
 
-  final VoidCallback onCollapse;
+  final VoidCallback? onCollapse;
   
-  final VoidCallback onCollapseToRoot;
+  final VoidCallback? onCollapseToRoot;
 
-  final VoidCallback onUncollapse;
+  final VoidCallback? onUncollapse;
 
   Color get _authorColor {
     if (comment.distinguishment == "moderator") {
@@ -82,7 +78,7 @@ class CommentTile extends StatelessWidget {
 
     if (includeDepthPadding)
       child = Padding(
-        padding: EdgeInsets.only(left: (comment.depth * 16.0) + 1),
+        padding: EdgeInsets.only(left: (comment.depth! * 16.0) + 1),
         child: child);
 
     return child;
@@ -93,8 +89,8 @@ class CommentTile extends StatelessWidget {
     builder: (BuildContext context) {
       if (collapsed) {
         return _addInsets(Pressable(
-          onPress: onUncollapse,
-          onLongPress: onCollapseToRoot,
+          onPress: onUncollapse!,
+          onLongPress: onCollapseToRoot!,
           child: Wrap(
             spacing: 4.0,
             crossAxisAlignment: WrapCrossAlignment.center,
@@ -157,7 +153,7 @@ class CommentTile extends StatelessWidget {
 
       if (onCollapse != null) {
         child = Pressable(
-          onLongPress: onCollapse,
+          onLongPress: onCollapse!,
           child: child);
       }
 
@@ -195,4 +191,3 @@ class CommentTile extends StatelessWidget {
         child: _addInsets(child));
     });
 }
-

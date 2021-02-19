@@ -4,8 +4,9 @@ import 'thing.dart';
 
 abstract class Votable implements Thing {
 
-  int score;
+  int get score;
+  set score(int value);
 
-  VoteDir voteDir;
+  VoteDir get voteDir;
+  set voteDir(VoteDir value);
 }
-

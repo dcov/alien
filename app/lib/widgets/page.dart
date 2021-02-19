@@ -2,13 +2,13 @@ import 'package:flutter/widgets.dart';
 
 abstract class Page extends PageRoute {
 
-  Page({ RouteSettings settings }) : super(settings: settings);
+  Page({ RouteSettings? settings }) : super(settings: settings);
 
   @override
-  Color get barrierColor => null;
+  Color? get barrierColor => null;
 
   @override
-  String get barrierLabel => null;
+  String? get barrierLabel => null;
 
   @override
   bool get maintainState => true;
@@ -22,8 +22,8 @@ typedef PageFactory = Page Function(RouteSettings settings);
 class PageNavigator extends StatefulWidget {
 
   PageNavigator({
-    Key key,
-    @required this.onGeneratePage,
+    Key? key,
+    required this.onGeneratePage,
   }) : super(key: key);
 
   final PageFactory onGeneratePage;
@@ -33,7 +33,7 @@ class PageNavigator extends StatefulWidget {
 }
 
 class _PageNavigatorState extends State<PageNavigator> {
-  GlobalKey<NavigatorState> _navigatorKey;
+  late GlobalKey<NavigatorState> _navigatorKey;
 
   @override
   void initState() {
@@ -48,4 +48,3 @@ class _PageNavigatorState extends State<PageNavigator> {
       onGenerateRoute: widget.onGeneratePage);
   }
 }
-

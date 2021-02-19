@@ -10,4 +10,3 @@ extension ViewExtensions on BuildContext {
     return accounts.currentUser != null;
   }
 }
-

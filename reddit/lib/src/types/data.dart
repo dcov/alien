@@ -1,12 +1,111 @@
-part of 'data.dart';
+import 'dart:convert';
 
-List<T> _castList<T>(List list) =>
+import 'args.dart';
+
+typedef DataExtractor = dynamic Function(dynamic obj);
+
+Map _extractData(dynamic obj) {
+  return obj['data'] ?? obj;
+}
+
+Map _extractNothing(dynamic obj) => obj;
+
+class AccessTokenData {
+
+  factory AccessTokenData.fromJson(String json) {
+    return AccessTokenData._(jsonDecode(json));
+  }
+
+  AccessTokenData._(this._data);
+
+  final Map _data;
+
+  int get expiresIn => _data['expires_in'];
+
+  String get accessToken => _data['access_token'];
+}
+
+class RefreshTokenData extends AccessTokenData {
+
+  factory RefreshTokenData.fromJson(String json) {
+    return RefreshTokenData._(jsonDecode(json));
+  }
+
+  RefreshTokenData._(Map data) : super._(data);
+
+  Iterable<Scope> get scopes sync* {
+    final Iterable<String> values = _data['scope'].split(' ');
+    for (final String value in values) {
+      yield Scope.from(value);
+    }
+  }
+
+  String get refreshToken => _data['refresh_token'];
+}
+
+class ScopeData {
+
+  static Iterable<ScopeData> iterableFromJson(String json, [DataExtractor extractor = _extractNothing]) sync* {
+    final obj = extractor(jsonDecode(json));
+    for (final data in obj.values) {
+      yield ScopeData(data);
+    }
+  }
+
+  ScopeData(this._data);
+
+  final Map _data;
+
+  String get id => _parseScopeId(_data['id']);
+
+  String get name => _data['name'];
+
+  String get description => _data['description'];
+
+  String _parseScopeId(String id) => (id == 'wiki') ? 'wikiedit' : id;
+}
+
+class MultiData {
+
+  factory MultiData.fromJson(String json, [DataExtractor extractor = _extractData]) {
+    return MultiData(extractor(jsonDecode(json)));
+  }
+
+  static Iterable<MultiData> iterableFromJson(String json, [DataExtractor extractor = _extractNothing]) {
+    final obj = extractor(jsonDecode(json));
+    return obj.map((data) => MultiData(data));
+  }
+
+  MultiData(this._data);
+
+  final Map _data;
+
+  bool get canEdit => _data['can_edit'];
+
+  bool get name => _data['name'];
+
+  bool get descriptionHtml => _data['description_html'];
+
+  double get timestamp => _data['created_utc'];
+
+  bool get isNSFW => _data['over_18'];
+
+  String get path => _data['path'];
+
+  Iterable<String> get subredditNames sync* {
+    for (final sub in _data['subreddits']) {
+      yield sub['name'] as String;
+    }
+  }
+}
+
+List<T>? _castList<T>(List? list) =>
   (list != null && list.isNotEmpty) ? list.cast<T>() : null;
 
-int _parseNum(dynamic value) =>
+int? _parseNum(dynamic value) =>
   value is num ? value.round() : null;
 
-String _parseString(String s, { Iterable<String> exclude }) {
+String? _parseString(String? s, { Iterable<String>? exclude }) {
   if (s?.isNotEmpty == true && exclude?.contains(s) != true) {
     return s;
   }
@@ -14,7 +113,7 @@ String _parseString(String s, { Iterable<String> exclude }) {
   return null;
 }
 
-int _parseColor(String color) {
+int? _parseColor(String? color) {
   color = _parseString(color);
   if (color != null) {
     color = color.replaceFirst('#', '0xFF');
@@ -42,7 +141,7 @@ mixin ThingData {
       case 'more':
         return MoreData(data);
     }
-    return null;
+    throw ArgumentError('JSON source was not a ThingData type');
   }
 
   Map get _data;
@@ -58,7 +157,7 @@ mixin CreatedData {
 
   Map get _data;
 
-  int get createdAtUtc => _parseNum(_data['created_utc']);
+  int get createdAtUtc => _parseNum(_data['created_utc'])!;
 }
 
 mixin GildableData {
@@ -67,22 +166,22 @@ mixin GildableData {
 
   bool get canGild => _data['can_gild'];
 
-  int get gildCount => _parseNum(_data['gilded']);
+  int? get gildCount => _parseNum(_data['gilded']);
 }
 
 mixin VotableData {
 
   Map get _data;
 
-  int get downvoteCount => _parseNum(_data['downs']);
+  int get downvoteCount => _parseNum(_data['downs'])!;
 
   bool get isArchived => _data['archived'];
 
   bool get isScoreHidden => _data['score_hidden'];
 
-  int get score => _parseNum(_data['score']);
+  int get score => _parseNum(_data['score'])!;
 
-  int get upvoteCount => _parseNum(_data['ups']);
+  int get upvoteCount => _parseNum(_data['ups'])!;
 
   VoteDir get voteDir {
     final bool likes = _data['likes'];
@@ -113,13 +212,13 @@ class AccountData with ThingData, CreatedData {
   @override
   String get kind => 't2';
 
-  int get commentKarma => _parseNum(_data['comment_karma']);
+  int get commentKarma => _parseNum(_data['comment_karma'])!;
 
   bool get hasMail => _data['has_mail'];
 
   bool get hasModMail => _data['has_mod_mail'];
 
-  String get iconImageUrl => _parseString(_data['icon_image']);
+  String get iconImageUrl => _parseString(_data['icon_image'])!;
 
   bool get isFriend => _data['is_friend'];
 
@@ -129,7 +228,7 @@ class AccountData with ThingData, CreatedData {
 
   bool get isOver18 => _data['over_18'];
 
-  int get linkKarma => _parseNum(_data['link_karma']);
+  int get linkKarma => _parseNum(_data['link_karma'])!;
 
   String get username => _data['name'];
 }
@@ -168,7 +267,7 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   String get authorFullId => _data['author_fullname'];
 
-  int get bannedAtUtc => _parseNum(_data['banned_at_utc']);
+  int get bannedAtUtc => _parseNum(_data['banned_at_utc'])!;
 
   String get bannedBy => _data['banned_by'];
 
@@ -180,13 +279,13 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   String get collapsedReason => _data['collapsed_reason'];
 
-  int get controversialityScore => _parseNum(_data['controversiality']);
+  int get controversialityScore => _parseNum(_data['controversiality'])!;
 
-  int get depth => _parseNum(_data['depth']);
+  int get depth => _parseNum(_data['depth'])!;
 
   String get distinguishment => _data['distinguished'];
 
-  int get editedAtUtc => _parseNum(_data['edited']);
+  int get editedAtUtc => _parseNum(_data['edited'])!;
 
   bool get isCollapsed => _data['collapsed'];
 
@@ -204,7 +303,7 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   String get modReasonTitle => _data['mod_reason_title'];
 
-  Iterable<String> get modReports => _castList<String>(_data['mod_reports']);
+  Iterable<String> get modReports => _castList<String>(_data['mod_reports'])!;
 
   String get fullParentId => _data['parent_id'];
 
@@ -222,9 +321,9 @@ class CommentData with ThingData, CreatedData, GildableData,
     }
   }
 
-  int get reportCount => _parseNum(_data['num_reports']);
+  int get reportCount => _parseNum(_data['num_reports'])!;
 
-  Iterable<String> get reportReasons => _castList<String>(_data['report_reasons']);
+  Iterable<String> get reportReasons => _castList<String>(_data['report_reasons'])!;
 
   bool get sendReplies => _data['send_replies'];
 
@@ -234,12 +333,12 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   String get subredditVisibility => _data['subreddit_type'];
 
-  Iterable<String> get userReports => _castList<String>(_data['user_reports']);
+  Iterable<String> get userReports => _castList<String>(_data['user_reports'])!;
 }
 
 class MessageData with ThingData, CreatedData {
 
-  factory MessageData.fromJson(String json, [DataExtractor extractor]) {
+  factory MessageData.fromJson(String json, [DataExtractor extractor = _extractData]) {
     return MessageData(extractor(jsonDecode(json)));
   }
 
@@ -276,11 +375,11 @@ class MoreData with ThingData {
   @override
   String get kind => 'more';
 
-  int get count => _parseNum(_data["count"]);
+  int get count => _parseNum(_data["count"])!;
 
   Iterable<String> get thingIds => _data['children'].cast<String>();
 
-  int get depth => _parseNum(_data["depth"]);
+  int get depth => _parseNum(_data["depth"])!;
 
   String get fullParentId => _data["parent_id"];
 }
@@ -335,7 +434,7 @@ class PostData with ThingData, CreatedData, GildableData,
   @override
   String get kind => 't3';
 
-  int get approvedAtUtc => _parseNum(_data['approved_at_utc']);
+  int get approvedAtUtc => _parseNum(_data['approved_at_utc'])!;
 
   String get approvedBy => _data['approved_by'];
 
@@ -347,7 +446,7 @@ class PostData with ThingData, CreatedData, GildableData,
 
   String get authorFlairRichText => _data['author_flair_rich_text'];
 
-  String get authorFlairText => _parseString(_data['author_flair_text']);
+  String get authorFlairText => _parseString(_data['author_flair_text'])!;
 
   String get authorFlairTextColor => _data['author_flair_text_color'];
 
@@ -355,7 +454,7 @@ class PostData with ThingData, CreatedData, GildableData,
 
   String get authorName => _data['author'];
 
-  int get bannedAtUtc => _parseNum(_data['banned_at_utc']);
+  int get bannedAtUtc => _parseNum(_data['banned_at_utc'])!;
 
   String get bannedBy => _data['banned_by'];
 
@@ -363,17 +462,17 @@ class PostData with ThingData, CreatedData, GildableData,
 
   bool get canModPost => _data['can_mod_post'];
 
-  int get commentCount => _parseNum(_data['num_comments']);
+  int get commentCount => _parseNum(_data['num_comments'])!;
 
-  Iterable<String> get contentCategories => _castList(_data['content_categories']);
+  Iterable<String> get contentCategories => _castList(_data['content_categories'])!;
 
-  int get crosspostCount => _parseNum(_data['num_crossposts']);
+  int get crosspostCount => _parseNum(_data['num_crossposts'])!;
 
   String get distinguishment => _data['distinguished'];
 
   String get domainName => _data['domain'];
 
-  int get editedAtUtc => _parseNum(_data['edited']);
+  int get editedAtUtc => _parseNum(_data['edited'])!;
 
   bool get isClicked => _data['clicked'];
 
@@ -429,7 +528,7 @@ class PostData with ThingData, CreatedData, GildableData,
 
   String get modReasonTitle => _data['mod_reason_title'];
 
-  Iterable<String> get modReports => _castList<String>(_data['mod_reports']);
+  Iterable<String> get modReports => _castList<String>(_data['mod_reports'])!;
 
   String get parentWhitelistStatus => _data['parent_whitelist_status'];
 
@@ -437,20 +536,20 @@ class PostData with ThingData, CreatedData, GildableData,
 
   String get postHint => _data['post_hint'];
 
-  PreviewData get preview {
+  PreviewData? get preview {
     final preview = _data['preview'];
     return preview != null ? PreviewData(preview) : null;
   }
 
   String get removalReason => _data['removal_reason'];
 
-  int get reportCount => _parseNum(_data['num_reports']);
+  int get reportCount => _parseNum(_data['num_reports'])!;
 
-  Iterable<String> get reportReasons => _castList<String>(_data['report_reasons']);
+  Iterable<String> get reportReasons => _castList<String>(_data['report_reasons'])!;
 
-  String get selfText => _data['selftext'];
+  String? get selfText => _data['selftext'];
 
-  String get selfTextHtml => _data['selftext_html'];
+  String? get selfTextHtml => _data['selftext_html'];
 
   bool get sendReplies => _data['send_replies'];
 
@@ -458,21 +557,21 @@ class PostData with ThingData, CreatedData, GildableData,
 
   String get subredditName => _data['subreddit'];
 
-  int get subredditSubscriberCount => _parseNum(_data['subreddit_subscribers']);
+  int get subredditSubscriberCount => _parseNum(_data['subreddit_subscribers'])!;
 
   String get suggestedSort => _data['suggested_sort'];
 
   String get subredditVisibility => _data['subreddit_type'];
 
-  String get thumbnailUrl => _parseString(_data['thumbnail'], exclude: const ['default']);
+  String? get thumbnailUrl => _parseString(_data['thumbnail'], exclude: const ['default']);
 
   String get title => _data['title'];
 
-  String get url => _data['url'];
+  String? get url => _data['url'];
 
-  Iterable<String> get userReports => _castList<String>(_data['user_reports']);
+  Iterable<String> get userReports => _castList<String>(_data['user_reports'])!;
 
-  int get viewCount => _parseNum(_data['view_count']);
+  int get viewCount => _parseNum(_data['view_count'])!;
 
   String get whitelistStatus => _data['whitelist_status'];
 }
@@ -495,31 +594,31 @@ class SubredditData with ThingData, CreatedData {
   @override
   String get kind => 't5';
 
-  int get activeUserCount => _parseNum(_data["active_user_count"]);
+  int get activeUserCount => _parseNum(_data["active_user_count"])!;
 
-  int get bannerBackgroundColor => _parseColor(_data['banner_background_color']);
+  int get bannerBackgroundColor => _parseColor(_data['banner_background_color'])!;
 
-  String get bannerImageUrl => _parseString(_data['banner_background_image']) ?? _parseString(_data["banner_img"]);
+  String get bannerImageUrl => _parseString(_data['banner_background_image']) ?? _parseString(_data["banner_img"])!;
 
   String get description => _data["description"];
 
   String get displayName => _data["display_name"] ?? _data['name'];
 
-  String get headerImageUrl => _parseString(_data["header_img"]);
+  String get headerImageUrl => _parseString(_data["header_img"])!;
 
-  String get iconImageUrl => _parseString(_data['community_icon']) ?? _parseString(_data['icon_img']);
+  String get iconImageUrl => _parseString(_data['community_icon']) ?? _parseString(_data['icon_img'])!;
 
   bool get isOver18 => _data["over_18"];
 
   bool get isPublic => (_data['subreddit_type'] == 'public');
 
-  int get keyColor => _parseColor(_data['key_color']);
+  int get keyColor => _parseColor(_data['key_color'])!;
 
-  int get primaryColor => _parseColor(_data['primary_color']);
+  int get primaryColor => _parseColor(_data['primary_color'])!;
 
   String get publicDescription => _data['public_description'];
 
-  int get subscriberCount => _parseNum(_data['subscriber_count']) ?? _parseNum(_data["subscribers"]);
+  int get subscriberCount => _parseNum(_data['subscriber_count']) ?? _parseNum(_data["subscribers"])!;
 
   bool get userIsModerator => _data['user_is_moderator'];
 
@@ -536,15 +635,14 @@ class ListingData<T extends ThingData> {
 
   final Map _data;
 
-  String get nextId => _data['after'];
+  String? get nextId => _data['after'];
 
-  String get previousId => _data['before'];
+  String? get previousId => _data['before'];
 
   Iterable<T> get things sync* {
     final Iterable items = _data['children'] ?? _data['things'];
     for (final item in items) {
-      yield ThingData.from(item);
+      yield ThingData.from(item) as T;
     }
   }
 }
-

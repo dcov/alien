@@ -18,17 +18,16 @@ import 'sort_bottom_sheet.dart';
 class _FeedPageView extends StatelessWidget {
 
   _FeedPageView({
-    Key key,
-    @required this.posts,
-  }) : assert(posts != null),
-       super(key: key);
+    Key? key,
+    required this.posts,
+  }) : super(key: key);
 
   final FeedPosts posts;
 
-  List<Parameter> get _sortParameters {
+  List<RedditArg> get _sortArgs {
     switch (posts.type) {
       case Feed.home:
-        return <HomeSort>[
+        return const <HomeSort>[
           HomeSort.best,
           HomeSort.hot,
           HomeSort.newest,
@@ -38,7 +37,7 @@ class _FeedPageView extends StatelessWidget {
         ];
       case Feed.popular:
       case Feed.all:
-        return <SubredditSort>[
+        return const <SubredditSort>[
           SubredditSort.hot,
           SubredditSort.newest,
           SubredditSort.controversial,
@@ -46,7 +45,6 @@ class _FeedPageView extends StatelessWidget {
           SubredditSort.rising
         ];
     }
-    return null;
   }
 
   @override
@@ -96,15 +94,15 @@ class _FeedPageView extends StatelessWidget {
               Connector(
                 builder: (BuildContext context) {
                   return SortSliver(
-                    parameters: _sortParameters,
+                    sortArgs: _sortArgs,
                     currentSortBy: posts.sortBy,
                     currentSortFrom: posts.sortFrom,
-                    onSort: (Parameter parameter, TimeSort sortFrom) {
+                    onSort: (RedditArg sortBy, TimeSort? sortFrom) {
                       context.then(
                         Then(TransitionFeedPosts(
                           posts: posts,
                           to: ListingStatus.refreshing,
-                          sortBy: parameter,
+                          sortBy: sortBy,
                           sortFrom: sortFrom)));
                     });
                 }),
@@ -117,8 +115,8 @@ class _FeedPageView extends StatelessWidget {
 class _FeedPage extends EntryPage {
 
   _FeedPage({
-    @required this.posts,
-    @required String name,
+    required this.posts,
+    required String name,
   }) : super(name: name);
 
   final FeedPosts posts;
@@ -137,11 +135,9 @@ class _FeedPage extends EntryPage {
 String feedPageNameFrom(Feed feed) => feed.displayName;
 
 void _showFeedPage({
-    @required BuildContext context,
-    @required Feed feed
+    required BuildContext context,
+    required Feed feed
   }) {
-  assert(context != null);
-  assert(feed != null);
   /// Create the FeedPosts model
   final posts = postsFromFeed(feed);
 
@@ -162,8 +158,8 @@ void _showFeedPage({
 class FeedTile extends StatelessWidget {
 
   FeedTile({
-    Key key,
-    @required this.feed,
+    Key? key,
+    required this.feed,
   }) : super(key: key);
 
   final Feed feed;
@@ -177,7 +173,6 @@ class FeedTile extends StatelessWidget {
       case Feed.all:
         return Icons.all_inclusive;
     }
-    throw ArgumentError('Invalid Feed.type value');
   }
 
   @override
@@ -194,4 +189,3 @@ class FeedTile extends StatelessWidget {
           fontWeight: FontWeight.w500)));
   }
 }
-

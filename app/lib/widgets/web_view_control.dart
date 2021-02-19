@@ -4,17 +4,16 @@ import 'package:webview_flutter/webview_flutter.dart';
 class WebViewControl extends StatefulWidget {
 
   WebViewControl({
-    Key key,
-    @required this.url,
+    Key? key,
+    required this.url,
     this.onPageFinished,
     this.javascriptEnabled = false,
     this.gestureNavigationEnabled = false,
-  }) : assert(url != null),
-       super(key: key);
+  }) : super(key: key);
 
   final String url;
 
-  final PageFinishedCallback onPageFinished;
+  final PageFinishedCallback? onPageFinished;
 
   final bool javascriptEnabled;
 
@@ -26,7 +25,7 @@ class WebViewControl extends StatefulWidget {
 
 class _WebViewControlState extends State<WebViewControl> {
 
-  WebViewController _controller;
+  late WebViewController _controller;
 
   @override
   void didUpdateWidget(WebViewControl oldWidget) {
@@ -38,7 +37,7 @@ class _WebViewControlState extends State<WebViewControl> {
 
   @override
   void dispose() {
-    _controller?.clearCache();
+    _controller.clearCache();
     WebView.platform.clearCookies();
     super.dispose();
   }
@@ -54,4 +53,3 @@ class _WebViewControlState extends State<WebViewControl> {
       onPageFinished: widget.onPageFinished);
   }
 }
-

@@ -12,15 +12,16 @@ enum ThumbnailStatus {
 abstract class Media implements Model {
 
   factory Media({
-    String source,
-    ThumbnailStatus thumbnailStatus,
-    String thumbnail
+    required String source,
+    required ThumbnailStatus thumbnailStatus,
+    String? thumbnail
   }) = _$Media;
 
   String get source;
 
-  ThumbnailStatus thumbnailStatus;
+  ThumbnailStatus get thumbnailStatus;
+  set thumbnailStatus(ThumbnailStatus value);
 
-  String thumbnail;
+  String? get thumbnail;
+  set thumbnail(String? value);
 }
-

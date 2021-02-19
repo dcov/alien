@@ -1,8 +1,8 @@
 import 'logic/init.dart';
 import 'views/init_view.dart';
 
-import 'config.dart';
 import 'effects.dart';
+import 'reddit_credentials.dart';
 
 void main() {
   const runInScriptMode = bool.hasEnvironment('script_mode');
@@ -20,4 +20,3 @@ void main() {
       isInScriptMode: runInScriptMode),
     view: InitView());
 }
-

@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 
 import '../effects.dart';
 import '../models/media.dart';
@@ -7,8 +6,8 @@ import '../models/media.dart';
 class LoadThumbnail implements Update {
 
   LoadThumbnail({
-    @required this.media
-  }) : assert(media != null);
+    required this.media
+  });
 
   final Media media;
 
@@ -23,8 +22,8 @@ class LoadThumbnail implements Update {
 class _GetThumbnail implements Effect {
 
   _GetThumbnail({
-    @required this.media
-  }) : assert(media != null);
+    required this.media
+  });
 
   final Media media;
 
@@ -56,14 +55,13 @@ class _GetThumbnail implements Effect {
 class _UpdateThumbnail implements Update {
 
   _UpdateThumbnail({
-    @required this.media,
-    @required this.thumbnail
-  }) : assert(media != null),
-       assert(thumbnail != null);
+    required this.media,
+    this.thumbnail
+  });
 
   final Media media;
 
-  final String thumbnail;
+  final String? thumbnail;
 
   @override
   Then update(_) {
@@ -80,8 +78,8 @@ class _UpdateThumbnail implements Update {
 class _GetThumbnailFailed implements Update {
 
   _GetThumbnailFailed({
-    @required this.media
-  }) : assert(media != null);
+    required this.media
+  });
 
   final Media media;
 
@@ -91,4 +89,3 @@ class _GetThumbnailFailed implements Update {
     return Then.done();
   }
 }
-

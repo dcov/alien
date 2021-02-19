@@ -24,32 +24,32 @@ class PostLink implements Link {
   final String permalink;
 }
 
-final RegExp _nameExp = RegExp(r'^[A-Za-z0-9]+/?$');
-final RegExp _subredditPrefixExp = RegExp(r'^(/?r/)');
-final RegExp _postCommentsExp = RegExp(r'(comments)/[A-Za-z0-9]+/');
-final RegExp _accountPrefixExp = RegExp(r'^(/?(u|user)/)');
+final _nameExp = RegExp(r'^[A-Za-z0-9]+/?$');
+final _subredditPrefixExp = RegExp(r'^(/?r/)');
+final _postCommentsExp = RegExp(r'(comments)/[A-Za-z0-9]+/');
+final _accountPrefixExp = RegExp(r'^(/?(u|user)/)');
 
 Link matchLink(String url) {
 
   final Uri uri = Uri.parse(url);
 
-  if (uri.host == 'www.reddit.com' || uri.host?.isEmpty == true) {
+  if (uri.host == 'www.reddit.com' || uri.host.isEmpty) {
     // Try to match to a reddit related thing
-    String path = uri.path;
-    Match match = _subredditPrefixExp.firstMatch(path);
+    var path = uri.path;
+    var match = _subredditPrefixExp.firstMatch(path);
     if (match != null) {
       /// It's either a SubredditReference or LinkReference
       path = path.substring(match.end);
       match = _nameExp.firstMatch(path);
       if (match != null) {
         /// It's a SubredditReference because the path ends with the name.
-        return SubredditLink(match.group(0).replaceAll('/', ''));
+        return SubredditLink(match.group(0)!.replaceAll('/', ''));
       }
 
       match = _postCommentsExp.firstMatch(path);
       if (match != null) {
         return PostLink(
-          match.group(0).replaceAll('comments/', '').replaceAll('/', ''),
+          match.group(0)!.replaceAll('comments/', '').replaceAll('/', ''),
           uri.path
         );
       }
@@ -63,7 +63,7 @@ Link matchLink(String url) {
       path = path.substring(match.end);
       match =_nameExp.firstMatch(path);
       if (match != null) {
-        return AccountLink(match.group(0).replaceAll('/', ''));
+        return AccountLink(match.group(0)!.replaceAll('/', ''));
       }
 
       return ExternalLink(url);

@@ -13,16 +13,12 @@ enum _SlidableLayoutSlot {
 class _SlidableLayout extends CustomRenderObjectWidget {
 
   _SlidableLayout({
-    Key key,
-    @required Widget foreground,
-    @required Widget background,
-    @required this.animation,
-    @required this.onDraggableExtent
-  }) : assert(foreground != null),
-       assert(background != null),
-       assert(animation != null),
-       assert(onDraggableExtent != null),
-       super(
+    Key? key,
+    required Widget foreground,
+    required Widget background,
+    required this.animation,
+    required this.onDraggableExtent
+  }) : super(
          key: key,
          children: <dynamic, Widget>{
            _SlidableLayoutSlot.foreground : foreground,
@@ -52,16 +48,13 @@ class _RenderSlidableLayout extends RenderBox
          CustomRenderBoxDefaultsMixin {
 
   _RenderSlidableLayout({
-    @required Animation<double> animation,
-    @required ValueChanged<double> onDraggableExtent
-  }) : assert(animation != null),
-       assert(onDraggableExtent != null),
-       _animation = animation,
+    required Animation<double> animation,
+    required ValueChanged<double> onDraggableExtent
+  }) : _animation = animation,
        _onDraggableExtent = onDraggableExtent;
 
   Animation<double> _animation;
   set animation(Animation<double> value) {
-    assert(value != null);
     if (value == _animation)
       return;
     _animation = value;
@@ -72,7 +65,6 @@ class _RenderSlidableLayout extends RenderBox
 
   ValueChanged<double> _onDraggableExtent;
   set onDraggableExtent(ValueChanged<double> value) {
-    assert(value != null);
     _onDraggableExtent = value;
   }
 
@@ -123,7 +115,7 @@ class _RenderSlidableLayout extends RenderBox
         _SlidableLayoutSlot.background,
         BoxConstraints.tight(Size(
           draggableProgress,
-          foregroundSize.height)));
+          foregroundSize!.height)));
 
     positionChild(
         _SlidableLayoutSlot.background,
@@ -136,15 +128,12 @@ class _RenderSlidableLayout extends RenderBox
 class SlidableAction {
 
   SlidableAction({
-    @required this.onTriggered,
-    @required this.icon,
-    @required this.iconColor,
-    @required this.backgroundColor,
+    required this.onTriggered,
+    required this.icon,
+    required this.iconColor,
+    required this.backgroundColor,
     this.preBackgroundColor
-  }) : assert(onTriggered != null),
-       assert(icon != null),
-       assert(iconColor != null),
-       assert(backgroundColor != null);
+  });
 
   final VoidCallback onTriggered;
 
@@ -154,18 +143,16 @@ class SlidableAction {
 
   final Color backgroundColor;
 
-  final Color preBackgroundColor;
+  final Color? preBackgroundColor;
 }
 
 class Slidable extends StatefulWidget {
 
   Slidable({
-    Key key,
-    @required this.child,
+    Key? key,
+    required this.child,
     this.actions = const <SlidableAction>[]
-  }) : assert(child != null),
-       assert(actions != null),
-       super(key: key);
+  }) : super(key: key);
 
   final Widget child;
 
@@ -177,8 +164,8 @@ class Slidable extends StatefulWidget {
 
 class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin {
 
-  AnimationController _controller;
-  ValueNotifier<SlidableAction> _currentAction;
+  late AnimationController _controller;
+  late ValueNotifier<SlidableAction?> _currentAction;
 
   /// The number of sections that a user can drag through. It's determined by the number of actions, and an
   /// initial 'blank' section.
@@ -186,7 +173,7 @@ class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin
 
   /// The size of each section relative to the controller's upperBound. This is relatively cheap to calculate, but is
   /// still memoized because it's used by multiple components.
-  double _sectionSize;
+  late double _sectionSize;
 
   /// This should be called in [initState] and [didUpdateWidget] to update the size of the sections which can change
   /// based on how many actions are passed in.
@@ -202,7 +189,7 @@ class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin
         milliseconds: 250),
       value: 0.0,
       vsync: this);
-    _currentAction = ValueNotifier<SlidableAction>(null);
+    _currentAction = ValueNotifier<SlidableAction?>(null);
     _setSectionSize();
   }
 
@@ -231,13 +218,13 @@ class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin
 
   void _handleDragUpdate(DragUpdateDetails details) {
     assert(_draggableExtent > 0);
-    _controller.value -= details.primaryDelta / _draggableExtent;
+    _controller.value -= details.primaryDelta! / _draggableExtent;
     _determineCurrentAction();
   }
 
   void _handleDragEnd(DragEndDetails details) {
     if (_currentAction.value != null) {
-      _currentAction.value.onTriggered();
+      _currentAction.value!.onTriggered();
     }
     _controller.fling(velocity: -1.0);
   }
@@ -253,7 +240,7 @@ class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin
         foreground: widget.child,
         background: ValueListenableBuilder(
           valueListenable: _currentAction,
-          builder: (_, SlidableAction action, __) {
+          builder: (_, SlidableAction? action, __) {
             if (action == null) {
               if (widget.actions.isEmpty) {
                 return Material();
@@ -266,7 +253,7 @@ class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin
                   curve: Interval(0.0, _sectionSize)),
                 builder: (_, double value, __) {
                   return Material(
-                    color: firstAction.preBackgroundColor.withOpacity(value),
+                    color: firstAction.preBackgroundColor!.withOpacity(value),
                     child: Center(
                       child: Icon(
                         firstAction.icon,
@@ -283,4 +270,3 @@ class _SlidableState extends State<Slidable> with SingleTickerProviderStateMixin
           })));
   }
 }
-

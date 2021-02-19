@@ -9,8 +9,8 @@ abstract class User {
 class AppUser extends User {
 
   AppUser({
-    String name,
-    this.token
+    required String name,
+    required this.token
   }) : super(name);
 
   final String token;
@@ -19,4 +19,3 @@ class AppUser extends User {
 class ScriptUser extends User {
   ScriptUser(String name) : super(name);
 }
-

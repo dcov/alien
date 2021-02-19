@@ -4,17 +4,15 @@ import 'package:reddit/reddit.dart';
 import '../models/media.dart';
 import '../models/snudown.dart';
 
-import 'media.dart';
-
 typedef _OnLinkMatched<L extends Link> = void Function(String href, L link);
 
 class _SnudownMatcher implements NodeVisitor {
 
   _SnudownMatcher({
-    this.onAccountLink,
-    this.onPostLink,
-    this.onSubredditLink,
-    this.onExternalLink,
+    required this.onAccountLink,
+    required this.onPostLink,
+    required this.onSubredditLink,
+    required this.onExternalLink,
   });
 
   final _OnLinkMatched<AccountLink> onAccountLink;
@@ -25,8 +23,8 @@ class _SnudownMatcher implements NodeVisitor {
   @override
   bool visitElementBefore(Element element) {
     if (element.tag == 'a') {
-      final String href = element.attributes['href'];
-      final Link link = matchLink(href);
+      final href = element.attributes['href']!;
+      final link = matchLink(href);
       if (link is AccountLink)
         onAccountLink(href, link);
       else if (link is PostLink)
@@ -54,8 +52,8 @@ class _AccountSyntax extends InlineSyntax {
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    final String username = match[0];
-    final Element anchor = Element.text('a', username);
+    final username = match[0]!;
+    final anchor = Element.text('a', username);
     anchor.attributes['href'] = username;
     parser.addNode(anchor);
 
@@ -70,8 +68,8 @@ class _SubredditSyntax extends InlineSyntax {
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    final String subredditName = match[0];
-    final Element anchor = Element.text('a', subredditName);
+    final subredditName = match[0]!;
+    final anchor = Element.text('a', subredditName);
     anchor.attributes['href'] = subredditName;
     parser.addNode(anchor);
 
@@ -104,18 +102,19 @@ void parseMarkdownIntoSnudown(String data, Snudown snudown) {
 
   final hrefsToRemove = snudown.links.keys.toList();
 
-  void put<T>(String href, { bool checkIfMatches(T link), T onAbsent() }) {
+  void put<T>(String href, { required bool checkIfMatches(T link), required T onAbsent() }) {
     hrefsToRemove.remove(href);
     if (snudown.links[href] == null) {
-      T link;
-      for (final Object value in snudown.links.values) {
-        if (value is T && checkIfMatches(value)) {
-          link = value;
+      late T link;
+      for (final value in snudown.links.values) {
+        final T? tv = value is T ? value as T : null;
+        if (tv != null && checkIfMatches(tv)) {
+          link = tv;
           break;
         }
       }
       link ??= onAbsent();
-      snudown.links[href] = link;
+      snudown.links[href] = link as Object;
     }
   }
 
@@ -133,7 +132,7 @@ void parseMarkdownIntoSnudown(String data, Snudown snudown) {
       put(
         href,
         checkIfMatches: (Media media) => media.source == link.ref,
-        onAbsent: () => Media(source: link.ref));
+        onAbsent: () => Media(source: link.ref, thumbnailStatus: ThumbnailStatus.notLoaded));
     });
 
   snudown.nodes.forEach((Node node) {
@@ -148,4 +147,3 @@ Snudown snudownFromMarkdown(String markdown) {
   parseMarkdownIntoSnudown(markdown, snudown);
   return snudown;
 }
-

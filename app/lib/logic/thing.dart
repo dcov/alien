@@ -8,4 +8,3 @@ extension ThingExtensions on Thing {
   /// a 'full' id.
   String get fullId => '${this.kind}_${this.id}';
 }
-

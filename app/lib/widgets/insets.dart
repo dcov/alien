@@ -8,4 +8,3 @@ EdgeInsets paddingWithLeftDepth(double padding, int depth) {
     padding,
   );
 }
-

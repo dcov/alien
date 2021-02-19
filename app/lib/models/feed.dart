@@ -15,9 +15,10 @@ enum Feed {
 abstract class FeedPosts implements Model {
 
   factory FeedPosts({
-    Feed type,
-    Parameter sortBy,
-    Listing<Post> listing,
+    required Feed type,
+    required RedditArg sortBy,
+    TimeSort? sortFrom,
+    required Listing<Post> listing,
   }) = _$FeedPosts;
 
   Feed get type;
@@ -25,12 +26,13 @@ abstract class FeedPosts implements Model {
   /// The value to use when sorting the posts.
   /// If [type] is [FeedType.home] this should be a [HomeSort] value; If [type] is [FeedType.popular] or [FeedType.all]
   /// this should be a [SubredditSort] value.
-  Parameter sortBy;
+  RedditArg get sortBy;
+  set sortBy(RedditArg value);
 
   /// Because both of the possible [sortBy] types ([HomeSort] and [SubredditSort]), are [TimedParameter]s, this is the
   /// time aspect to those sort values.
-  TimeSort sortFrom;
+  TimeSort? get sortFrom;
+  set sortFrom(TimeSort? value);
 
-  Listing<Post> listing;
+  Listing<Post> get listing;
 }
-

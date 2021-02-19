@@ -4,19 +4,16 @@ import 'package:reddit/reddit.dart';
 import '../widgets/pressable.dart';
 import '../widgets/tile.dart';
 
-class _ParameterTile extends StatelessWidget {
+class _SortArgTile extends StatelessWidget {
 
-  _ParameterTile({
-    Key key,
-    @required this.parameter,
-    @required this.isCurrentSelection,
-    @required this.onTap,
-  }) : assert(parameter != null),
-       assert(isCurrentSelection != null),
-       assert(onTap != null),
-       super(key: key);
+  _SortArgTile({
+    Key? key,
+    required this.sortArg,
+    required this.isCurrentSelection,
+    required this.onTap,
+  }) : super(key: key);
 
-  final Parameter parameter;
+  final RedditArg sortArg;
 
   final bool isCurrentSelection;
 
@@ -27,7 +24,7 @@ class _ParameterTile extends StatelessWidget {
     return CustomTile(
       onTap: onTap,
       title: Text(
-        parameter.name,
+        sortArg.name,
         style: TextStyle(
           fontSize: 14.0,
           fontWeight: FontWeight.w500,
@@ -35,65 +32,75 @@ class _ParameterTile extends StatelessWidget {
   }
 }
 
-typedef SortParameterCallback<T extends Parameter> = void Function(T sortBy, TimeSort sortFrom);
+typedef SortArgCallback<T extends RedditArg> = void Function(T sortBy, TimeSort? sortFrom);
 
-class _SortBottomSheet<T extends Parameter> extends StatefulWidget {
+class _SortBottomSheet<T extends RedditArg> extends StatefulWidget {
 
   _SortBottomSheet({
-    Key key,
-    @required this.parameters,
-    @required this.currentSortBy,
+    Key? key,
+    required this.sortArgs,
+    required this.currentSortBy,
     this.currentSortFrom,
-    @required this.onSort
-  }) : assert(parameters != null),
-       assert(currentSortBy != null),
-       assert(onSort != null),
-       super(key: key);
+    required this.onSort
+  }) : super(key: key);
 
-  final List<T> parameters;
+  final List<T> sortArgs;
 
   final T currentSortBy;
 
-  final TimeSort currentSortFrom;
+  final TimeSort? currentSortFrom;
 
-  final SortParameterCallback<T> onSort;
+  final SortArgCallback<T> onSort;
 
   @override
   _SortBottomSheetState<T> createState() => _SortBottomSheetState<T>();
 }
 
-class _SortBottomSheetState<T extends Parameter> extends State<_SortBottomSheet<T>> {
+class _SortBottomSheetState<T extends RedditArg> extends State<_SortBottomSheet<T>> {
 
-  List<Parameter> _currentParameters;
-  Parameter _selectedTimedParameter;
+  late List<RedditArg> _currentSortArgs;
+
+  // A sort arg that is being further sorted by a TimeSort value.
+  T? _selectedTimedArg;
 
   @override
   void initState() {
     super.initState();
-    _currentParameters = widget.parameters;
+    _currentSortArgs = widget.sortArgs;
   }
 
-  void _handleSelection(BuildContext context, Parameter parameter) {
-    if (parameter is TimeSort) {
-      assert(_selectedTimedParameter != null);
+  void _handleSelection(BuildContext context, RedditArg sortArg) {
+    if (sortArg is TimeSort) {
+      assert(_selectedTimedArg != null);
       Navigator.pop(context);
-      widget.onSort(_selectedTimedParameter, parameter);
-    } else if (parameter is TimedParameter && parameter.isTimed) {
-      setState(() {
-        _currentParameters = const <Parameter>[
-          TimeSort.hour,
-          TimeSort.day,
-          TimeSort.week,
-          TimeSort.month,
-          TimeSort.year,
-          TimeSort.all
-        ];
-        _selectedTimedParameter = parameter;
-      });
+      widget.onSort(_selectedTimedArg!, sortArg);
     } else {
-      Navigator.pop(context);
-      widget.onSort(parameter, null);
+      assert(sortArg is T);
+      if (sortArg is TimedParameter && sortArg.isTimed) {
+        setState(() {
+          // TODO: Move this const list to be a property of TimeSort instead.
+          _currentSortArgs = const <RedditArg>[
+            TimeSort.hour,
+            TimeSort.day,
+            TimeSort.week,
+            TimeSort.month,
+            TimeSort.year,
+            TimeSort.all
+          ];
+          _selectedTimedArg = sortArg as T;
+        });
+      } else {
+        Navigator.pop(context);
+        widget.onSort(sortArg as T, null);
+      }
     }
+  }
+
+  bool _isCurrentSelection(RedditArg sortArg) {
+    if (sortArg is TimeSort) {
+      return sortArg == widget.currentSortFrom;
+    }
+    return sortArg == widget.currentSortBy;
   }
 
   @override
@@ -103,29 +110,29 @@ class _SortBottomSheetState<T extends Parameter> extends State<_SortBottomSheet<
       maxChildSize: 2/3,
       builder: (BuildContext context, ScrollController controller) {
         return AnimatedSwitcher(
-          key: ValueKey(_currentParameters),
+          // We ensure that it only animates when _currentSortArgs changes by
+          // using a ValueKey with it.
+          key: ValueKey(_currentSortArgs),
           duration: const Duration(milliseconds: 250),
           child: ListView(
             controller: controller,
             shrinkWrap: true,
-            children: _currentParameters.map((Parameter parameter) {
-              return _ParameterTile(
-                parameter: parameter,
-                isCurrentSelection: parameter is TimeSort 
-                    ? parameter == widget.currentSortFrom
-                    : parameter == widget.currentSortBy,
-                onTap: () => _handleSelection(context, parameter));
+            children: _currentSortArgs.map((RedditArg sortArg) {
+              return _SortArgTile(
+                sortArg: sortArg,
+                isCurrentSelection: _isCurrentSelection(sortArg),
+                onTap: () => _handleSelection(context, sortArg));
             }).toList()));
       });
   }
 }
 
-void showSortBottomSheet<T extends Parameter>({
-    @required BuildContext context,
-    @required List<T> parameters,
-    @required T currentSortBy,
-    TimeSort currentSortFrom,
-    @required SortParameterCallback<T> onSort,
+void showSortBottomSheet<T extends RedditArg>({
+    required BuildContext context,
+    required List<T> sortArgs,
+    required T currentSortBy,
+    TimeSort? currentSortFrom,
+    required SortArgCallback<T> onSort,
   }) {
   showModalBottomSheet(
     context: context,
@@ -133,33 +140,30 @@ void showSortBottomSheet<T extends Parameter>({
     isScrollControlled: true,
     builder: (BuildContext context) {
       return _SortBottomSheet<T>(
-        parameters: parameters,
+        sortArgs: sortArgs,
         currentSortBy: currentSortBy,
         currentSortFrom: currentSortFrom,
         onSort: onSort);
     });
 }
 
-class SortSliver<T extends Parameter> extends StatelessWidget {
+class SortSliver<T extends RedditArg> extends StatelessWidget {
 
   SortSliver({
-    Key key,
-    @required this.parameters,
-    @required this.currentSortBy,
+    Key? key,
+    required this.sortArgs,
+    required this.currentSortBy,
     this.currentSortFrom,
-    @required this.onSort
-  }) : assert(parameters != null),
-       assert(currentSortBy != null),
-       assert(onSort != null),
-       super(key: key);
+    required this.onSort
+  }) : super(key: key);
 
-  final List<T> parameters;
+  final List<T> sortArgs;
 
   final T currentSortBy;
 
-  final TimeSort currentSortFrom;
+  final TimeSort? currentSortFrom;
 
-  final SortParameterCallback <T> onSort;
+  final SortArgCallback <T> onSort;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +171,7 @@ class SortSliver<T extends Parameter> extends StatelessWidget {
     final title = StringBuffer(currentSortBy.name.toUpperCase());
     if (currentSortFrom != null) {
       title..write(' ')
-           ..write(currentSortFrom.name.toUpperCase());
+           ..write(currentSortFrom!.name.toUpperCase());
     }
 
     return SliverToBoxAdapter(
@@ -178,7 +182,7 @@ class SortSliver<T extends Parameter> extends StatelessWidget {
           onPress: () {
             showSortBottomSheet<T>(
               context: context,
-              parameters: parameters,
+              sortArgs: sortArgs,
               currentSortBy: currentSortBy,
               currentSortFrom: currentSortFrom,
               onSort: onSort);
@@ -204,4 +208,3 @@ class SortSliver<T extends Parameter> extends StatelessWidget {
               ])))));
   }
 }
-

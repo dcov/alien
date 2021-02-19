@@ -20,4 +20,3 @@ Comment commentFromData(CommentData data) {
     score: data.score,
     voteDir: data.voteDir);
 }
-

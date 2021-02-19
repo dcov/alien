@@ -8,30 +8,30 @@ import '../widgets/pressable.dart';
 
 import 'login_screen.dart';
 
-Future<bool> _showRemoveConfirmationDialog({
-    @required BuildContext context,
-    @required User user,
+Future<bool?> _showRemoveConfirmationDialog({
+    required BuildContext context,
+    required User user,
   }) {
-  assert(context != null);
-  assert(user != null);
   return showDialog<bool>(
     context: context,
     useRootNavigator: true,
-    child: AlertDialog(
-      title: Text(
-        'Logout ${user.name}'),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () {
-            Navigator.of(context, rootNavigator: true).pop(true);
-          },
-          child: Text('Confirm')),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context, rootNavigator: true).pop(false);
-          },
-          child: Text('Cancel'))
-      ]));
+    builder: (_) {
+      return AlertDialog(
+        title: Text(
+          'Logout ${user.name}'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).pop(true);
+            },
+            child: Text('Confirm')),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).pop(false);
+            },
+            child: Text('Cancel'))
+        ]);
+    });
 }
 
 void _removeUser(BuildContext context, User user) async {
@@ -39,7 +39,7 @@ void _removeUser(BuildContext context, User user) async {
     context: context,
     user: user);
 
-  if (remove) {
+  if (remove == true) {
     context.then(Then(LogOutUser(user: user)));
 
     /// Pop the accounts bottom sheet
@@ -50,23 +50,21 @@ void _removeUser(BuildContext context, User user) async {
 class _AccountTile extends StatelessWidget {
 
   _AccountTile({
-    Key key,
+    Key? key,
     this.user,
-    @required this.isCurrentAccount,
-    @required this.onSelect,
+    required this.isCurrentAccount,
+    required this.onSelect,
     this.onRemove,
-  }) : assert(isCurrentAccount != null),
-       assert(onSelect != null),
-       assert((onRemove != null && user != null) || (onRemove == null && user == null)),
+  }) : assert((onRemove != null && user != null) || (onRemove == null && user == null)),
        super(key: key);
 
-  final User user;
+  final User? user;
 
   final bool isCurrentAccount;
 
   final VoidCallback onSelect;
 
-  final VoidCallback onRemove;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +75,7 @@ class _AccountTile extends StatelessWidget {
         child: Row(
           children: <Widget>[
             Text(
-              user != null ? user.name : 'Anonymous',
+              user?.name ?? 'Anonymous',
               style: TextStyle(
                 fontSize: 14.0,
                 fontWeight: FontWeight.w500)),
@@ -86,13 +84,13 @@ class _AccountTile extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(left: 16.0),
                 child: PressableIcon(
-                  onPress: onRemove,
+                  onPress: onRemove!,
                   icon: Icons.close))
           ])));
   }
 }
 
-void _switchUser(BuildContext context, User to) {
+void _switchUser(BuildContext context, User? to) {
   /// Switch the currently signed in user
   context.then(Then(SwitchUser(to: to)));
 
@@ -101,11 +99,9 @@ void _switchUser(BuildContext context, User to) {
 }
 
 void showAccountsBottomSheet({
-    @required BuildContext context,
-    @required Accounts accounts,
+    required BuildContext context,
+    required Accounts accounts,
   }) {
-  assert(context != null);
-  assert(accounts != null);
   final dividerColor = Colors.grey.shade700;
   showModalBottomSheet(
     context: context,
@@ -168,4 +164,3 @@ void showAccountsBottomSheet({
         });
     });
 }
-

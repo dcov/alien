@@ -6,7 +6,7 @@ import 'shell.dart';
 class PaddedScrollView extends StatelessWidget {
 
   PaddedScrollView({
-    Key key,
+    Key? key,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
     this.controller,
@@ -23,15 +23,15 @@ class PaddedScrollView extends StatelessWidget {
 
   final Axis scrollDirection;
   final bool reverse;
-  final ScrollController controller;
-  final bool primary;
-  final ScrollPhysics physics;
+  final ScrollController? controller;
+  final bool? primary;
+  final ScrollPhysics? physics;
   final bool shrinkWrap;
-  final Key center;
+  final Key? center;
   final double anchor;
-  final double cacheExtent;
+  final double? cacheExtent;
   final List<Widget> slivers;
-  final int semanticChildCount;
+  final int? semanticChildCount;
   final DragStartBehavior dragStartBehavior;
 
   @override
@@ -63,4 +63,3 @@ class PaddedScrollView extends StatelessWidget {
     );
   }
 }
-

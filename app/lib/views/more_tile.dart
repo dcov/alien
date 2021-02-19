@@ -9,9 +9,9 @@ import '../widgets/pressable.dart';
 class MoreTile extends StatelessWidget {
 
   MoreTile({
-    Key key,
-    @required this.comments,
-    @required this.more
+    Key? key,
+    required this.comments,
+    required this.more
   }) : super(key: key);
 
   final PostComments comments;
@@ -45,4 +45,3 @@ class MoreTile extends StatelessWidget {
                 : Text('loading...', style: style)))));
     });
 }
-

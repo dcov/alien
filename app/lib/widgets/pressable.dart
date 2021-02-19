@@ -5,30 +5,28 @@ const Duration _kPressDuration = Duration(milliseconds: 100);
 class Pressable extends StatefulWidget {
 
   Pressable({
-    Key key,
+    Key? key,
     this.controller,
     this.alignment = Alignment.center,
     this.behavior = HitTestBehavior.translucent,
     this.onPress,
     this.onLongPress,
-    @required this.child,
-  }) : assert(alignment != null),
-       assert(child != null),
-       super(key: key);
+    required this.child,
+  }) : super(key: key);
 
-  final AnimationController controller;
+  final AnimationController? controller;
 
   final Alignment alignment;
 
   final HitTestBehavior behavior;
 
-  final VoidCallback onPress;
+  final VoidCallback? onPress;
 
-  final VoidCallback onLongPress;
+  final VoidCallback? onLongPress;
 
   final Widget child;
 
-  static AnimationController createController({ @required TickerProvider vsync }) {
+  static AnimationController createController({ required TickerProvider vsync }) {
     return AnimationController(
       duration: _kPressDuration,
       vsync: vsync,
@@ -43,16 +41,12 @@ class Pressable extends StatefulWidget {
 class _PressableState extends State<Pressable>
     with SingleTickerProviderStateMixin {
 
-  AnimationController _controller;
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    if (widget.controller != null) {
-      _controller = widget.controller;
-    } else {
-      _controller = Pressable.createController(vsync: this);
-    }
+    _controller = widget.controller ?? Pressable.createController(vsync: this);
   }
 
   @override
@@ -70,7 +64,7 @@ class _PressableState extends State<Pressable>
           // The current [_controller] was created by us so let's dispose it.
           _controller.dispose();
         }
-        _controller = widget.controller;
+        _controller = widget.controller!;
       }
     } else if (oldWidget.controller != null) {
       // We should've been using the controller given to us
@@ -98,7 +92,7 @@ class _PressableState extends State<Pressable>
   void _handleTapUp(_) {
     _controller.forward();
     if (widget.onPress != null) {
-      widget.onPress();
+      widget.onPress!();
     }
   }
 
@@ -108,7 +102,9 @@ class _PressableState extends State<Pressable>
 
   void _handleLongPress() {
     _controller.reverse();
-    widget.onLongPress();
+    if (widget.onLongPress != null) {
+      widget.onLongPress!();
+    }
   }
 
   void _handleLongPressUp() {
@@ -136,25 +132,24 @@ class _PressableState extends State<Pressable>
 class PressableIcon extends StatelessWidget {
 
   PressableIcon({
-    Key key,
+    Key? key,
     this.controller,
     this.behavior = HitTestBehavior.translucent,
-    @required this.onPress,
+    this.onPress,
     this.onLongPress,
-    @required this.icon,
-    this.iconColor,
+    required this.icon,
+    required this.iconColor,
     this.padding = EdgeInsets.zero,
   }) : assert(onPress != null),
-       assert(icon != null),
        super(key: key);
 
-  final AnimationController controller;
+  final AnimationController? controller;
 
   final HitTestBehavior behavior;
   
-  final VoidCallback onPress;
+  final VoidCallback? onPress;
 
-  final VoidCallback onLongPress;
+  final VoidCallback? onLongPress;
 
   final IconData icon;
 
@@ -176,4 +171,3 @@ class PressableIcon extends StatelessWidget {
           color: iconColor)));
   }
 }
-

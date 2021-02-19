@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -14,7 +13,7 @@ import 'user.dart';
 class RefreshDefaults implements Update {
 
   RefreshDefaults({
-    @required this.defaults
+    required this.defaults
   });
 
   final Refreshable<Subreddit> defaults;
@@ -22,7 +21,7 @@ class RefreshDefaults implements Update {
   @override
   Then update(AccountsOwner owner) {
     if (defaults.refreshing)
-      return null;
+      return Then.done();
     
     defaults..refreshing = true
             ..items.clear();
@@ -36,18 +35,18 @@ class RefreshDefaults implements Update {
 class GetDefaults implements Effect {
 
   GetDefaults({
-    @required this.defaults,
+    required this.defaults,
     this.user
   });
 
   final Refreshable<Subreddit> defaults;
 
-  final User user;
+  final User? user;
 
   @override
   Future<Then> effect(EffectContext context) {
     return context.clientFromUser(user)
-      .getSubreddits(
+      .getSubredditsWhere(
           Subreddits.defaults,
           Page(limit: Page.kMaxLimit))
       .then(
@@ -66,8 +65,8 @@ class GetDefaults implements Effect {
 class GetDefaultsSuccess implements Update {
 
   GetDefaultsSuccess({
-    @required this.defaults,
-    @required this.result
+    required this.defaults,
+    required this.result
   });
 
   final Refreshable<Subreddit> defaults;
@@ -93,7 +92,7 @@ class GetDefaultsSuccess implements Update {
 class GetDefaultsFailure implements Update {
 
   GetDefaultsFailure({
-    @required this.defaults
+    required this.defaults
   });
 
   final Refreshable<Subreddit> defaults;
@@ -106,4 +105,3 @@ class GetDefaultsFailure implements Update {
     return Then.done();
   }
 }
-

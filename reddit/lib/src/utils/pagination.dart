@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import '../types/data/data.dart';
-import '../types/parameters/parameters.dart';
+import '../types/args.dart';
+import '../types/data.dart';
 
 enum _PaginationState {
   normal,
@@ -11,7 +11,10 @@ enum _PaginationState {
 // Tracks a handful of variables needed to page through listings.
 class Pagination {
 
-  factory Pagination.maxLimit() => Pagination(limit: Page.kMaxLimit);
+  factory Pagination.maxLimit() {
+    return Pagination(limit: Page.kMaxLimit);
+  }
+
   factory Pagination({ int limit = Page.kDefaultLimit }) {
     limit = math.min(math.max(limit, 0), Page.kMaxLimit);
     return Pagination._(
@@ -24,34 +27,35 @@ class Pagination {
   }
   
   Pagination._({
-    this.limit,
-    this.count,
+    required this.limit,
+    required this.count,
     this.nextPage,
     this.previousPage,
-    this.state
+    required this.state
   });
 
   final int limit;
   final int count;
-  final Page nextPage;
-  final Page previousPage;
+  final Page? nextPage;
+  final Page? previousPage;
   final _PaginationState state;
 
   bool get nextPageExists => nextPage != null;
   bool get previousPageExists => previousPage != null;
 
-  Page _buildNextPage(ListingData listing, int count) =>
-    listing.nextId != null
-      ? Page.next(limit: limit, count: count, id: listing.nextId)
-      : null;
+  Page? _buildNextPage(ListingData listing, int count) {
+    if (listing.nextId != null)
+      return Page.next(limit: limit, count: count, id: listing.nextId!);
+    return null;
+  }
   
-  Page _buildPreviousPage(ListingData listing, int count) =>
-    listing.previousId != null
-      ? Page.previous(limit: limit, count: count, id: listing.previousId)
-      : null;
+  Page? _buildPreviousPage(ListingData listing, int count) {
+    if (listing.previousId != null)
+      return Page.previous(limit: limit, count: count, id: listing.previousId!);
+    return null;
+  }
 
   Pagination forward(ListingData listing) {
-
     final int newCount = (){
       switch (state) {
         case _PaginationState.normal:
@@ -62,7 +66,6 @@ class Pagination {
           throw StateError('PaginationState is null');
       }
     }();
-
     return Pagination._(
       limit: limit,
       count: newCount,
@@ -73,7 +76,6 @@ class Pagination {
   }
 
   Pagination backward(ListingData listing) {
-
     final int newCount = () {
       switch (state) {
         case _PaginationState.normal:
@@ -84,7 +86,6 @@ class Pagination {
           throw StateError('PaginationState is null');
       }
     }();
-
     return Pagination._(
       limit: limit,
       count: newCount,

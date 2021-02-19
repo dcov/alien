@@ -12,8 +12,8 @@ import 'media_page.dart';
 class MediaThumbnail extends StatelessWidget {
 
   MediaThumbnail({
-    Key key,
-    @required this.media
+    Key? key,
+    required this.media
   }) : super(key: key);
 
   final Media media;
@@ -24,7 +24,7 @@ class MediaThumbnail extends StatelessWidget {
       Widget result;
       switch (media.thumbnailStatus) {
         case ThumbnailStatus.notLoaded:
-          SchedulerBinding.instance.addPostFrameCallback((_) {
+          SchedulerBinding.instance!.addPostFrameCallback((_) {
             context.then(Then(LoadThumbnail(media: this.media)));
           });
           continue renderStatic;
@@ -52,7 +52,7 @@ class MediaThumbnail extends StatelessWidget {
           child: KeyedSubtree(
             key: ValueKey(media.thumbnailStatus),
             child: result),
-          layoutBuilder: (Widget currentChild, List<Widget> previousChildren) {
+          layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
             return Material(
               color: Colors.black,
               shape: RoundedRectangleBorder(
@@ -63,7 +63,7 @@ class MediaThumbnail extends StatelessWidget {
                 alignment: Alignment.center,
                 children: <Widget>[
                   ...previousChildren,
-                  currentChild,
+                  currentChild!,
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: DecoratedBox(
@@ -96,4 +96,3 @@ class MediaThumbnail extends StatelessWidget {
           }));
     });
 }
-

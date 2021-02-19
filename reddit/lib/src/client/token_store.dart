@@ -1,6 +1,7 @@
+// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:http/http.dart';
 
-import '../types/data/data.dart';
+import '../types/data.dart';
 
 // The current date time in milliseconds.
 int get _currentTimeUtc => DateTime.now().millisecondsSinceEpoch;
@@ -22,15 +23,15 @@ abstract class TokenStore {
   factory TokenStore.asScript(
     Client ioClient,
     Map<String, String> basicHeader,
-    String username,
-    String password
+    String? username,
+    String? password
   ) = _ScriptStore;
 
   TokenStore._();
 
-  Future<Map<String, String>> _futureTokenHeader;
-  Map<String, String> _tokenHeader;
-  int _expirationTimeUtc;
+  Future<Map<String, String>>? _futureTokenHeader;
+  Map<String, String>? _tokenHeader;
+  late int _expirationTimeUtc;
 
   void _updateState(AccessTokenData data) {
     _expirationTimeUtc = _currentTimeUtc + (data.expiresIn * 1000) - 30000;
@@ -52,24 +53,24 @@ abstract class TokenStore {
   Future<Response> _postTokenRequest();
 
   Future<Map<String, String>> _requestToken() {
-    Future<Map<String, String>> future;
+    late Future<Map<String, String>> tokenRequest;
 
-    future = _postTokenRequest().then((Response response) {
+    tokenRequest = _postTokenRequest().then((Response response) {
       // Ensure that we're still waiting on this future before updating the state
-      if (_futureTokenHeader == future) {
+      if (_futureTokenHeader == tokenRequest) {
         replaceData(AccessTokenData.fromJson(response.body));
       }
-      return _tokenHeader;
+      return _tokenHeader!;
     });
-    _futureTokenHeader = future;
+    _futureTokenHeader = tokenRequest;
 
-    return future;
+    return tokenRequest;
   }
 
   bool get _headerIsValid => _tokenHeader != null && _expirationTimeUtc > _currentTimeUtc;
 
   Future<Map<String, String>> get tokenHeader =>
-      _futureTokenHeader ?? _headerIsValid ? Future.value(_tokenHeader) : _requestToken();
+      _futureTokenHeader ?? (_headerIsValid ? Future.value(_tokenHeader) : _requestToken());
 }
 
 class _DeviceStore extends TokenStore {
@@ -129,30 +130,31 @@ class _ScriptStore extends TokenStore {
     this._basicHeader,
     this.username,
     this.password
-  ) : assert(username == null || password != null),
-      super._();
+  ) : assert(username == null || password != null,
+        'A password was provided without a username'),
+      super._() {
+    if (username != null) {
+      grantType = 'password&username=${username}&password=${password}';
+    } else {
+      grantType = 'client_credentials';
+    }
+  }
 
   final Client _ioClient;
 
   final Map<String, String> _basicHeader;
 
-  final String username;
+  final String? username;
 
-  final String password;
+  final String? password;
+
+  late final String grantType;
 
   @override
   Future<Response> _postTokenRequest() {
-    String grantType;
-    if (username != null) {
-      grantType = 'password&username=$username&password=$password';
-    } else {
-      grantType = 'client_credentials';
-    }
-
     return _ioClient.post(
       'https://www.reddit.com/api/v1/access_token',
       headers: _basicHeader,
-      body: 'grant_type=$grantType');
+      body: 'grant_type=${grantType}');
   }
 }
-

@@ -22,12 +22,10 @@ import 'theming.dart';
 class InitApp implements Initial {
   
   InitApp({
-    @required this.appId,
-    @required this.appRedirect,
-    @required this.isInScriptMode
-  }) : assert(appId != null),
-       assert(appRedirect != null),
-       assert(isInScriptMode != null);
+    required this.appId,
+    required this.appRedirect,
+    required this.isInScriptMode
+  });
 
   final String appId;
 
@@ -94,7 +92,7 @@ class SwitchUser implements Update {
 
   SwitchUser({ this.to });
 
-  final User to;
+  final User? to;
 
   @override
   Then update(_) {
@@ -108,8 +106,8 @@ class SwitchUser implements Update {
 class LogOutUser implements Update {
 
   LogOutUser({
-    @required this.user
-  }) : assert(user != null);
+    required this.user
+  });
 
   final User user;
 
@@ -139,13 +137,12 @@ class _ResetUserState implements Update {
     if (app.accounts.currentUser == null) {
       app..subscriptions = null
          ..defaults = Refreshable(refreshing: false);
-      return Then(RefreshDefaults(defaults: app.defaults));
+      return Then(RefreshDefaults(defaults: app.defaults!));
     } else {
       app..defaults = null
          ..subscriptions = Refreshable(refreshing: false)
          ..feeds.insert(0, Feed.home);
-      return Then(RefreshSubscriptions(subscriptions: app.subscriptions)); 
+      return Then(RefreshSubscriptions(subscriptions: app.subscriptions!)); 
     }
   }
 }
-

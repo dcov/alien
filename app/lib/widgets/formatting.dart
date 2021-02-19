@@ -10,7 +10,7 @@ String formatElapsedUtc(int startingUtcSeconds, { String append = ''}) {
 
   final elapsedTime = (DateTime.now().millisecondsSinceEpoch / 1000) - startingUtcSeconds;
 
-  String formatValue(double value, String postfix) => value > 1 ? '${value.ceil()}$postfix' : null;
+  String? formatValue(double value, String postfix) => value > 1 ? '${value.ceil()}$postfix' : null;
 
   final formattedElapsedTime = formatValue(elapsedTime/_kSecondsInAYear, 'y') ??
                                formatValue(elapsedTime / _kSecondsInAMonth, 'mo') ??
@@ -31,6 +31,5 @@ String formatCount(int count) {
   else if (count > 1000)
     return '${(count / 1000).toStringAsFixed(1)}k';
   else
-    return count.toString() ?? '0';
+    return count.toString();
 }
-

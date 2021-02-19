@@ -6,8 +6,8 @@ import '../widgets/page.dart';
 class UserPage extends Page {
 
   UserPage({
-    RouteSettings settings,
-    @required this.user,
+    RouteSettings? settings,
+    required this.user,
   }) : super(settings: settings);
 
   final User user;
@@ -17,4 +17,3 @@ class UserPage extends Page {
     return Material();
   }
 }
-

@@ -9,12 +9,12 @@ Color getVoteDirColor(VoteDir voteDir, [Color defaultColor = Colors.black54]) {
       return Colors.deepOrange;
     case VoteDir.down:
       return Colors.indigoAccent;
-    default:
+    case VoteDir.none:
       return defaultColor;
   }
+  throw ArgumentError('$voteDir was not a valid value.');
 }
 
 Color getVotableColor(Votable votable, [Color defaultColor = Colors.black54]) {
   return getVoteDirColor(votable.voteDir);
 }
-

@@ -14,4 +14,3 @@ abstract class Snudown implements Model {
 
   Map<String, Object> get links;
 }
-

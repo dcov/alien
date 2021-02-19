@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -14,8 +13,8 @@ import 'init.dart';
 class StartLogin implements Update {
 
   StartLogin({
-    @required this.login
-  }) : assert(login != null);
+    required this.login
+  });
 
   final Login login;
 
@@ -31,15 +30,15 @@ class StartLogin implements Update {
 class _GetScopes implements Effect {
 
   _GetScopes({
-    @required this.login
-  }) : assert(login != null);
+    required this.login
+  });
 
   final Login login;
 
   @override
   Future<Then> effect(EffectContext context) async {
     return context.redditApp.asDevice()
-      .getScopeDescriptions()
+      .getScopes()
       .then((Iterable<ScopeData> result) {
         return Then(_InitializeAuthSession(
           login: login,
@@ -54,10 +53,9 @@ class _GetScopes implements Effect {
 class _InitializeAuthSession implements Update {
 
   _InitializeAuthSession({
-    @required this.login,
-    @required this.result
-  }) : assert(login != null),
-       assert(result != null);
+    required this.login,
+    required this.result
+  });
 
   final Login login;
 
@@ -83,8 +81,8 @@ class _InitializeAuthSession implements Update {
 class _GetScopesFailed implements Update {
 
   _GetScopesFailed({
-    @required this.login,
-  }) : assert(login != null);
+    required this.login,
+  });
 
   final Login login;
 
@@ -99,10 +97,9 @@ class _GetScopesFailed implements Update {
 class TryAuthenticating implements Update {
 
   TryAuthenticating({
-    @required this.login,
-    @required this.url
-  }) : assert(login != null),
-       assert(url != null);
+    required this.login,
+    required this.url
+  });
 
   final Login login;
 
@@ -118,7 +115,7 @@ class TryAuthenticating implements Update {
       }
 
       if (queryParameters['code'] != null) {
-        if (queryParameters['state'] != login.session.state) {
+        if (queryParameters['state'] != login.session!.state) {
           return Then(_AuthenticationFailed(
             login: login));
         }
@@ -126,7 +123,7 @@ class TryAuthenticating implements Update {
         login.status = LoginStatus.authenticating;
         return Then(_PostCode(
           login: login,
-          code: queryParameters['code']));
+          code: queryParameters['code']!));
       }
     }
 
@@ -137,8 +134,8 @@ class TryAuthenticating implements Update {
 class _AuthenticationFailed implements Update {
 
   _AuthenticationFailed({
-    @required this.login
-  }) : assert(login != null);
+    required this.login
+  });
 
   final Login login;
 
@@ -152,10 +149,9 @@ class _AuthenticationFailed implements Update {
 class _PostCode implements Effect {
 
   _PostCode({
-    @required this.login,
-    @required this.code
-  }) : assert(login != null),
-       assert(code != null);
+    required this.login,
+    required this.code
+  });
 
   final Login login;
 
@@ -168,7 +164,7 @@ class _PostCode implements Effect {
       final tokenData = await reddit.postCode(code);
       final accountData = await reddit
           .asUser(tokenData.refreshToken)
-          .getUserAccount();
+          .getMe();
 
       return Then(_FinishLogin(
         login: login,
@@ -184,12 +180,10 @@ class _PostCode implements Effect {
 class _FinishLogin implements Update {
   
   _FinishLogin({
-    @required this.login,
-    @required this.tokenData,
-    @required this.accountData
-  }) : assert(login != null),
-       assert(tokenData != null),
-       assert(accountData != null);
+    required this.login,
+    required this.tokenData,
+    required this.accountData
+  });
 
   final Login login;
 
@@ -202,7 +196,7 @@ class _FinishLogin implements Update {
     login.status = LoginStatus.succeeded;
 
     final Accounts accounts = owner.accounts;
-    User existingUser;
+    User? existingUser;
     for (final user in accounts.users) {
       if (user.name == accountData.username) {
         existingUser = user;
@@ -236,8 +230,8 @@ class _FinishLogin implements Update {
 class _PostCodeFailed implements Update {
 
   _PostCodeFailed({
-    @required this.login
-  }) : assert(login != null);
+    required this.login
+  });
 
   final Login login;
 
@@ -247,4 +241,3 @@ class _PostCodeFailed implements Update {
     return Then.done();
   }
 }
-

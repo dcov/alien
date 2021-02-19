@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -15,8 +14,8 @@ import 'user.dart';
 class RefreshSubscriptions implements Update {
 
   RefreshSubscriptions({
-    @required this.subscriptions
-  }) : assert(subscriptions != null);
+    required this.subscriptions
+  });
 
   final Refreshable<Subreddit> subscriptions;
 
@@ -37,26 +36,26 @@ class RefreshSubscriptions implements Update {
 class _GetSubscriptions implements Effect {
 
   _GetSubscriptions({
-    @required this.subscriptions,
-    @required this.user
-  }) : assert(subscriptions != null),
-       assert(user != null);
+    required this.subscriptions,
+    required this.user
+  });
 
   final Refreshable<Subreddit> subscriptions;
 
-  final User user;
+  final User? user;
 
   @override
   Future<Then> effect(EffectContext context) async {
     try {
-      final List<SubredditData> result = List<SubredditData>();
+      final  result = <SubredditData>[];
       Pagination pagination = Pagination.maxLimit();
 
       do {
-        final ListingData<SubredditData> listing = await context.clientFromUser(user).getUserSubreddits(
-          UserSubreddits.subscriber,
-          pagination.nextPage,
-          false);
+        final listing = await context.clientFromUser(user)
+            .getUserSubreddits(
+                UserSubreddits.subscriber,
+                pagination.nextPage!,
+                false);
         result.addAll(listing.things);
         pagination = pagination.forward(listing);
       } while (pagination.nextPageExists);
@@ -73,10 +72,9 @@ class _GetSubscriptions implements Effect {
 class _FinishRefreshing implements Update {
 
   _FinishRefreshing({
-    @required this.subscriptions,
-    @required this.result
-  }) : assert(subscriptions != null),
-       assert(result != null);
+    required this.subscriptions,
+    required this.result
+  });
 
   final Refreshable<Subreddit> subscriptions;
 
@@ -97,8 +95,8 @@ class _FinishRefreshing implements Update {
 class _GetSubscriptionsFailed implements Update {
 
   _GetSubscriptionsFailed({
-    @required this.subscriptions,
-  }) : assert(subscriptions != null);
+    required this.subscriptions,
+  });
 
   final Refreshable<Subreddit> subscriptions;
 
@@ -114,18 +112,20 @@ class _GetSubscriptionsFailed implements Update {
 class ToggleSubscribed implements Update {
 
   ToggleSubscribed({
-    @required this.subreddit
-  }) : assert(subreddit != null);
+    required this.subreddit
+  });
 
   final Subreddit subreddit;
 
   @override
   Then update(AccountsOwner owner) {
-    final User user = owner.accounts.currentUser;
-    assert(user != null);
+    assert(owner.accounts.currentUser != null,
+        'Tried to toggle Subreddit subscription without a User.');
 
+    final User user = owner.accounts.currentUser!;
+
+    // Just flip their subscription state
     subreddit.userIsSubscriber = !subreddit.userIsSubscriber;
-
     if (subreddit.userIsSubscriber)
       return Then.all({
         RemoveSubscription(),
@@ -157,10 +157,9 @@ class AddSubscription implements Update {
 class PostSubscribe implements Effect {
 
   PostSubscribe({
-    @required this.subreddit,
-    @required this.user
-  }) : assert(subreddit != null),
-       assert(user != null);
+    required this.subreddit,
+    required this.user
+  });
 
   final Subreddit subreddit;
 
@@ -192,10 +191,9 @@ class RemoveSubscription implements Update {
 class PostUnsubscribe implements Effect {
 
   PostUnsubscribe({
-    @required this.subreddit,
-    @required this.user
-  }) : assert(subreddit != null),
-       assert(user != null);
+    required this.subreddit,
+    required this.user
+  });
 
   final Subreddit subreddit;
 
@@ -212,4 +210,3 @@ class PostUnsubscribe implements Effect {
        });
   }
 }
-

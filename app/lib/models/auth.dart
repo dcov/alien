@@ -2,8 +2,8 @@
 class Auth {
 
   Auth({
-    this.appId,
-    this.appRedirect,
+    required this.appId,
+    required this.appRedirect,
   });
 
   final String appId;
@@ -14,4 +14,3 @@ class Auth {
 abstract class AuthOwner {
   Auth get auth;
 }
-

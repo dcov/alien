@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart' show ThemeData;
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 
 import '../models/theming.dart';
 
 class UpdateTheme implements Update {
 
   UpdateTheme({
-    @required this.theming,
+    required this.theming,
     this.type = ThemeType.light
   });
 
@@ -31,4 +30,3 @@ class UpdateTheme implements Update {
       return Then.done();
   }
 }
-

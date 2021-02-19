@@ -81,6 +81,5 @@ build/
 
 # Project specific
 *.g.dart
-
-# App module specific
-app/lib/app/app_config.dart
+reddit_credentials.dart
+reddit/bin/json/

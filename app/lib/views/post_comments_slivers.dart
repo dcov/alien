@@ -19,11 +19,10 @@ import 'more_tile.dart';
 class _CommentsTreePainter extends CustomPainter {
   
   _CommentsTreePainter({
-    @required this.depth,
-    @required this.spacing,
-    @required this.linePaint
-  }) : assert(depth != null),
-       assert(spacing != null);
+    required this.depth,
+    required this.spacing,
+    required this.linePaint
+  });
 
   final int depth;
 
@@ -53,10 +52,9 @@ class _CommentsTreePainter extends CustomPainter {
 class PostCommentsTreeSliver extends StatefulWidget {
 
   PostCommentsTreeSliver({
-    Key key,
-    @required this.comments
-  }) : assert(comments != null),
-       super(key: key);
+    Key? key,
+    required this.comments
+  }) : super(key: key);
 
   final PostComments comments;
 
@@ -68,21 +66,21 @@ class PostCommentsTreeSliver extends StatefulWidget {
 class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with ConnectionStateMixin {
 
   @visibleForTesting
-  List<Thing> get visible => _visible;
-  List<Thing> _visible;
+  List<Thing> get visible => _visible!;
+  List<Thing>? _visible;
 
   @visibleForTesting
   Set<String> get collapsed => _collapsed;
   final _collapsed = Set<String>();
 
-  CommentsSort _latestSortBy;
+  late CommentsSort _latestSortBy;
 
   @override
   void capture(StateSetter setState) {
     final comments = widget.comments;
 
     /// We place all of the state we depend on in variables so that we can track changes to it, regardless of whether
-    /// it's used or not.
+    /// we use them the first time or not.
     final things = comments.things;
     final latestSortBy = comments.sortBy;
     final refreshing = comments.refreshing;
@@ -114,8 +112,8 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
 
       if (_collapsed.isNotEmpty) {
         final noLongerCollapsed = Set<String>.from(_collapsed);
-        for (var i = 0; i < _visible.length; i++) {
-          final thing = _visible[i];
+        for (var i = 0; i < _visible!.length; i++) {
+          final thing = _visible![i];
           if (thing is Comment && _collapsed.contains(thing.id)) {
             _collapse(thing, i, setState);
             noLongerCollapsed.remove(thing.id);
@@ -128,7 +126,7 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
 
   int _getThingDepth(Thing thing) {
     if (thing is Comment) {
-      return thing.depth;
+      return thing.depth!;
     } else if (thing is More) {
       return thing.depth;
     } else {
@@ -137,14 +135,14 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
     }
   }
 
-  void _collapse(Comment comment, int index, [StateSetter setState]) {
+  void _collapse(Comment comment, int index, [StateSetter? setState]) {
     setState ??= this.setState;
     setState(() {
-      for (var i = index + 1; i < _visible.length;) {
-        if (_getThingDepth(_visible[i]) <= comment.depth) {
+      for (var i = index + 1; i < _visible!.length;) {
+        if (_getThingDepth(_visible![i]) <= comment.depth!) {
           break;
         }
-        _visible.removeAt(i);
+        _visible!.removeAt(i);
       }
       _collapsed.add(comment.id);
     });
@@ -155,16 +153,15 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
       return;
     }
 
-    Comment rootComment;
-    int rootIndex;
+    late Comment rootComment;
+    late int rootIndex;
     for (var i = index - 1; i >= 0; i--) {
-      if (_getThingDepth(_visible[i]) == 0) {
-        rootComment = _visible[i];
+      if (_getThingDepth(_visible![i]) == 0) {
+        rootComment = _visible![i] as Comment;
         rootIndex = i;
         break;
       }
     }
-    assert(rootComment != null && rootIndex != null);
     _collapse(rootComment, rootIndex);
   }
 
@@ -175,10 +172,10 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
     final mainIndex = mainThings.indexOf(comment);
     assert(mainIndex != -1);
 
-    final uncollapsed = List<Thing>();
+    final uncollapsed = <Thing>[];
     for (var i = mainIndex + 1; i < mainThings.length; i++) {
       final thing = mainThings[i];
-      if (_getThingDepth(thing) <= comment.depth)
+      if (_getThingDepth(thing) <= comment.depth!)
         break;
 
       uncollapsed.add(thing);
@@ -192,12 +189,12 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
 
     setState(() {
       _collapsed.remove(comment.id);
-      _visible.insertAll(index + 1, uncollapsed);
+      _visible!.insertAll(index + 1, uncollapsed);
     });
   }
 
   Widget _buildItem(_, int index) {
-    final thing = _visible[index];
+    final thing = _visible![index];
     Widget child;
     if (thing is Comment) {
       child = CommentTile(
@@ -217,7 +214,7 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
       assert(thing is More);
       child = MoreTile(
         comments: widget.comments,
-        more: thing);
+        more: thing as More);
     }
     
     return child;
@@ -238,17 +235,16 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
           key: UniqueKey(),
           delegate: SliverChildBuilderDelegate(
             _buildItem,
-            childCount: _visible.length))));
+            childCount: _visible!.length))));
   }
 }
 
 class PostCommentsRefreshSliver extends StatefulWidget {
 
   PostCommentsRefreshSliver({
-    Key key,
-    @required this.comments
-  }) : assert(comments != null),
-       super(key: key);
+    Key? key,
+    required this.comments
+  }) : super(key: key);
 
   final PostComments comments;
 
@@ -258,19 +254,19 @@ class PostCommentsRefreshSliver extends StatefulWidget {
 
 class _PostCommentsRefreshSliverState extends State<PostCommentsRefreshSliver> {
 
-  Completer<void> _refreshCompleter;
+  Completer<void>? _refreshCompleter;
 
   Future<void> _handleRefresh() {
     if (_refreshCompleter == null) {
       _refreshCompleter = Completer<void>();
       context.then(Then(RefreshPostComments(comments: widget.comments)));
     }
-    return _refreshCompleter.future;
+    return _refreshCompleter!.future;
   }
 
   void _checkShouldFinishRefresh(bool refreshing) {
     if (_refreshCompleter != null && !refreshing) {
-      _refreshCompleter.complete();
+      _refreshCompleter!.complete();
       _refreshCompleter = null;
     }
   }
@@ -288,4 +284,3 @@ class _PostCommentsRefreshSliverState extends State<PostCommentsRefreshSliver> {
       });
   }
 }
-

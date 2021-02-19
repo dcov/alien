@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:http/http.dart';
-import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
-import '../types/data/data.dart';
+import '../types/data.dart';
 import 'token_store.dart';
 
 class RedditClient {
@@ -26,7 +26,7 @@ class RedditClient {
     ).then(_extractBody);
   }
 
-  Future<String> post(String endpoint, { String subdomain = 'oauth', String body }) async {
+  Future<String> post(String endpoint, { String subdomain = 'oauth', String? body }) async {
     return _ioClient.post(
       _formatUrl(subdomain, endpoint),
       body: body,
@@ -34,7 +34,7 @@ class RedditClient {
     ).then(_extractBody);
   }
 
-  Future<String> patch(String endpoint, { String subdomain = 'oauth', String body }) async {
+  Future<String> patch(String endpoint, { String subdomain = 'oauth', String? body }) async {
     return _ioClient.patch(
       _formatUrl(subdomain, endpoint),
       body: body,
@@ -75,9 +75,9 @@ class RedditApp {
   /// the app will be authenticating using the code flow i.e. if you utilize [postCode].
   /// [ioClient]: (Optional) The http client used to make requests.
   factory RedditApp({
-    @required String clientId,
-    String redirectUri,
-    Client ioClient
+    required String clientId,
+    String? redirectUri,
+    Client? ioClient
   }) {
 
     /// Generate a random device id.
@@ -112,7 +112,7 @@ class RedditApp {
     this._basicHeader,
     this._ioClient);
 
-  final String _redirectUri;
+  final String? _redirectUri;
 
   final String _deviceId;
 
@@ -128,7 +128,7 @@ class RedditApp {
   /// See also:
   ///  * [AuthSession] which can be used to initiate the authorization code flow.
   Future<RefreshTokenData> postCode(String code) {
-    if (_redirectUri== null) {
+    if (_redirectUri == null) {
       throw StateError("Cannot acquire an access token without the app's uri. Initialize the Reddit instance with an appUri value.");
     }
     
@@ -139,7 +139,7 @@ class RedditApp {
         body: 'grant_type=authorization_code&code=$code&redirect_uri=$_redirectUri')
       .then((Response response) {
         final RefreshTokenData data = RefreshTokenData.fromJson(response.body);
-        RedditClient client = _clients[data.refreshToken];
+        RedditClient? client = _clients[data.refreshToken];
 
         if (client != null) {
           client._store.replaceData(data);
@@ -157,7 +157,7 @@ class RedditApp {
   }
 
   /// Access the Reddit api using the unique device id, i.e. as an anonymous user.
-  RedditClient asDevice() => _clients[_deviceId];
+  RedditClient asDevice() => _clients[_deviceId]!;
 
   /// Access the Reddit api on behalf of the user the [refreshToken] corresponds to.
   RedditClient asUser(String refreshToken) {
@@ -175,15 +175,12 @@ class RedditApp {
 
 /// Creates a [RedditClient] that authenticates itself, and accesses the Reddit api, as a script application.
 RedditClient createScriptClient({
-    @required String clientId,
-    @required String clientSecret,
-    String username,
-    String password,
-    Client ioClient
-    }) {
-  assert(clientId != null);
-  assert(clientSecret != null);
-
+    required String clientId,
+    required String clientSecret,
+    String? username,
+    String? password,
+    Client? ioClient
+  }) {
   ioClient ??= Client();
 
   // Create the basic auth header which utilizes the client id and secret as the credentials.
@@ -200,4 +197,3 @@ RedditClient createScriptClient({
     ioClient,
     store);
 }
-

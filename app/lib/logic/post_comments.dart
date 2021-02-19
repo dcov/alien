@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -35,8 +34,7 @@ Thing _mapThing(ThingData data, Object refreshMarker) {
       id: data.id,
       kind: data.kind);
   else
-    // TODO: Figure out a better way to handle this
-    return null;
+    throw StateError('$data was not a CommentData or MoreData instance.');
 }
 
 // Flattens the [data] tree structure.
@@ -51,16 +49,18 @@ Iterable<ThingData> _flattenTree(Iterable<ThingData> data) sync* {
 class RefreshPostComments implements Update {
 
   RefreshPostComments({
-    @required this.comments,
+    required this.comments,
     this.sortBy,
-  }) : assert(comments != null);
+  });
 
   final PostComments comments;
 
-  final CommentsSort sortBy;
+  final CommentsSort? sortBy;
 
   @override
   Then update(AccountsOwner owner) {
+    // If we're already in a refreshing state and we're not changing the sort value then we
+    // shouldn't do anything.
     if (comments.refreshing &&
         (sortBy == null || sortBy == comments.sortBy)) {
       return Then.done();
@@ -74,7 +74,7 @@ class RefreshPostComments implements Update {
         ..latestRefreshMarker = refreshMarker;
 
     if (sortBy != null && sortBy != comments.sortBy) {
-      comments..sortBy = sortBy
+      comments..sortBy = sortBy!
               ..things.clear();
     }
     
@@ -88,17 +88,16 @@ class RefreshPostComments implements Update {
 class _GetPostComments implements Effect {
 
   _GetPostComments({
-    @required this.comments,
-    @required this.refreshMarker,
+    required this.comments,
+    required this.refreshMarker,
     this.user
-  }) : assert(comments != null),
-       assert(refreshMarker != null);
+  });
 
   final PostComments comments;
 
   final Object refreshMarker;
 
-  final User user;
+  final User? user;
 
   @override
   Future<Then> effect(EffectContext context) {
@@ -125,12 +124,10 @@ class _GetPostComments implements Effect {
 class _FinishRefreshing implements Update {
 
   _FinishRefreshing({
-    @required this.comments,
-    @required this.result,
-    @required this.refreshMarker
-  }) : assert(comments != null),
-       assert(result != null),
-       assert(refreshMarker != null);
+    required this.comments,
+    required this.result,
+    required this.refreshMarker
+  });
 
   final PostComments comments;
 
@@ -139,7 +136,7 @@ class _FinishRefreshing implements Update {
   final Object refreshMarker;
 
   @override
-   Then update(_) {
+  Then update(_) {
     /// If the refreshMarker that corresponds to us is not the most recent marker, don't do anything.
     if (refreshMarker == comments.latestRefreshMarker) {
       comments
@@ -155,10 +152,9 @@ class _FinishRefreshing implements Update {
 class _GetPostCommentsFailed implements Update {
 
   _GetPostCommentsFailed({
-    @required this.comments,
-    @required this.refreshMarker
-  }) : assert(comments != null),
-       assert(refreshMarker != null);
+    required this.comments,
+    required this.refreshMarker
+  });
 
   final PostComments comments;
 
@@ -176,10 +172,9 @@ class _GetPostCommentsFailed implements Update {
 class LoadMoreComments implements Update {
 
   LoadMoreComments({
-    @required this.comments,
-    @required this.more
-  }) : assert(comments != null),
-       assert(more != null);
+    required this.comments,
+    required this.more
+  });
 
   final PostComments comments;
 
@@ -205,17 +200,16 @@ class LoadMoreComments implements Update {
 class _GetMoreComments implements Effect {
 
   _GetMoreComments({
-    @required this.comments,
-    @required this.more,
+    required this.comments,
+    required this.more,
     this.user,
-  }) : assert(comments != null),
-       assert(more != null);
+  });
 
   final PostComments comments;
 
   final More more;
 
-  final User user;
+  final User? user;
 
   @override
   Future<Then> effect(EffectContext context) {
@@ -241,12 +235,10 @@ class _GetMoreComments implements Effect {
 class _InsertMoreComments implements Update {
 
   _InsertMoreComments({
-    @required this.comments,
-    @required this.more,
-    @required this.result
-  }) : assert(comments != null),
-       assert(more != null),
-       assert(result != null);
+    required this.comments,
+    required this.more,
+    required this.result
+  });
 
   final PostComments comments;
 
@@ -274,8 +266,8 @@ class _InsertMoreComments implements Update {
 class _GetMoreCommentsFailed implements Update {
 
   _GetMoreCommentsFailed({
-    @required this.more
-  }) : assert(more != null);
+    required this.more
+  });
 
   final More more;
 
@@ -285,4 +277,3 @@ class _GetMoreCommentsFailed implements Update {
     return Then.done();
   }
 }
-

@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -13,31 +12,31 @@ import 'user.dart';
 class ToggleSaved implements Update {
 
   ToggleSaved({
-    @required this.saveable,
+    required this.saveable,
     this.user
-  }) : assert(saveable != null);
+  });
 
   final Saveable saveable;
 
-  final User user;
+  final User? user;
 
   @override
   Then update(AccountsOwner owner) {
+    assert(user != null || owner.accounts.currentUser != null,
+        'Tried to save a Thing without providing a User or one being signed in.');
     saveable.isSaved = !saveable.isSaved;
     return Then(_PostSaved(
       saveable: saveable,
-      user: user ?? owner.accounts.currentUser,
-    ));
+      user: user ?? owner.accounts.currentUser!));
   }
 }
 
 class _PostSaved implements Effect {
 
   _PostSaved({
-    @required this.saveable,
-    @required this.user
-  }) : assert(saveable != null),
-       assert(user != null);
+    required this.saveable,
+    required this.user
+  });
 
   final Saveable saveable;
 
@@ -61,8 +60,8 @@ class _PostSaved implements Effect {
 class _PostSavedFailed implements Update {
 
   _PostSavedFailed({
-    @required this.saveable
-  }) : assert(saveable != null);
+    required this.saveable
+  });
 
   final Saveable saveable;
 
@@ -72,4 +71,3 @@ class _PostSavedFailed implements Update {
     return Then.done();
   }
 }
-

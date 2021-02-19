@@ -5,4 +5,3 @@ class CustomIcons {
   static const IconData subreddit = const IconData(0xe900, fontFamily: _kFontFamily); 
   CustomIcons._();
 }
-

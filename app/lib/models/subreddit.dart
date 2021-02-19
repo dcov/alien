@@ -10,32 +10,34 @@ part 'subreddit.g.dart';
 abstract class Subreddit implements Model, Thing {
 
   factory Subreddit({
-    bool userIsSubscriber,
-    String name,
-    String id,
-    String kind,
+    required bool userIsSubscriber,
+    required String name,
+    required String id,
+    required String kind,
   }) = _$Subreddit;
 
   String get name;
 
-  bool userIsSubscriber;
+  bool get userIsSubscriber;
+  set userIsSubscriber(bool value);
 }
 
 abstract class SubredditPosts implements Model {
 
   factory SubredditPosts({
-    Subreddit subreddit,
-    SubredditSort sortBy,
+    required Subreddit subreddit,
+    required SubredditSort sortBy,
     TimeSort sortFrom,
-    Listing<Post> listing
+    required Listing<Post> listing
   }) = _$SubredditPosts;
 
   Subreddit get subreddit;
 
-  SubredditSort sortBy;
+  SubredditSort get sortBy;
+  set sortBy(SubredditSort value);
 
-  TimeSort sortFrom;
+  TimeSort? get sortFrom;
+  set sortFrom(TimeSort? value);
 
   Listing<Post> get listing;
 }
-

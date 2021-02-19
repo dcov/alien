@@ -8,13 +8,14 @@ abstract class Accounts implements Model {
 
   factory Accounts({
     List<User> users,
-    User currentUser,
-    bool isInScriptMode
+    User? currentUser,
+    required bool isInScriptMode
   }) = _$Accounts;
 
   List<User> get users;
 
-  User currentUser;
+  User? get currentUser;
+  set currentUser(User? value);
 
   bool get isInScriptMode;
 }
@@ -22,4 +23,3 @@ abstract class Accounts implements Model {
 abstract class AccountsOwner {
   Accounts get accounts;
 }
-

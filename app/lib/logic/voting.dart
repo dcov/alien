@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -13,18 +12,20 @@ import 'user.dart';
 class Upvote implements Update {
 
   Upvote({
-    @required this.votable,
+    required this.votable,
     this.user
-  }) : assert(votable != null);
+  });
 
   final Votable votable;
 
-  final User user;
+  final User? user;
 
   @override
   Then update(AccountsOwner owner) {
-    final VoteDir oldVoteDir = votable.voteDir;
+    assert(user != null || owner.accounts.currentUser != null,
+        'Tried to upvote without providing a User or one being signed in.');
 
+    final VoteDir oldVoteDir = votable.voteDir;
     if (votable.voteDir == VoteDir.up) {
       votable..score -= 1
              ..voteDir = VoteDir.none;
@@ -35,24 +36,26 @@ class Upvote implements Update {
 
     return Then(_PostVote(
       votable: votable,
-      user: user ?? owner.accounts.currentUser,
-      oldVoteDir: oldVoteDir));
+      oldVoteDir: oldVoteDir,
+      user: user ?? owner.accounts.currentUser!));
   }
 }
 
 class Downvote implements Update {
 
   Downvote({
-    @required this.votable,
+    required this.votable,
     this.user
-  }) : assert(votable != null);
+  });
 
   final Votable votable;
 
-  final User user;
+  final User? user;
 
   @override
   Then update(AccountsOwner owner) {
+    assert(user != null || owner.accounts.currentUser != null,
+        'Tried to downvote without providing a User or one being signed in.');
     final VoteDir oldVoteDir = votable.voteDir;
 
     if (votable.voteDir == VoteDir.down) {
@@ -64,21 +67,19 @@ class Downvote implements Update {
     }
 
     return Then(_PostVote(
-      votable: votable,
-      oldVoteDir: oldVoteDir,
-      user: user ?? owner.accounts.currentUser));
+        votable: votable,
+        oldVoteDir: oldVoteDir,
+        user: user ?? owner.accounts.currentUser!));
   }
 }
 
 class _PostVote implements Effect {
 
   _PostVote({
-    @required this.votable,
-    @required this.oldVoteDir,
-    @required this.user,
-  }) : assert(votable != null),
-       assert(oldVoteDir != null),
-       assert(user != null);
+    required this.votable,
+    required this.oldVoteDir,
+    required this.user,
+  });
 
   final Votable votable;
 
@@ -92,9 +93,9 @@ class _PostVote implements Effect {
       .postVote(votable.fullId, votable.voteDir)
       .then((_) => Then.done())
       .catchError((_) {
-        return _PostVoteFailed(
-          votable: votable,
-          oldVoteDir: oldVoteDir);
+        return Then(_PostVoteFailed(
+            votable: votable,
+            oldVoteDir: oldVoteDir));
       });
   }
 }
@@ -102,10 +103,9 @@ class _PostVote implements Effect {
 class _PostVoteFailed implements Update {
 
   _PostVoteFailed({
-    @required this.votable,
-    @required this.oldVoteDir
-  }) : assert(votable != null),
-       assert(oldVoteDir != null);
+    required this.votable,
+    required this.oldVoteDir
+  });
 
   final Votable votable;
 
@@ -131,4 +131,3 @@ class _PostVoteFailed implements Update {
     return Then.done();
   }
 }
-

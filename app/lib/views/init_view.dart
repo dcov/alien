@@ -18,7 +18,7 @@ import 'themer.dart';
 /// initialized [App] state and doesn't rebuild anymore.
 class InitView extends StatelessWidget {
 
-  InitView({ Key key })
+  InitView({ Key? key })
     : super(key: key);
 
   @override
@@ -31,7 +31,7 @@ class InitView extends StatelessWidget {
 
     return Connector(
       builder: (BuildContext context) {
-        final App app = context.state;
+        final App app = context.state as App;
 
         /// This check does two things: It checks whether the state has been
         /// initialized and returns a splash graphic if it hasn't, but more importantly
@@ -43,10 +43,10 @@ class InitView extends StatelessWidget {
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          builder: (_, Widget child) {
+          builder: (_, Widget? child) {
             return Themer(
               theming: app.theming,
-              child: child);
+              child: child!);
           },
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
@@ -59,4 +59,3 @@ class InitView extends StatelessWidget {
       });
   }
 }
-

@@ -11,10 +11,9 @@ import '../widgets/widget_extensions.dart';
 class _Indicator extends StatelessWidget {
 
   _Indicator({
-    Key key,
-    @required this.text,
-  }) : assert(text != null),
-       super(key: key);
+    Key? key,
+    required this.text,
+  }) : super(key: key);
 
   final String text;
 
@@ -34,8 +33,8 @@ class _Indicator extends StatelessWidget {
 class _LoginScreen extends StatelessWidget {
 
   _LoginScreen({
-    Key key,
-    @required this.login
+    Key? key,
+    required this.login
   }) : super(key: key);
 
   final Login login;
@@ -65,7 +64,7 @@ class _LoginScreen extends StatelessWidget {
               builder: (BuildContext context) {
                 switch (login.status) {
                   case LoginStatus.idle:
-                    ServicesBinding.instance.addPostFrameCallback((_) {
+                    ServicesBinding.instance!.addPostFrameCallback((_) {
                       context.then(Then(StartLogin(login: login)));
                     });
                     continue renderSettingUpIndicator;
@@ -76,7 +75,7 @@ class _LoginScreen extends StatelessWidget {
                     return WebViewControl(
                       javascriptEnabled: true,
                       gestureNavigationEnabled: true,
-                      url: login.session.url,
+                      url: login.session!.url,
                       onPageFinished: (String pageUrl) {
                         context.then(
                           Then(TryAuthenticating(
@@ -87,20 +86,17 @@ class _LoginScreen extends StatelessWidget {
                     return _Indicator(text: 'Authenticating');
                   case LoginStatus.succeeded:
                   case LoginStatus.failed:
-                    ServicesBinding.instance.addPostFrameCallback((_) {
+                    ServicesBinding.instance!.addPostFrameCallback((_) {
                       Navigator.pop(context);
                     });
                     return Material();
                 }
-                return null;
               })))
       ]);
   }
 }
 
-void showLoginScreen({ @required BuildContext context }) {
-  assert(context != null);
+void showLoginScreen({ required BuildContext context }) {
   final login = Login(status: LoginStatus.idle);
   context.rootNavigator.push(MaterialPageRoute(builder: (_) => _LoginScreen(login: login)));
 }
-

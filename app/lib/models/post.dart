@@ -11,50 +11,53 @@ part 'post.g.dart';
 abstract class Post implements Model, Saveable, Votable {
 
   factory Post({
-    int commentCount,
-    bool isNSFW,
-    String authorName,
-    int createdAtUtc,
-    String domainName,
-    bool hasBeenViewed,
-    bool isSelf,
-    Media media,
-    String permalink,
-    Snudown selfText,
-    String subredditName,
-    String title,
-    String url,
-    bool isSaved,
-    String id,
-    String kind,
-    int score,
-    VoteDir voteDir,
+    required int commentCount,
+    required bool isNSFW,
+    required String authorName,
+    required int createdAtUtc,
+    required String domainName,
+    required bool hasBeenViewed,
+    required bool isSelf,
+    Media? media,
+    required String permalink,
+    Snudown? selfText,
+    required String subredditName,
+    required String title,
+    String? url,
+    required bool isSaved,
+    required String id,
+    required String kind,
+    required int score,
+    required VoteDir voteDir,
   }) = _$Post;
 
   String get authorName;
 
-  int commentCount;
+  int get commentCount;
+  set commentCount(int value);
 
   int get createdAtUtc;
 
   String get domainName;
 
-  bool hasBeenViewed;
+  bool get hasBeenViewed;
+  set hasBeenViewed(bool value);
 
-  bool isNSFW;
+  bool get isNSFW;
+  set isNSFW(bool value);
 
   bool get isSelf;
 
-  Media get media;
+  Media? get media;
 
   String get permalink;
 
-  Snudown get selfText;
+  Snudown? get selfText;
 
   String get subredditName;
 
   String get title;
 
-  String get url;
+  String? get url;
 }
 

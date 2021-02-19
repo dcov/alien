@@ -8,15 +8,12 @@ import '../widgets/widget_extensions.dart';
 class _OptionTile extends StatelessWidget {
 
   _OptionTile({
-    Key key,
-    @required this.onPress,
-    @required this.title,
-    @required this.icon,
+    Key? key,
+    required this.onPress,
+    required this.title,
+    required this.icon,
     this.subtext
-  }) : assert(onPress != null),
-       assert(title != null),
-       assert(icon != null),
-       super(key: key);
+  }) : super(key: key);
 
   final VoidCallback onPress;
 
@@ -24,7 +21,7 @@ class _OptionTile extends StatelessWidget {
 
   final IconData icon;
 
-  final String subtext;
+  final String? subtext;
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +42,13 @@ class _OptionTile extends StatelessWidget {
                    fontSize: 14.0,
                    fontWeight: FontWeight.w500)),
                 if (subtext != null)
-                  Text(subtext)
+                  Text(subtext!)
               ])
           ])));
   }
 }
 
-void _showLicensePage({ @required BuildContext context }) {
-  assert(context != null);
+void _showLicensePage({ required BuildContext context }) {
   context.rootNavigator.push(
     DraggablePageRoute(
       builder: (_) {
@@ -63,10 +59,9 @@ void _showLicensePage({ @required BuildContext context }) {
 class _AboutPageView extends StatelessWidget {
 
   _AboutPageView({
-    Key key,
-    @required this.packageInfo
-  }) : assert(packageInfo != null),
-       super(key: key);
+    Key? key,
+    required this.packageInfo
+  }) : super(key: key);
 
   final Future<PackageInfo> packageInfo;
 
@@ -132,11 +127,8 @@ class _AboutPageView extends StatelessWidget {
   }
 }
 
-void _showAboutPage({ @required BuildContext context }) {
-  assert(context != null);
-
+void _showAboutPage({ required BuildContext context }) {
   final packageInfoFuture = PackageInfo.fromPlatform();
-
   context.rootNavigator.push(
     DraggablePageRoute(
       builder: (_) {
@@ -147,7 +139,9 @@ void _showAboutPage({ @required BuildContext context }) {
 
 class _SettingsPageView extends StatelessWidget {
 
-  _SettingsPageView({ Key key }) : super(key: key);
+  _SettingsPageView({
+    Key? key
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -180,10 +174,8 @@ class _SettingsPageView extends StatelessWidget {
   }
 }
 
-void showSettingsPage({ @required BuildContext context }) {
-  assert(context != null);
+void showSettingsPage({ required BuildContext context }) {
   context.rootNavigator.push(
     DraggablePageRoute(
       builder: (_) => _SettingsPageView()));
 }
-

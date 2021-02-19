@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -13,7 +12,7 @@ import 'post.dart';
 import 'user.dart';
 
 FeedPosts postsFromFeed(Feed feed) {
-  Parameter sortBy;
+  RedditArg sortBy;
   switch (feed) {
     case Feed.home:
       sortBy = HomeSort.best;
@@ -27,7 +26,8 @@ FeedPosts postsFromFeed(Feed feed) {
     type: feed,
     sortBy: sortBy,
     listing: Listing(
-      status: ListingStatus.idle));
+      status: ListingStatus.idle,
+      pagination: Pagination()));
 }
 
 extension FeedExtensions on Feed {
@@ -41,7 +41,6 @@ extension FeedExtensions on Feed {
       case Feed.all:
         return 'all';
     }
-    throw ArgumentError('Invalid Feed.type value');
   }
 
   String get displayName {
@@ -53,15 +52,14 @@ extension FeedExtensions on Feed {
       case Feed.all:
         return 'All';
     }
-    throw ArgumentError('Invalid Feed.type value');
   }
 }
 
 class TransitionFeedPosts implements Update {
 
   TransitionFeedPosts({
-    @required this.posts,
-    @required this.to,
+    required this.posts,
+    required this.to,
     this.sortBy,
     this.sortFrom
   });
@@ -70,19 +68,20 @@ class TransitionFeedPosts implements Update {
 
   final ListingStatus to;
 
-  final Parameter sortBy;
+  final Object? sortBy;
 
-  final TimeSort sortFrom;
+  final TimeSort? sortFrom;
 
   @override
   Then update(AccountsOwner owner) {
-    assert(posts.type != Feed.home || owner.accounts.currentUser != null);
+    assert(posts.type != Feed.home || owner.accounts.currentUser != null,
+        'Tried to load the home feed without a signed in user');
 
     bool changedSort = false;
     if (sortBy != null && (sortBy != posts.sortBy || sortFrom != posts.sortFrom)) {
       // Since we're changing the sort value, we should be refreshing
       assert(to == ListingStatus.refreshing);
-      posts..sortBy = sortBy
+      posts..sortBy = sortBy!
            ..sortFrom = sortFrom;
       changedSort = true;
     }
@@ -104,13 +103,11 @@ class TransitionFeedPosts implements Update {
 class GetFeedPosts implements Effect {
 
   GetFeedPosts({
-    @required this.posts,
-    @required this.page,
-    @required this.transitionMarker,
+    required this.posts,
+    required this.page,
+    required this.transitionMarker,
     this.user
-  }) : assert(posts != null),
-       assert(page != null),
-       assert(transitionMarker != null);
+  });
 
   final FeedPosts posts;
 
@@ -118,7 +115,7 @@ class GetFeedPosts implements Effect {
 
   final Object transitionMarker;
 
-  final User user;
+  final User? user;
 
   @override
   Future<Then> effect(EffectContext context) async {
@@ -128,11 +125,13 @@ class GetFeedPosts implements Effect {
       if (posts.type == Feed.home) {
         assert(posts.sortBy is HomeSort);
         assert(user != null);
-        listing = await context.clientFromUser(user).getHomePosts(page, posts.sortBy, posts.sortFrom);
+        listing = await context.clientFromUser(user)
+            .getHomePosts(page, posts.sortBy as HomeSort, posts.sortFrom);
       } else {
         assert(posts.sortBy is SubredditSort);
         final subredditName = posts.type._name;
-        listing = await context.clientFromUser(user).getSubredditPosts(subredditName, page, posts.sortBy, posts.sortFrom);
+        listing = await context.clientFromUser(user)
+            .getSubredditPosts(subredditName, page, posts.sortBy as SubredditSort, posts.sortFrom);
       }
 
       final hasBeenViewed = await context.getPostListingDataHasBeenViewed(listing);
@@ -142,7 +141,7 @@ class GetFeedPosts implements Effect {
         transitionMarker: transitionMarker,
         data: listing,
         thingFactory: (PostData data) {
-          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]);
+          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]!);
         }));
     } catch (_) {
       return Then(ListingTransitionFailed(
@@ -151,4 +150,3 @@ class GetFeedPosts implements Effect {
     }
   }
 }
-

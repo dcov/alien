@@ -9,20 +9,22 @@ part 'post_comments.g.dart';
 abstract class PostComments implements Model {
 
   factory PostComments({
-    Post post,
-    CommentsSort sortBy,
+    required Post post,
+    required CommentsSort sortBy,
     List<Thing> things,
-    bool refreshing,
-    Object latestRefreshMarker,
+    required bool refreshing,
+    Object? latestRefreshMarker,
   }) = _$PostComments;
 
   Post get post;
 
-  CommentsSort sortBy;
+  CommentsSort get sortBy;
+  set sortBy(CommentsSort value);
 
   List<Thing> get things;
 
-  bool refreshing;
+  bool get refreshing;
+  set refreshing(bool value);
 
   /// Used when determining whether to refresh, and then whether to complete a refresh. This is needed because
   /// there are cases where multiple refresh actions are in progress (ex. if a user changes the sortBy value multiple
@@ -31,6 +33,6 @@ abstract class PostComments implements Model {
   /// This is also used when loading the comments that correspond to a [More] model, so that if a refresh happens
   /// while loading those [More] comments, the loaded comments won't be inserted into the tree since the tree has
   /// changed and those comments might not correspond to it anymore.
-  Object latestRefreshMarker;
+  Object? get latestRefreshMarker;
+  set latestRefreshMarker(Object? value);
 }
-

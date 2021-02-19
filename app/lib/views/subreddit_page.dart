@@ -20,8 +20,8 @@ import 'sort_bottom_sheet.dart';
 class _SubredditPageView extends StatelessWidget {
 
   _SubredditPageView({
-    Key key,
-    @required this.posts,
+    Key? key,
+    required this.posts,
   }) : super(key: key);
 
   final SubredditPosts posts;
@@ -73,7 +73,7 @@ class _SubredditPageView extends StatelessWidget {
               Connector(
                 builder: (BuildContext context) {
                   return SortSliver(
-                    parameters: [
+                    sortArgs: const [
                       SubredditSort.hot,
                       SubredditSort.newest,
                       SubredditSort.controversial,
@@ -82,7 +82,7 @@ class _SubredditPageView extends StatelessWidget {
                     ],
                     currentSortBy: posts.sortBy,
                     currentSortFrom: posts.sortFrom,
-                    onSort: (SubredditSort sortBy, TimeSort sortFrom) {
+                    onSort: (SubredditSort sortBy, TimeSort? sortFrom) {
                       context.then(
                         Then(TransitionSubredditPosts(
                           posts: posts,
@@ -100,8 +100,8 @@ class _SubredditPageView extends StatelessWidget {
 class _SubredditPage extends EntryPage {
 
   _SubredditPage({
-    @required this.posts,
-    @required String name,
+    required this.posts,
+    required String name,
   }) : super(name: name);
 
   final SubredditPosts posts;
@@ -117,19 +117,14 @@ class _SubredditPage extends EntryPage {
 }
 
 String subredditPageNameFrom(Subreddit subreddit, [String prefix = '']) {
-  assert(prefix != null);
   return prefix + subreddit.fullId;
 }
 
 void _showSubredditPage({
-    @required BuildContext context,
-    @required Subreddit subreddit,
+    required BuildContext context,
+    required Subreddit subreddit,
     String pageNamePrefix = ''
   }) {
-  assert(context != null);
-  assert(subreddit != null);
-  assert(pageNamePrefix != null);
-
     /// Create the posts model
   final posts = postsFromSubreddit(subreddit);
 
@@ -149,16 +144,13 @@ void _showSubredditPage({
       to: ListingStatus.refreshing)));
 }
 
-
 class SubredditTile extends StatelessWidget {
 
   SubredditTile({
-    Key key,
-    @required this.subreddit,
+    Key? key,
+    required this.subreddit,
     this.pageNamePrefix = ''
-  }) : assert(subreddit != null),
-       assert(pageNamePrefix != null),
-       super(key: key);
+  }) : super(key: key);
 
   final Subreddit subreddit;
 
@@ -184,4 +176,3 @@ class SubredditTile extends StatelessWidget {
             fontWeight: FontWeight.w500)));
     });
 }
-

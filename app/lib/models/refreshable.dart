@@ -5,12 +5,12 @@ part 'refreshable.g.dart';
 abstract class Refreshable<T> implements Model {
 
   factory Refreshable({
-    bool refreshing,
+    required bool refreshing,
     List<T> items
   }) = _$Refreshable;
 
-  bool refreshing;
+  bool get refreshing;
+  set refreshing(bool value);
 
   List<T> get items;
 }
-

@@ -5,25 +5,22 @@ import 'tile.dart';
 class Option {
 
   Option({
-    @required this.onSelected,
-    @required this.title,
+    required this.onSelected,
+    required this.title,
     this.icon
-  }) : assert(onSelected != null),
-       assert(title != null);
+  });
 
   final VoidCallback onSelected;
 
   final String title;
 
-  final IconData icon;
+  final IconData? icon;
 }
 
 void showOptionsBottomSheet({
-    @required BuildContext context,
+    required BuildContext context,
     List<Option> options = const <Option>[]
   }) {
-  assert(context != null);
-  assert(options != null);
   showModalBottomSheet(
     context: context,
     builder: (BuildContext context) {
@@ -50,4 +47,3 @@ void showOptionsBottomSheet({
         });
     });
 }
-

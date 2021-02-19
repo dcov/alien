@@ -20,16 +20,12 @@ typedef ListingScrollViewBuilder = Widget Function(
 class ListingScrollView<T extends Thing> extends StatefulWidget {
 
   ListingScrollView({
-    Key key,
-    @required this.listing,
-    @required this.onTransitionListing,
-    @required this.thingBuilder,
+    Key? key,
+    required this.listing,
+    required this.onTransitionListing,
+    required this.thingBuilder,
     this.scrollViewBuilder = defaultScrollViewBuilder
-  }) : assert(listing != null),
-       assert(onTransitionListing != null),
-       assert(thingBuilder != null),
-       assert(scrollViewBuilder != null),
-       super(key: key);
+  }) : super(key: key);
 
   final Listing<T> listing;
 
@@ -54,9 +50,9 @@ class ListingScrollView<T extends Thing> extends StatefulWidget {
 
 class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T>> {
 
-  ScrollController _controller;
+  late ScrollController _controller;
 
-  bool _trackOffset;
+  late bool _trackOffset;
 
   @override
   void initState() {
@@ -81,21 +77,21 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
                    listing.pagination?.nextPageExists == true;
   }
 
-  Completer<void> _refreshCompleter;
+  Completer<void>? _refreshCompleter;
 
   Future<void> _handleRefresh() {
     if (_refreshCompleter == null) {
       _refreshCompleter = Completer<void>();
       widget.onTransitionListing(ListingStatus.refreshing);
     }
-    return _refreshCompleter.future;
+    return _refreshCompleter!.future;
   }
 
   void _checkShouldFinishRefresh(Listing<T> listing) {
     if (_refreshCompleter != null) {
       assert(listing.status != ListingStatus.loadingMore);
       if (listing.status == ListingStatus.idle) {
-        _refreshCompleter.complete();
+        _refreshCompleter!.complete();
         _refreshCompleter = null;
       }
     }
@@ -130,4 +126,3 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
     super.dispose();
   }
 }
-

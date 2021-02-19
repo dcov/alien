@@ -11,16 +11,17 @@ enum ThemeType {
 abstract class Theming implements Model {
 
   factory Theming({
-    ThemeData data,
-    ThemeType type
+    ThemeData? data,
+    ThemeType? type
   }) = _$Theming;
 
-  ThemeData data;
+  ThemeData? get data;
+  set data(ThemeData? value);
 
-  ThemeType type;
+  ThemeType? get type;
+  set type(ThemeType? value);
 }
 
 abstract class ThemingOwner {
   Theming get theming;
 }
-

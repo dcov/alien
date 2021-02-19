@@ -3,8 +3,8 @@ import 'package:flutter/widgets.dart';
 class RoutingEntry {
 
   RoutingEntry({
-    @required this.depth,
-    @required this.page,
+    required this.depth,
+    required this.page,
   });
 
   final int depth;
@@ -22,9 +22,9 @@ class _RoutingData {
 class _RoutingDataScope extends InheritedWidget {
 
   _RoutingDataScope({
-    Key key,
-    @required this.data,
-    Widget child
+    Key? key,
+    required this.data,
+    required Widget child
   }) : super(key: key, child: child);
 
   final _RoutingData data;
@@ -40,9 +40,9 @@ typedef RoutingPageBuilder = Page Function(String name);
 class Routing extends StatefulWidget {
 
   Routing({
-    Key key,
-    @required this.initialPageName,
-    @required this.initialPageBuilder
+    Key? key,
+    required this.initialPageName,
+    required this.initialPageBuilder
   }) : super(key: key);
 
   final String initialPageName;
@@ -59,17 +59,17 @@ class Routing extends StatefulWidget {
 
 class _RoutingState extends State<Routing> {
 
-  List<RoutingEntry> _entries;
-  List<int> _currentStack;
-  _RoutingData _data;
+  late List<RoutingEntry> _entries;
+  late List<int> _currentStack;
+  late _RoutingData _data;
 
   void push(String name, RoutingPageBuilder pageBuilder) {
     final currentIndex = _currentStack.last;
     final currentEntry = _entries[currentIndex];
-    final newRouteName = Routing.joinPageNames([currentEntry.page.name, name]);
+    final newRouteName = Routing.joinPageNames([currentEntry.page.name!, name]);
 
     /// Check if [newRouteName] already exists. If it does [indexOf] will be set.
-    int indexOf;
+    int? indexOf;
     for (var i = currentIndex + 1; i < _entries.length; i++) {
       final entry = _entries[i];
       if (entry.depth <= currentEntry.depth) {
@@ -109,7 +109,7 @@ class _RoutingState extends State<Routing> {
     });
   }
 
-  void pop([String name]) {
+  void pop([String? name]) {
     if (name == null) {
       _popAt(_currentStack.last);
       _currentStack.removeLast();
@@ -174,7 +174,7 @@ class _RoutingState extends State<Routing> {
 
   final _navigatorKey = GlobalKey<NavigatorState>();
 
-  NavigatorState get _navigator => _navigatorKey.currentState;
+  NavigatorState get _navigator => _navigatorKey.currentState!;
 
   Future<bool> _handleWillPop() {
     if (_navigator.canPop()) {
@@ -200,15 +200,15 @@ class _RoutingState extends State<Routing> {
 extension RoutingContextExtensions on BuildContext {
 
   List<RoutingEntry> get routingEntries {
-    return dependOnInheritedWidgetOfExactType<_RoutingDataScope>().data.entries;
+    return dependOnInheritedWidgetOfExactType<_RoutingDataScope>()!.data.entries;
   }
 
   _RoutingState get _state {
     final context = this;
     if (context is StatefulElement && context.state is _RoutingState) {
-      return context.state;
+      return context.state as _RoutingState;
     }
-    return context.findAncestorStateOfType<_RoutingState>();
+    return context.findAncestorStateOfType<_RoutingState>()!;
   }
 
   void push(String name, RoutingPageBuilder pageBuilder) => _state.push(name, pageBuilder);
@@ -219,9 +219,7 @@ extension RoutingContextExtensions on BuildContext {
 abstract class EntryPage<T> extends Page<T> {
 
   EntryPage({
-    @required String name,
-    Object arguments
-  }) : assert(name != null),
-       super(key: ValueKey(name), name: name, arguments: arguments);
+    required String name,
+    Object? arguments
+  }) : super(key: ValueKey(name), name: name, arguments: arguments);
 }
-

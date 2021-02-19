@@ -3,7 +3,9 @@ import 'package:flutter/widgets.dart';
 
 class RenderProxySliver extends RenderSliver with RenderObjectWithChildMixin<RenderSliver> {
 
-  RenderProxySliver({ RenderSliver child }) {
+  RenderProxySliver({
+    RenderSliver? child
+  }) {
     this.child = child;
   }
 
@@ -26,13 +28,13 @@ class RenderProxySliver extends RenderSliver with RenderObjectWithChildMixin<Ren
   @override
   void performLayout() {
     if (child != null) {
-      child.layout(constraints, parentUsesSize: true);
-      geometry = child.geometry;
+      child!.layout(constraints, parentUsesSize: true);
+      geometry = child!.geometry;
     }
   }
 
   @override
-  bool hitTestChildren(HitTestResult result, { double mainAxisPosition, double crossAxisPosition }) {
+  bool hitTestChildren(SliverHitTestResult result, { required double mainAxisPosition, required double crossAxisPosition }) {
     return child?.hitTest(result, mainAxisPosition: mainAxisPosition, crossAxisPosition: crossAxisPosition) ?? false;
   }
 
@@ -57,15 +59,18 @@ class RenderProxySliver extends RenderSliver with RenderObjectWithChildMixin<Ren
   @override
   void paint(PaintingContext context, Offset offset) {
     if (child != null) {
-      context.paintChild(child, offset);
+      context.paintChild(child!, offset);
     }
   }
 }
 
 class SliverCustomPaint extends SingleChildRenderObjectWidget {
 
-  SliverCustomPaint({ Key key, Widget sliver, this.painter })
-    : super(key: key, child: sliver);
+  SliverCustomPaint({
+    Key? key,
+    Widget? sliver,
+    required this.painter
+  }) : super(key: key, child: sliver);
 
   final CustomPainter painter;
 
@@ -83,14 +88,14 @@ class SliverCustomPaint extends SingleChildRenderObjectWidget {
 class RenderSliverCustomPaint extends RenderProxySliver {
 
   RenderSliverCustomPaint({
-    CustomPainter painter,
-    RenderSliver child
+    CustomPainter? painter,
+    RenderSliver? child
   }) : this._painter = painter,
        super(child: child);
 
-  CustomPainter get painter => _painter;
-  CustomPainter _painter;
-  set painter(CustomPainter value) {
+  CustomPainter? get painter => _painter;
+  CustomPainter? _painter;
+  set painter(CustomPainter? value) {
     if (_painter == value)
       return;
 
@@ -99,7 +104,7 @@ class RenderSliverCustomPaint extends RenderProxySliver {
   }
 
   Size getSizeRelativeToAxis() {
-    double mainAxisExtent = geometry.paintExtent;
+    double mainAxisExtent = geometry!.paintExtent;
     double crossAxisExtent = constraints.crossAxisExtent;
     switch (constraints.axis) {
       case Axis.horizontal:
@@ -107,7 +112,6 @@ class RenderSliverCustomPaint extends RenderProxySliver {
       case Axis.vertical:
         return Size(crossAxisExtent, mainAxisExtent);
     }
-    return null;
   }
 
   @override
@@ -117,10 +121,9 @@ class RenderSliverCustomPaint extends RenderProxySliver {
       canvas.save();
       if (offset != Offset.zero)
         canvas.translate(offset.dx, offset.dy);
-      painter.paint(canvas, getSizeRelativeToAxis());
+      painter!.paint(canvas, getSizeRelativeToAxis());
       canvas.restore();
     }
     super.paint(context, offset);
   }
 }
-

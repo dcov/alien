@@ -7,10 +7,10 @@ import '../widgets/tile.dart';
 class UserTile extends StatelessWidget {
 
 	UserTile({
-		Key key,
-		@required this.user,
-		@required this.onLogIn,
-		@required this.onLogOut,
+		Key? key,
+		required this.user,
+		required this.onLogIn,
+		required this.onLogOut,
 	}) : super(key: key);
 
 	final User user;
@@ -25,10 +25,7 @@ class UserTile extends StatelessWidget {
 		  onTap: onLogIn,
 		  icon: Pressable(
 		    onPress: onLogOut,
-		    child: Icon(Icons.close)
-		  ),
-			title: Text(user.name),
-		);
+		    child: Icon(Icons.close)),
+			title: Text(user.name));
 	}
 }
-

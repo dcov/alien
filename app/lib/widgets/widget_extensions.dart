@@ -12,4 +12,3 @@ extension WigetExtensions on BuildContext {
 
   NavigatorState get rootNavigator => Navigator.of(this, rootNavigator: true);
 }
-

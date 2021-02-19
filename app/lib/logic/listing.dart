@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../models/listing.dart';
@@ -10,16 +9,12 @@ typedef _ListingTransitionEffectFactory = Then Function(Page page, Object marker
 class TransitionListing implements Update {
 
   TransitionListing({
-    @required this.listing,
-    @required this.to,
-    @required this.forceIfRefreshing,
-    @required this.effectFactory
-  }) : assert(listing != null),
-       assert(to != null),
-       assert(to != ListingStatus.idle),
-       assert(forceIfRefreshing != null),
-       assert(!forceIfRefreshing || to != ListingStatus.loadingMore),
-       assert(effectFactory != null);
+    required this.listing,
+    required this.to,
+    required this.forceIfRefreshing,
+    required this.effectFactory
+  }) : assert(to != ListingStatus.idle),
+       assert(!forceIfRefreshing || to != ListingStatus.loadingMore);
 
   final Listing listing;
 
@@ -51,10 +46,10 @@ class TransitionListing implements Update {
           return Then.done();
 
         // We can transition to loadingMore so there should be a next page to transition to
-        assert(listing.pagination != null && listing.pagination.nextPageExists);
+        assert(listing.pagination?.nextPageExists == true);
         break;
-      default:
-        break;
+      case ListingStatus.idle:
+        throw StateError('Cannot transition to ListingStatus.idle manually.');
     }
 
     /// Create a new marker to mark this transition instance.
@@ -63,7 +58,7 @@ class TransitionListing implements Update {
     listing..status = to
            ..latestTransitionMarker = transitionMarker;
 
-    return effectFactory(listing.pagination.nextPage, transitionMarker);
+    return effectFactory(listing.pagination.nextPage!, transitionMarker);
   }
 }
 
@@ -72,14 +67,11 @@ typedef _ThingFactory<TD extends ThingData, T extends Thing> = T Function(TD dat
 class FinishListingTransition<TD extends ThingData, T extends Thing> implements Update {
 
   FinishListingTransition({
-    @required this.listing,
-    @required this.transitionMarker,
-    @required this.data,
-    @required this.thingFactory
-  }) : assert(listing != null),
-       assert(transitionMarker != null),
-       assert(data != null),
-       assert(thingFactory != null);
+    required this.listing,
+    required this.transitionMarker,
+    required this.data,
+    required this.thingFactory
+  });
 
   final Listing<T> listing;
 
@@ -95,7 +87,7 @@ class FinishListingTransition<TD extends ThingData, T extends Thing> implements 
     // we have, then this transition has been overriden by a different transition, in which case we don't need to do
     // anything.
     if (transitionMarker == listing.latestTransitionMarker) {
-      Iterable<TD> things;
+      late Iterable<TD> things;
       switch (listing.status) {
         case ListingStatus.refreshing:
           listing.things.clear();
@@ -112,8 +104,8 @@ class FinishListingTransition<TD extends ThingData, T extends Thing> implements 
             return true;
           });
           break;
-        default:
-          break;
+        case ListingStatus.idle:
+          throw StateError('Cannot finish transitioning to ListingStatus.idle manually.');
       }
 
       listing..pagination = listing.pagination.forward(data)
@@ -129,10 +121,9 @@ class FinishListingTransition<TD extends ThingData, T extends Thing> implements 
 class ListingTransitionFailed implements Update {
 
   ListingTransitionFailed({
-    @required this.listing,
-    @required this.transitionMarker
-  }) : assert(listing != null),
-       assert(transitionMarker != null);
+    required this.listing,
+    required this.transitionMarker
+  });
 
   final Listing listing;
 
@@ -148,4 +139,3 @@ class ListingTransitionFailed implements Update {
     return Then.done();
   }
 }
-

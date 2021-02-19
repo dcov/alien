@@ -15,12 +15,13 @@ enum LoginStatus {
 abstract class Login implements Model {
 
   factory Login({
-    LoginStatus status,
-    AuthSession session
+    required LoginStatus status,
+    AuthSession? session
   }) = _$Login;
 
-  LoginStatus status;
+  LoginStatus get status;
+  set status(LoginStatus value);
 
-  AuthSession session;
+  AuthSession? get session;
+  set session(AuthSession? value);
 }
-

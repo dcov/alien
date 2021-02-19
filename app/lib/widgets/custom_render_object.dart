@@ -4,11 +4,9 @@ import 'package:flutter/widgets.dart';
 abstract class CustomRenderObjectWidget extends RenderObjectWidget {
 
   CustomRenderObjectWidget({
-    Key key,
-    @required this.children,
-  }) : assert(children != null),
-       assert(_debugValidateSlots(children.keys.toList())),
-       assert(!children.values.any((Widget child) => child == null)),
+    Key? key,
+    required this.children,
+  }) : assert(_debugValidateSlots(children.keys.toList())),
        super(key: key);
 
   final Map<dynamic, Widget> children;
@@ -32,10 +30,10 @@ class CustomRenderObjectElement extends RenderObjectElement {
   CustomRenderObjectElement(CustomRenderObjectWidget widget) : super(widget);
 
   @override
-  CustomRenderObjectWidget get widget => super.widget;
+  CustomRenderObjectWidget get widget => super.widget as CustomRenderObjectWidget;
 
   @override
-  CustomRenderObjectMixin get renderObject => super.renderObject;
+  CustomRenderObjectMixin get renderObject => super.renderObject as CustomRenderObjectMixin;
 
   final Map<dynamic, Element> _slotToChild = Map<dynamic, Element>();
   final Map<Element, dynamic> _childToSlot = Map<Element, dynamic>();
@@ -47,7 +45,7 @@ class CustomRenderObjectElement extends RenderObjectElement {
   }
 
   @override
-  void mount(Element parent, newSlot) {
+  void mount(Element? parent, newSlot) {
     super.mount(parent, newSlot);
     final Map<dynamic, Widget> children = widget.children;
     for (final MapEntry<dynamic, Widget> entry in children.entries) {
@@ -68,8 +66,8 @@ class CustomRenderObjectElement extends RenderObjectElement {
 
     for (final MapEntry<dynamic, Widget> entry in newChildren.entries) {
       final dynamic slot = entry.key;
-      final Element oldChild = _slotToChild[slot];
-      final Element newChild = updateChild(oldChild, entry.value, slot);
+      final Element? oldChild = _slotToChild[slot];
+      final Element newChild = updateChild(oldChild, entry.value, slot)!;
 
       if (oldChild != null)
         _childToSlot.remove(oldChild);
@@ -80,7 +78,7 @@ class CustomRenderObjectElement extends RenderObjectElement {
     }
 
     for (final dynamic slot in slotsToRemove) {
-      final Element removedChild = _slotToChild.remove(slot);
+      final Element removedChild = _slotToChild.remove(slot)!;
       _childToSlot.remove(removedChild);
       deactivateChild(removedChild);
     }
@@ -145,7 +143,7 @@ mixin CustomRenderObjectMixin<ChildType extends RenderObject> on RenderObject {
   void insert(RenderObject child, dynamic slot) {
     assert(child is ChildType);
     adoptChild(child);
-    _slotToChild[slot] = child;
+    _slotToChild[slot] = child as ChildType;
     _childToSlot[child] = slot;
   }
 
@@ -187,15 +185,14 @@ mixin CustomRenderObjectMixin<ChildType extends RenderObject> on RenderObject {
 
   bool hasChild(dynamic slot) => _slotToChild[slot] != null;
 
-  ChildType getChild(dynamic slot) => _slotToChild[slot];
+  ChildType getChild(dynamic slot) => _slotToChild[slot]!;
 }
 
 mixin CustomRenderBoxDefaultsMixin implements RenderBox, CustomRenderObjectMixin<RenderBox> {
 
-  Size layoutChild(dynamic slot, BoxConstraints constraints, { bool parentUsesSize = false }) {
+  Size? layoutChild(dynamic slot, BoxConstraints constraints, { bool parentUsesSize = false }) {
     assert(hasChild(slot));
     final RenderBox child = getChild(slot);
-    assert(child != null);
     child.layout(constraints, parentUsesSize: parentUsesSize);
     return parentUsesSize ? child.size : null;
   }
@@ -203,35 +200,32 @@ mixin CustomRenderBoxDefaultsMixin implements RenderBox, CustomRenderObjectMixin
   void positionChild(dynamic slot, Offset offset) {
     assert(hasChild(slot));
     final RenderBox child = getChild(slot);
-    assert(child != null);
-    final BoxParentData parentData = child.parentData;
+    final BoxParentData parentData = child.parentData as BoxParentData;
     parentData.offset = offset;
   }
 
-  bool hitTestChild(dynamic slot, HitTestResult result, { Offset position }) {
+  bool hitTestChild(dynamic slot, BoxHitTestResult result, { required Offset position }) {
     assert(hasChild(slot));
     final RenderBox child = getChild(slot);
-    assert(child != null);
-    final BoxParentData parentData = child.parentData;
+    final BoxParentData parentData = child.parentData as BoxParentData;
     return child.hitTest(result, position: position - parentData.offset);
   }
 
   void paintChild(dynamic slot, PaintingContext context, Offset offset) {
     assert(hasChild(slot));
     final RenderBox child = getChild(slot);
-    assert(child != null);
-    final BoxParentData parentData = child.parentData;
+    final BoxParentData parentData = child.parentData as BoxParentData;
     context.paintChild(child, offset + parentData.offset);
   }
 
   @protected
-  List<dynamic> get hitTestOrdering => null;
+  List<dynamic>? get hitTestOrdering => null;
 
   @protected
-  List<dynamic> get paintOrdering => hitTestOrdering?.reversed?.toList();
+  List<dynamic>? get paintOrdering => hitTestOrdering?.reversed?.toList();
 
   @override
-  bool hitTestChildren(HitTestResult result, { Offset position }) {
+  bool hitTestChildren(BoxHitTestResult result, { required Offset position }) {
     final slots = hitTestOrdering;
     if (slots != null) {
       for (final slot in slots) {
@@ -254,4 +248,3 @@ mixin CustomRenderBoxDefaultsMixin implements RenderBox, CustomRenderObjectMixin
     }
   }
 }
-

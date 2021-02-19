@@ -11,21 +11,21 @@ abstract class Comment implements Model, Saveable, Votable {
 
   factory Comment({
     String authorFlairText,
-    String authorName,
-    Snudown body,
-    int createdAtUtc,
-    int depth,
-    String distinguishment,
-    int editedAtUtc,
-    bool isSubmitter,
-    bool isSaved,
-    String id,
-    String kind,
-    int score,
-    VoteDir voteDir,
+    required String authorName,
+    required Snudown body,
+    required int createdAtUtc,
+    int? depth,
+    String? distinguishment,
+    required int editedAtUtc,
+    required bool isSubmitter,
+    required bool isSaved,
+    required String id,
+    required String kind,
+    required int score,
+    required VoteDir voteDir,
   }) = _$Comment;
 
-  String get authorFlairText;
+  String? get authorFlairText;
 
   String get authorName;
 
@@ -33,12 +33,12 @@ abstract class Comment implements Model, Saveable, Votable {
 
   int get createdAtUtc;
 
-  int get depth;
+  int? get depth;
 
-  String distinguishment;
+  String? get distinguishment;
+  set distinguishment(String? value);
 
   int get editedAtUtc;
 
   bool get isSubmitter;
 }
-

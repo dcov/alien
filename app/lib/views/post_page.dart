@@ -22,10 +22,9 @@ import 'votable_utils.dart';
 class _PostSliver extends StatelessWidget {
 
   _PostSliver({
-    Key key,
-    @required this.post,
-  }) : assert(post != null),
-       super(key: key);
+    Key? key,
+    required this.post,
+  }) : super(key: key);
 
   final Post post;
 
@@ -82,12 +81,12 @@ class _PostSliver extends StatelessWidget {
                   aspectRatio: 16/9,
                   child: SizedBox.expand(
                     child: MediaThumbnail(
-                      media: post.media)))),
+                      media: post.media!)))),
             if (post.selfText != null)
               Padding(
                 padding: EdgeInsets.only(top: 8.0),
                 child: SnudownBody(
-                  snudown: post.selfText,
+                  snudown: post.selfText!,
                   scrollable: false))
           ])));
   }
@@ -96,8 +95,8 @@ class _PostSliver extends StatelessWidget {
 class _PostPageView extends StatelessWidget {
 
   _PostPageView({
-    Key key,
-    this.comments,
+    Key? key,
+    required this.comments,
   }) : super(key: key);
 
   final PostComments comments;
@@ -131,7 +130,7 @@ class _PostPageView extends StatelessWidget {
           Connector(
             builder: (_) {
               return SortSliver(
-                parameters: <CommentsSort>[
+                sortArgs: const <CommentsSort>[
                   // TODO: possibly move this into the reddit package as a static field i.e. CommentsSort.values
                   CommentsSort.best,
                   CommentsSort.top,
@@ -157,8 +156,8 @@ class _PostPageView extends StatelessWidget {
 class _PostPage extends EntryPage {
 
   _PostPage({
-    this.comments,
-    String name,
+    required this.comments,
+    required String name,
   }) : super(name: name);
 
   final PostComments comments;
@@ -179,14 +178,10 @@ String postPageNameFrom(Post post) {
 }
 
 void showPostPage({
-    @required BuildContext context,
-    @required Post post,
+    required BuildContext context,
+    required Post post,
   }) {
-  assert(context != null);
-  assert(post != null);
-
   final comments = commentsFromPost(post);
-
   context
     ..push(
         postPageNameFrom(post),
@@ -198,4 +193,3 @@ void showPostPage({
     ..then(Then(MarkPostAsViewed(post: post)))
     ..then(Then(RefreshPostComments(comments: comments)));
 }
-

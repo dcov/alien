@@ -14,18 +14,20 @@ enum ListingStatus {
 abstract class Listing<T extends Thing> implements Model {
 
   factory Listing({
-    ListingStatus status,
+    required ListingStatus status,
     List<T> things,
-    Pagination pagination,
-    Object latestTransitionMarker
+    required Pagination pagination,
+    Object? latestTransitionMarker
   }) = _$Listing;
 
-  ListingStatus status;
+  ListingStatus get status;
+  set status(ListingStatus value);
 
   List<T> get things;
 
-  Pagination pagination;
+  Pagination get pagination;
+  set pagination(Pagination pagination);
 
-  Object latestTransitionMarker;
+  Object? get latestTransitionMarker;
+  set latestTransitionMarker(Object? value);
 }
-

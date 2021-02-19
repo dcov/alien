@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -10,25 +9,27 @@ import '../models/snudown.dart';
 import 'snudown.dart';
 
 Post postFromData(PostData data, { bool hasBeenViewed = false }) {
-  assert(data != null);
-  assert(hasBeenViewed != null);
-
-  Media media;
+  Media? media;
   if (!data.isSelf) {
-    var thumbnail = data.thumbnailUrl ?? data.preview?.resolutions?.firstWhere((_) => true, orElse: () => null)?.url;
+    var thumbnail = data.thumbnailUrl ??
+        (data.preview?.resolutions.length != 0 ?
+            data.preview!.resolutions.first.url :
+            null);
+
     if (thumbnail != null) {
       thumbnail = Uri.tryParse(thumbnail)?.hasScheme == true ? thumbnail : null;
     }
 
     media = Media(
-      source: data.url,
+      // If it's not a self post then it should have a url
+      source: data.url!,
       thumbnail: thumbnail,
       thumbnailStatus: thumbnail != null ? ThumbnailStatus.loaded : ThumbnailStatus.notLoaded);
   }
 
-  Snudown selfText;
+  Snudown? selfText;
   if (data.selfText?.isNotEmpty == true) {
-    selfText = snudownFromMarkdown(data.selfText);
+    selfText = snudownFromMarkdown(data.selfText!);
   }
 
   return Post(
@@ -72,7 +73,7 @@ extension PostEffectsExtensions on EffectContext {
 class MarkPostAsViewed implements Update {
 
   MarkPostAsViewed({
-    @required this.post
+    required this.post
   });
 
   final Post post;
@@ -90,8 +91,8 @@ class MarkPostAsViewed implements Update {
 class _CachePostAsViewed implements Effect {
 
   _CachePostAsViewed({
-    @required this.post
-  }) : assert(post != null);
+    required this.post
+  });
 
   final Post post;
 
@@ -101,4 +102,3 @@ class _CachePostAsViewed implements Effect {
     return Then.done();
   }
 }
-

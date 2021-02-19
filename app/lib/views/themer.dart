@@ -7,9 +7,9 @@ import '../models/theming.dart';
 class Themer extends StatefulWidget {
 
   Themer({
-    Key key,
-    @required this.theming,
-    @required this.child,
+    Key? key,
+    required this.theming,
+    required this.child,
   }) : super(key: key);
 
   final Theming theming;
@@ -19,12 +19,13 @@ class Themer extends StatefulWidget {
   @override
   _ThemerState createState() => _ThemerState();
 }
+
 class _ThemerState extends State<Themer>
     with ConnectionStateMixin {
 
-  ThemeType _themeType;
-  ThemeData _themeData;
-  SystemUiOverlayStyle _systemStyle;
+  ThemeType? _themeType;
+  late ThemeData _themeData;
+  late SystemUiOverlayStyle _systemStyle;
 
   @override
   void capture(StateSetter setState) {
@@ -32,9 +33,9 @@ class _ThemerState extends State<Themer>
     if (_themeType != theming.type) {
       setState(() {
         _themeType = theming.type;
-        _themeData = theming.data;
+        _themeData = theming.data!;
 
-        switch (theming.type) {
+        switch (theming.type!) {
           case ThemeType.light:
             _themeData = _themeData.copyWith(appBarTheme: _themeData.appBarTheme.copyWith(brightness: Brightness.light));
             _systemStyle = SystemUiOverlayStyle.dark;
@@ -56,4 +57,3 @@ class _ThemerState extends State<Themer>
         child: widget.child));
   }
 }
-

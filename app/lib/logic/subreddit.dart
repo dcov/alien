@@ -9,4 +9,3 @@ Subreddit subredditFromData(SubredditData data) {
     name: data.displayName,
     userIsSubscriber: data.userIsSubscriber);
 }
-

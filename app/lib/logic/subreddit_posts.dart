@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
@@ -18,34 +17,33 @@ SubredditPosts postsFromSubreddit(Subreddit subreddit) {
     subreddit: subreddit,
     sortBy: SubredditSort.hot,
     listing: Listing<Post>(
-      status: ListingStatus.idle));
+      status: ListingStatus.idle,
+      pagination: Pagination()));
 }
 
 class TransitionSubredditPosts implements Update {
 
   TransitionSubredditPosts({
-    @required this.posts,
-    @required this.to,
+    required this.posts,
+    required this.to,
     this.sortBy,
     this.sortFrom
-  }) : assert(posts != null),
-       assert(to != null);
+  });
 
   final SubredditPosts posts;
 
   final ListingStatus to;
 
-  final SubredditSort sortBy;
+  final SubredditSort? sortBy;
 
-  final TimeSort sortFrom;
+  final TimeSort? sortFrom;
 
   @override
   Then update(AccountsOwner owner) {
-
     bool changedSort = false;
     if (sortBy != null && (sortBy != posts.sortBy || sortFrom != posts.sortFrom)) {
       assert(to == ListingStatus.refreshing);
-      posts..sortBy = sortBy
+      posts..sortBy = sortBy!
            ..sortFrom = sortFrom
            /// We're changing the sort value so we'll clear the current posts since they no longer correspond to
            /// the sort value.
@@ -70,13 +68,11 @@ class TransitionSubredditPosts implements Update {
 class GetSubredditPosts implements Effect {
 
   GetSubredditPosts({
-    @required this.posts,
-    @required this.page,
-    @required this.transitionMarker,
+    required this.posts,
+    required this.page,
+    required this.transitionMarker,
     this.user,
-  }) : assert(posts != null),
-       assert(page != null),
-       assert(transitionMarker != null);
+  });
 
   final SubredditPosts posts;
 
@@ -84,7 +80,7 @@ class GetSubredditPosts implements Effect {
 
   final Object transitionMarker;
 
-  final User user;
+  final User? user;
 
   @override
   Future<Then> effect(EffectContext context) async {
@@ -101,7 +97,7 @@ class GetSubredditPosts implements Effect {
         transitionMarker: transitionMarker,
         data: listing,
         thingFactory: (PostData data) {
-          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]);
+          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]!);
         }));
     } catch (_) {
       return Then(ListingTransitionFailed(
@@ -110,4 +106,3 @@ class GetSubredditPosts implements Effect {
     }
   }
 }
-

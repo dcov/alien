@@ -5,7 +5,7 @@ import '../models/user.dart';
 
 extension UserEffectContextExtensions on EffectContext {
 
-  RedditClient clientFromUser(User user) {
+  RedditClient clientFromUser(User? user) {
     if (user is ScriptUser)
       return this.scriptClient;
     else if (user is AppUser)
@@ -14,4 +14,3 @@ extension UserEffectContextExtensions on EffectContext {
       return this.redditApp.asDevice();
   }
 }
-

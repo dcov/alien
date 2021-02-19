@@ -18,21 +18,21 @@ enum _DragState {
 class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
 
   _DraggablePageRecognizer({
-    Object debugOwner,
-    PointerDeviceKind kind
+    Object? debugOwner,
+    PointerDeviceKind? kind
   }) : super(debugOwner: debugOwner, kind: kind);
 
-  GestureDragStartCallback onStart;
-  GestureDragUpdateCallback onUpdate;
-  GestureDragEndCallback onEnd;
-  GestureDragCancelCallback onCancel;
+  GestureDragStartCallback? onStart;
+  GestureDragUpdateCallback? onUpdate;
+  GestureDragEndCallback? onEnd;
+  GestureDragCancelCallback? onCancel;
   _DragState _state = _DragState.ready;
-  OffsetPair _initialPosition;
-  OffsetPair _pendingDragOffset;
-  Duration _lastPendingEventTimestamp;
-  int _initialButtons;
-  Matrix4 _lastTransform;
-  double _globalDistanceMoved;
+  late OffsetPair _initialPosition;
+  late OffsetPair _pendingDragOffset;
+  Duration? _lastPendingEventTimestamp;
+  int? _initialButtons;
+  Matrix4? _lastTransform;
+  late double _globalDistanceMoved;
 
   bool _hasSufficientGlobalDistanceToAccept(PointerDeviceKind pointerDeviceKind) {
     return _globalDistanceMoved > computeHitSlop(pointerDeviceKind);
@@ -46,7 +46,7 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
   
   Offset _getDeltaForDetails(Offset delta) => Offset(delta.dx, 0.0);
 
-  double _getPrimaryValueFromOffset(Offset value) => value.dx;
+  double? _getPrimaryValueFromOffset(Offset value) => value.dx;
 
   final Map<int, VelocityTracker> _velocityTrackers = <int, VelocityTracker>{};
 
@@ -95,8 +95,7 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
     assert(_state != _DragState.ready);
     if (!event.synthesized
         && (event is PointerDownEvent || event is PointerMoveEvent)) {
-      final VelocityTracker tracker = _velocityTrackers[event.pointer];
-      assert(tracker != null);
+      final VelocityTracker tracker = _velocityTrackers[event.pointer]!;
       tracker.addPosition(event.timeStamp, event.localPosition);
     }
 
@@ -118,7 +117,7 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
         _lastPendingEventTimestamp = event.timeStamp;
         _lastTransform = event.transform;
         final Offset movedLocally = _getDeltaForDetails(event.localDelta);
-        final Matrix4 localToGlobalTransform = event.transform == null ? null : Matrix4.tryInvert(event.transform);
+        final Matrix4? localToGlobalTransform = event.transform == null ? null : Matrix4.tryInvert(event.transform!);
         _globalDistanceMoved += PointerEvent.transformDeltaViaPositions(
           transform: localToGlobalTransform,
           untransformedDelta: movedLocally,
@@ -141,8 +140,8 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
     if (_state != _DragState.accepted) {
       _state = _DragState.accepted;
       final OffsetPair delta = _pendingDragOffset;
-      final Duration timestamp = _lastPendingEventTimestamp;
-      final Matrix4 transform = _lastTransform;
+      final Duration timestamp = _lastPendingEventTimestamp!;
+      final Matrix4? transform = _lastTransform;
       Offset localUpdateDelta = Offset.zero;
       _initialPosition = _initialPosition + delta;
       _pendingDragOffset = OffsetPair.zero;
@@ -150,7 +149,7 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
       _lastTransform = null;
       _checkStart(timestamp);
       if (localUpdateDelta != Offset.zero && onUpdate != null) {
-        final Matrix4 localToGlobal = transform != null ? Matrix4.tryInvert(transform) : null;
+        final Matrix4? localToGlobal = transform != null ? Matrix4.tryInvert(transform) : null;
         final Offset correctedLocalPosition = _initialPosition.local + localUpdateDelta;
         final Offset globalUpdateDelta = PointerEvent.transformDeltaViaPositions(
           untransformedEndPosition: correctedLocalPosition,
@@ -214,15 +213,15 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
       localPosition: _initialPosition.local,
     );
     if (onStart != null)
-      invokeCallback<void>('onStart', () => onStart(details));
+      invokeCallback<void>('onStart', () => onStart!(details));
   }
 
   void _checkUpdate({
-    Duration sourceTimeStamp,
-    Offset delta,
-    double primaryDelta,
-    Offset globalPosition,
-    Offset localPosition,
+    Duration? sourceTimeStamp,
+    required Offset delta,
+    double? primaryDelta,
+    required Offset globalPosition,
+    Offset? localPosition,
   }) {
     assert(_initialButtons == kPrimaryButton);
     final DragUpdateDetails details = DragUpdateDetails(
@@ -233,7 +232,7 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
       localPosition: localPosition,
     );
     if (onUpdate != null)
-      invokeCallback<void>('onUpdate', () => onUpdate(details));
+      invokeCallback<void>('onUpdate', () => onUpdate!(details));
   }
 
   void _checkEnd(int pointer) {
@@ -241,13 +240,12 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
     if (onEnd == null)
       return;
 
-    final VelocityTracker tracker = _velocityTrackers[pointer];
-    assert(tracker != null);
+    final VelocityTracker tracker = _velocityTrackers[pointer]!;
 
     DragEndDetails details;
     String Function() debugReport;
 
-    final VelocityEstimate estimate = tracker.getVelocityEstimate();
+    final VelocityEstimate? estimate = tracker.getVelocityEstimate();
     if (estimate != null && _isFlingGesture(estimate, tracker.kind)) {
       final Velocity velocity = Velocity(pixelsPerSecond: estimate.pixelsPerSecond)
         .clampMagnitude(kMinFlingVelocity, kMaxFlingVelocity);
@@ -269,13 +267,13 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
         return '$estimate; judged to not be a fling.';
       };
     }
-    invokeCallback<void>('onEnd', () => onEnd(details), debugReport: debugReport);
+    invokeCallback<void>('onEnd', () => onEnd!(details), debugReport: debugReport);
   }
 
   void _checkCancel() {
     assert(_initialButtons == kPrimaryButton);
     if (onCancel != null)
-      invokeCallback<void>('onCancel', onCancel);
+      invokeCallback<void>('onCancel', onCancel!);
   }
 
   @override
@@ -297,16 +295,12 @@ class _DraggablePageRecognizer extends OneSequenceGestureRecognizer {
 class _DraggablePageController<T> extends StatefulWidget {
 
   _DraggablePageController({
-    Key key,
-    @required this.isPopGestureEnabled,
-    @required this.navigator,
-    @required this.controller,
-    @required this.child
-  }) : assert(isPopGestureEnabled != null),
-       assert(navigator != null),
-       assert(controller != null),
-       assert(child != null),
-       super(key: key);
+    Key? key,
+    required this.isPopGestureEnabled,
+    required this.navigator,
+    required this.controller,
+    required this.child
+  }) : super(key: key);
 
   final ValueGetter<bool> isPopGestureEnabled;
 
@@ -322,7 +316,7 @@ class _DraggablePageController<T> extends StatefulWidget {
 
 class _DraggablePageControllerState<T> extends State<_DraggablePageController<T>> {
 
-  _DraggablePageRecognizer _recognizer;
+  late _DraggablePageRecognizer _recognizer;
 
   @override
   void initState() {
@@ -357,12 +351,12 @@ class _DraggablePageControllerState<T> extends State<_DraggablePageController<T>
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
-    final delta = _convertToLogical(details.primaryDelta / context.size.width);
+    final delta = _convertToLogical(details.primaryDelta! / context.size!.width);
     widget.controller.value -= delta;
   }
 
   void _handleDragEnd(DragEndDetails details) {
-    final velocity = _convertToLogical(details.velocity.pixelsPerSecond.dx / context.size.width);
+    final velocity = _convertToLogical(details.velocity.pixelsPerSecond.dx / context.size!.width);
     _finishDrag(velocity);
   }
 
@@ -396,7 +390,7 @@ class _DraggablePageControllerState<T> extends State<_DraggablePageController<T>
       // We want to cap the animation time, but we want to use a linear curve
       // to determine it.
       final int droppedPageForwardAnimationTime = math.min(
-        lerpDouble(_kMaxDroppedSwipePageForwardAnimationTime, 0, controller.value).floor(),
+        lerpDouble(_kMaxDroppedSwipePageForwardAnimationTime, 0, controller.value)!.floor(),
         _kMaxPageBackAnimationTime,
       );
       controller.animateTo(1.0, duration: Duration(milliseconds: droppedPageForwardAnimationTime), curve: animationCurve);
@@ -407,7 +401,7 @@ class _DraggablePageControllerState<T> extends State<_DraggablePageController<T>
       // The popping may have finished inline if already at the target destination.
       if (controller.isAnimating) {
         // Otherwise, use a custom popping animation duration and curve.
-        final int droppedPageBackAnimationTime = lerpDouble(0, _kMaxDroppedSwipePageForwardAnimationTime, controller.value).floor();
+        final int droppedPageBackAnimationTime = lerpDouble(0, _kMaxDroppedSwipePageForwardAnimationTime, controller.value)!.floor();
         controller.animateBack(0.0, duration: Duration(milliseconds: droppedPageBackAnimationTime), curve: animationCurve);
       }
     }
@@ -416,7 +410,7 @@ class _DraggablePageControllerState<T> extends State<_DraggablePageController<T>
       // Keep the userGestureInProgress in true state so we don't change the
       // curve of the page transition mid-flight since CupertinoPageTransition
       // depends on userGestureInProgress.
-      AnimationStatusListener animationStatusCallback;
+      late AnimationStatusListener animationStatusCallback;
       animationStatusCallback = (AnimationStatus status) {
         navigator.didStopUserGesture();
         controller.removeStatusListener(animationStatusCallback);
@@ -444,12 +438,10 @@ class _DraggablePageControllerState<T> extends State<_DraggablePageController<T>
 class DraggablePageRoute<T> extends PageRoute<T> {
 
   DraggablePageRoute({
-    @required this.builder,
-    RouteSettings settings,
+    required this.builder,
+    RouteSettings? settings,
     this.maintainState = true,
-  }) : assert(builder != null),
-       assert(maintainState != null),
-       super(settings: settings, fullscreenDialog: false);
+  }) : super(settings: settings, fullscreenDialog: false);
 
   final WidgetBuilder builder;
 
@@ -463,10 +455,10 @@ class DraggablePageRoute<T> extends PageRoute<T> {
   Duration get transitionDuration => const Duration(milliseconds: 400);
 
   @override
-  Color get barrierColor => null;
+  Color? get barrierColor => null;
 
   @override
-  String get barrierLabel => null;
+  String? get barrierLabel => null;
 
   @override
   bool canTransitionTo(TransitionRoute<dynamic> nextRoute) {
@@ -476,22 +468,21 @@ class DraggablePageRoute<T> extends PageRoute<T> {
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
     final child = builder(context);
-    assert(child != null);
     return Semantics(
       scopesRoute: true,
       explicitChildNodes: true,
       child: child);
   }
 
-  bool get _isPopGestureInProgress => navigator.userGestureInProgress;
+  bool get _isPopGestureInProgress => navigator!.userGestureInProgress;
 
   bool get _isPopGestureEnabled {
     return !isFirst &&
            !willHandlePopInternally &&
            !hasScopedWillPopCallback &&
            !fullscreenDialog &&
-           (animation.status == AnimationStatus.completed ||
-            secondaryAnimation.status == AnimationStatus.dismissed) &&
+           (animation!.status == AnimationStatus.completed ||
+            secondaryAnimation!.status == AnimationStatus.dismissed) &&
            !_isPopGestureInProgress;
   }
 
@@ -507,9 +498,8 @@ class DraggablePageRoute<T> extends PageRoute<T> {
       linearTransition: _isPopGestureInProgress,
       child: _DraggablePageController<T>(
         isPopGestureEnabled: () => _isPopGestureEnabled,
-        navigator: navigator,
-        controller: controller,
+        navigator: navigator!,
+        controller: controller!,
         child: child));
   }
 }
-

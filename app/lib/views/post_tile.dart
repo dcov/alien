@@ -18,11 +18,9 @@ import 'view_extensions.dart';
 import 'votable_utils.dart';
 
 void _showPostOptionsBottomSheet({
-    @required BuildContext context,
-    @required Post post
+    required BuildContext context,
+    required Post post
   }) {
-  assert(context != null);
-  assert(post != null);
   showOptionsBottomSheet(
     context: context,
     options: <Option>[
@@ -45,13 +43,11 @@ enum _PostTileLayoutSlot {
 class _PostTileLayout extends CustomRenderObjectWidget {
 
   _PostTileLayout({
-    Key key,
-    @required Widget title,
-    @required Widget details,
-    Widget thumbnail
-  }) : assert(title != null),
-       assert(details != null),
-       super(
+    Key? key,
+    required Widget title,
+    required Widget details,
+    Widget? thumbnail
+  }) : super(
          key: key,
          children: <dynamic, Widget>{
            _PostTileLayoutSlot.title : title,
@@ -89,7 +85,7 @@ class _RenderPostTileLayout extends RenderBox
       thumbnailSize = layoutChild(
           _PostTileLayoutSlot.thumbnail,
           BoxConstraints.tightFor(width: maxSize.width * 0.25),
-          parentUsesSize: true);
+          parentUsesSize: true)!;
 
       positionChild(
           _PostTileLayoutSlot.thumbnail,
@@ -108,7 +104,7 @@ class _RenderPostTileLayout extends RenderBox
 
     /// Determine the max width of the details section, and the starting height of the layout
     double maxDetailsWidth;
-    if (titleSize.height >= thumbnailSize.height) {
+    if (titleSize!.height >= thumbnailSize.height) {
       /// The title is as tall or taller than the thumbnail so the details won't overlap with the thumbnail if given the
       /// max width
       maxDetailsWidth = maxSize.width;
@@ -124,7 +120,7 @@ class _RenderPostTileLayout extends RenderBox
         BoxConstraints.loose(Size(maxDetailsWidth, maxSize.height)),
         parentUsesSize: true);
 
-    if ((detailsSize.height + titleSize.height) < thumbnailSize.height) {
+    if ((detailsSize!.height + titleSize.height) < thumbnailSize.height) {
       positionChild(
         _PostTileLayoutSlot.details,
         Offset(0.0, titleSize.height + (thumbnailSize.height - titleSize.height - detailsSize.height)));
@@ -144,12 +140,10 @@ class _RenderPostTileLayout extends RenderBox
 class PostTile extends StatelessWidget {
 
   PostTile({
-    Key key,
-    @required this.post,
-    @required this.includeSubredditName
-  }) : assert(post != null),
-       assert(includeSubredditName != null),
-       super(key: key);
+    Key? key,
+    required this.post,
+    required this.includeSubredditName
+  }) : super(key: key);
 
   final Post post;
 
@@ -258,9 +252,8 @@ class PostTile extends StatelessWidget {
                                 child: AspectRatio(
                                   aspectRatio: 15/12,
                                   child: MediaThumbnail(
-                                    media: post.media))))))
+                                    media: post.media!))))))
                       : null)))));
       });
   }
 }
-
