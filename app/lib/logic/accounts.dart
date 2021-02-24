@@ -79,7 +79,7 @@ class _GetScriptUserData implements Effect {
 
   @override
   Future<Then> effect(EffectContext context) async {
-    return context.scriptClient
+    return context.scriptClient!
       .getMe()
       .then((AccountData data) {
          return Then(_AddScriptUser(

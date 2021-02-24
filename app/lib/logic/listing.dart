@@ -46,7 +46,7 @@ class TransitionListing implements Update {
           return Then.done();
 
         // We can transition to loadingMore so there should be a next page to transition to
-        assert(listing.pagination?.nextPageExists == true);
+        assert(listing.pagination.nextPageExists);
         break;
       case ListingStatus.idle:
         throw StateError('Cannot transition to ListingStatus.idle manually.');

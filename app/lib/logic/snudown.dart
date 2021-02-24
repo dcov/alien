@@ -105,7 +105,7 @@ void parseMarkdownIntoSnudown(String data, Snudown snudown) {
   void put<T>(String href, { required bool checkIfMatches(T link), required T onAbsent() }) {
     hrefsToRemove.remove(href);
     if (snudown.links[href] == null) {
-      late T link;
+      T? link;
       for (final value in snudown.links.values) {
         final T? tv = value is T ? value as T : null;
         if (tv != null && checkIfMatches(tv)) {

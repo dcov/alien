@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/app.dart';
-import '../widgets/routing.dart';
 import '../widgets/scroll_configuration.dart';
+import '../widgets/shell.dart';
 import '../widgets/splash_screen.dart';
 
-import 'app_page.dart';
+import 'app_layer.dart';
 import 'themer.dart';
 
 /// The root view in the tree.
@@ -16,10 +16,18 @@ import 'themer.dart';
 /// phase between when the [App] state has yet to be initialized, in which it
 /// renders a graphic, and after it's been initialized, in which it renders the
 /// initialized [App] state and doesn't rebuild anymore.
-class InitView extends StatelessWidget {
+class InitView extends StatefulWidget {
 
   InitView({ Key? key })
     : super(key: key);
+
+  @override
+  _InitViewState createState() => _InitViewState();
+}
+
+class _InitViewState extends State<InitView> {
+
+  late final _appLayer = AppLayer(app: context.state as App);
 
   @override
   Widget build(_) {
@@ -51,11 +59,8 @@ class InitView extends StatelessWidget {
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
             child: Material(
-              child: Routing(
-                initialPageName: AppPage.pageName,
-                initialPageBuilder: (String name) {
-                  return AppPage(app: app, name: name);
-                }))));
+              child: Shell(
+                root: _appLayer))));
       });
   }
 }

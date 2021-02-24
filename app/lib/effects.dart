@@ -100,7 +100,7 @@ class EffectContext {
     String? scriptPassword,
     required GlobalKey<EffectRendererState> rendererKey
   }) {
-    late RedditClient client;
+    RedditClient? client;
     if (scriptId != null) {
       client = createScriptClient(
         clientId: scriptId,
@@ -127,7 +127,7 @@ class EffectContext {
 
   final RedditApp redditApp;
 
-  final RedditClient scriptClient;
+  final RedditClient? scriptClient;
 
   final HiveInterface hive;
 

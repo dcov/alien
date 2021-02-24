@@ -11,6 +11,8 @@ class Toolbar extends StatelessWidget {
     this.trailing
   }) : super(key: key);
 
+  static const kHeight = 48.0;
+
   final Widget? leading;
 
   final Widget? middle;
@@ -22,7 +24,7 @@ class Toolbar extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(top: context.mediaPadding.top),
       child: SizedBox(
-        height: 48.0,
+        height: kHeight,
         child: NavigationToolbar(
           leading: leading,
           middle: middle,

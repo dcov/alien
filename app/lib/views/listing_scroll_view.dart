@@ -74,7 +74,7 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
 
   void _checkShouldHandlePositionChange(Listing<T> listing) {
     _trackOffset = listing.status == ListingStatus.idle && 
-                   listing.pagination?.nextPageExists == true;
+                   listing.pagination.nextPageExists == true;
   }
 
   Completer<void>? _refreshCompleter;

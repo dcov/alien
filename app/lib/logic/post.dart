@@ -13,7 +13,7 @@ Post postFromData(PostData data, { bool hasBeenViewed = false }) {
   if (!data.isSelf) {
     var thumbnail = data.thumbnailUrl ??
         (data.preview?.resolutions.length != 0 ?
-            data.preview!.resolutions.first.url :
+            data.preview?.resolutions.first.url :
             null);
 
     if (thumbnail != null) {

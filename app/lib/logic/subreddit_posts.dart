@@ -56,7 +56,7 @@ class TransitionSubredditPosts implements Update {
       to: to,
       forceIfRefreshing: changedSort,
       effectFactory: (Page page, Object transitionMarker) {
-        return Then(GetSubredditPosts(
+        return Then(_GetSubredditPosts(
           posts: posts,
           page: page,
           transitionMarker: transitionMarker,
@@ -65,9 +65,9 @@ class TransitionSubredditPosts implements Update {
   }
 }
 
-class GetSubredditPosts implements Effect {
+class _GetSubredditPosts implements Effect {
 
-  GetSubredditPosts({
+  _GetSubredditPosts({
     required this.posts,
     required this.page,
     required this.transitionMarker,

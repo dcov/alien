@@ -7,7 +7,7 @@ extension UserEffectContextExtensions on EffectContext {
 
   RedditClient clientFromUser(User? user) {
     if (user is ScriptUser)
-      return this.scriptClient;
+      return this.scriptClient!;
     else if (user is AppUser)
       return this.redditApp.asUser(user.token);
     else 

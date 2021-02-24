@@ -140,8 +140,7 @@ class PressableIcon extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     this.padding = EdgeInsets.zero,
-  }) : assert(onPress != null),
-       super(key: key);
+  }) : super(key: key);
 
   final AnimationController? controller;
 
