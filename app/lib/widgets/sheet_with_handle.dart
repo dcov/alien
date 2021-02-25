@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
+final kPeekTween = Tween<double>(begin: 0.0, end: 0.5);
+
+final kAlwaysPeekAnimation = kAlwaysCompleteAnimation.drive(kPeekTween);
+
+final kExpandTween = Tween<double>(begin: 0.5, end: 1.0);
+
 class SheetWithHandle extends StatelessWidget {
 
   SheetWithHandle({
     Key? key,
     required this.animation,
-    required this.expand,
     required this.handle,
     required this.body,
   }) : super(key: key);
 
   final Animation<double> animation;
-
-  final bool expand;
 
   final Widget handle;
 
@@ -21,7 +24,8 @@ class SheetWithHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomMultiChildLayout(
-      delegate: _Layout(animation: animation),
+      delegate: _Layout(
+        animation: animation),
       children: <Widget>[
         LayoutId(
           id: _LayoutSlot.body,
@@ -41,7 +45,7 @@ enum _LayoutSlot {
 class _Layout extends MultiChildLayoutDelegate {
 
   _Layout({
-    required this.animation
+    required this.animation,
   }) : super(relayout: animation);
 
   final Animation<double> animation;
@@ -61,7 +65,6 @@ class _Layout extends MultiChildLayoutDelegate {
     } else {
       offsetY = (size.height - handleSize.height) * ((1.0 - animation.value) * 2);
     }
-
     positionChild(_LayoutSlot.handle, Offset(0.0, offsetY));
     positionChild(_LayoutSlot.body, Offset(0.0, offsetY + handleSize.height));
   }

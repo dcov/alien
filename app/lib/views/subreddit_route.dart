@@ -92,7 +92,9 @@ class SubredditRoute extends ShellRoute {
         style: TextStyle()),
       contentHandle: Row(
         children: <Widget>[]),
-      contentBody: _ContentBody(posts: _posts));
+      contentBody: _ContentBody(
+        key: ValueKey(path),
+        posts: _posts));
   }
 }
 

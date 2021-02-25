@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:alien/logic/accounts.dart';
 import 'package:alien/models/user.dart';
 
-void accountsTest() {
+void testAccounts() {
   group('accounts tests', () {
     test('pack/unpack logic', () {
       final users = [

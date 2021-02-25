@@ -322,13 +322,23 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
         _hiddenRoute = null;
         _visibleRoute = oldRoutes.last;
         _controller.reverse(from: 1.0).then((_) {
-          _layersTransition = _LayersTransition.idleAtRoot;
-          _visibleRoute = null;
+          setState(() {
+            _layersTransition = _LayersTransition.idleAtRoot;
+            _visibleRoute = null;
+          });
         });
         return;
       }
 
       if (oldRoutes.last == newRoutes.last) {
+        if (_layersTransition == _LayersTransition.idleAtRoot) {
+          _layersTransition = _LayersTransition.expandOrCollapseRoute;
+          _controller.forward(from: 0.0).then((_) {
+            setState(() {
+              _layersTransition = _LayersTransition.idleAtRoute;
+            });
+          });
+        }
         return;
       }
 
@@ -338,9 +348,11 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
         _hiddenRoute = oldRoutes.last;
         _visibleRoute = newRoutes.last;
         _controller.forward(from: 0.0).then((_) {
-          _layersTransition = _LayersTransition.idleAtRoute;
-          _hiddenRoute = null;
-          _visibleRoute = null;
+          setState(() {
+            _layersTransition = _LayersTransition.idleAtRoute;
+            _hiddenRoute = null;
+            _visibleRoute = null;
+          });
         });
         return;
       }
@@ -350,22 +362,36 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
         _hiddenRoute = newRoutes.last;
         _visibleRoute = oldRoutes.last;
         _controller.reverse(from: 1.0).then((_) {
-          _layersTransition = _LayersTransition.idleAtRoute;
-          _hiddenRoute = null;
-          _visibleRoute = null;
+          setState(() {
+            _layersTransition = _LayersTransition.idleAtRoute;
+            _hiddenRoute = null;
+            _visibleRoute = null;
+          });
         });
         return;
       }
       
+      if (_layersTransition == _LayersTransition.idleAtRoot) {
+        _layersTransition = _LayersTransition.expandOrCollapseRoute;
+        _controller.forward(from: 0.0).then((_) {
+          setState(() {
+            _layersTransition = _LayersTransition.idleAtRoute;
+          });
+        });
+        return;
+      }
+
       _layersTransition = _LayersTransition.replace;
       _replacedEntriesLength = oldRoutes.length;
       _hiddenRoute = oldRoutes.last;
       _visibleRoute = newRoutes.last;
       _controller.forward(from: 0.0).then((_) {
-        _layersTransition = _LayersTransition.idleAtRoute;
-        _replacedEntriesLength = null;
-        _hiddenRoute = null;
-        _visibleRoute = null;
+        setState(() {
+          _layersTransition = _LayersTransition.idleAtRoute;
+          _replacedEntriesLength = null;
+          _hiddenRoute = null;
+          _visibleRoute = null;
+        });
       });
     });
   }
@@ -394,16 +420,17 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
       if (_controller.isCompleted) {
         _layersTransition = _LayersTransition.idleAtRoute;
+        return;
       }
       
       _layersTransition = _LayersTransition.expandOrCollapseRoute;
 
       // Is it a fling gesture?
       if (details.velocity.pixelsPerSecond.dy.abs() > 700) {
-        final flingVelocity = -details.velocity.pixelsPerSecond.dy / _contentHeight;
+        final flingVelocity = -(details.velocity.pixelsPerSecond.dy / _contentHeight);
         _controller.fling(velocity: flingVelocity).then((_) {
           setState(() {
-            if (flingVelocity > 0.0) {
+            if (flingVelocity < 0.0) {
               _layersTransition = _LayersTransition.idleAtRoot;
             } else {
               _layersTransition = _LayersTransition.idleAtRoute;
@@ -698,35 +725,25 @@ class _ContentLayer extends StatelessWidget {
 
   final GestureDragCancelCallback onDragCancel;
 
-  static final _kLayerPositionTween = Tween<Offset>(
-    begin: const Offset(0.0, 1.0),
-    end: Offset.zero);
-
-  Animation<Offset> get _layerPosition {
-    Animation<double> parent;
+  Animation<double> get _layerPosition {
     switch (layersTransition) {
       case _LayersTransition.idleAtRoot:
-        parent = kAlwaysDismissedAnimation;
-        break;
+        return kAlwaysPeekAnimation;
       case _LayersTransition.idleAtRoute:
       case _LayersTransition.idleAtOptions:
       case _LayersTransition.push:
       case _LayersTransition.pop:
       case _LayersTransition.replace:
-      case _LayersTransition.dragToPop:
       case _LayersTransition.dragToExpandOrCollapseOptions:
       case _LayersTransition.expandOrCollapseOptions:
-        parent = kAlwaysCompleteAnimation;
-        break;
+        return kAlwaysCompleteAnimation;
       case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.dragToPop:
       case _LayersTransition.dragToPopToEmpty:
       case _LayersTransition.dragToExpandOrCollapseRoute:
       case _LayersTransition.expandOrCollapseRoute:
-        parent = animation;
-        break;
+        return animation.drive(kExpandTween);
     }
-
-    return parent.drive(_kLayerPositionTween);
   }
 
   static final _kHiddenBodyPositionTween = Tween<Offset>(
@@ -779,46 +796,49 @@ class _ContentLayer extends StatelessWidget {
     }
   }
 
+  static int _buildCount = 0;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        top: context.mediaPadding.top + Toolbar.kHeight + 16.0),
-      child: SlideTransition(
-        position: _layerPosition,
-        child: Column(
-          key: contentKey,
-          children: <Widget>[
-            GestureDetector(
-              onVerticalDragStart: onDragStart,
-              onVerticalDragUpdate: onDragUpdate,
-              onVerticalDragEnd: onDragEnd,
-              onVerticalDragCancel: onDragCancel,
-              child: Material(
-                elevation: 2.0,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
-                child: SizedBox(
-                  height: 36.0,
-                  child: Stack(
-                    children: <Widget>[
-                      FadeTransition(
-                        opacity: ReverseAnimation(_opacity),
-                        child: hiddenComponents?.contentHandle),
-                      FadeTransition(
-                        opacity: _opacity,
-                        child: visibleComponents.contentHandle)
-                    ])))),
-            Expanded(
+        top: context.mediaPadding.top + Toolbar.kHeight),
+      child: SheetWithHandle(
+        key: contentKey,
+        animation: _layerPosition,
+        handle: GestureDetector(
+          onVerticalDragStart: onDragStart,
+          onVerticalDragUpdate: onDragUpdate,
+          onVerticalDragEnd: onDragEnd,
+          onVerticalDragCancel: onDragCancel,
+          child: Material(
+            elevation: 2.0,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
+            child: SizedBox(
+              height: 36.0,
               child: Stack(
                 children: <Widget>[
-                  SlideTransition(
-                    position: _hiddenBodyPosition,
-                    child: hiddenComponents?.contentBody),
-                  SlideTransition(
-                    position: _visibleBodyPosition,
-                    child: visibleComponents.contentBody)
-                ]))
-          ])));
+                  FadeTransition(
+                    opacity: ReverseAnimation(_opacity),
+                    child: hiddenComponents?.contentHandle),
+                  FadeTransition(
+                    opacity: _opacity,
+                    child: visibleComponents.contentHandle)
+                ])))),
+        body: Builder(
+          builder: (_) {
+            print('built content body: ${_buildCount++}');
+            print('_visibleBodyPosition: ${_visibleBodyPosition.value}');
+            return Stack(
+              children: <Widget>[
+                SlideTransition(
+                  position: _hiddenBodyPosition,
+                  child: hiddenComponents?.contentBody),
+                SlideTransition(
+                  position: _visibleBodyPosition,
+                  child: visibleComponents.contentBody)
+              ]);
+          })));
   }
 }
 
@@ -840,25 +860,33 @@ class _OptionsLayer extends StatelessWidget {
 
   final _LayersTransition layersTransition;
 
-  Animation<double> get _peekAnimation {
-    return CurvedAnimation(
-      parent: animation,
-      curve: const Interval(0.67, 1.0));
-  }
+  Animation<double> get _peekAnimation => CurvedAnimation(
+        parent: animation,
+        // Animate during the final third of the animation
+        curve: const Interval(0.66, 1.0)
+      ).drive(kPeekTween);
 
   Animation<double> get _position {
     switch (layersTransition) {
       case _LayersTransition.idleAtRoot:
         return kAlwaysDismissedAnimation;
       case _LayersTransition.idleAtRoute:
-        return kAlwaysCompleteAnimation;
+        if (visibleComponents.optionsHandle != null) {
+          return kAlwaysPeekAnimation;
+        } else {
+          return kAlwaysDismissedAnimation;
+        }
       case _LayersTransition.idleAtOptions:
         return kAlwaysCompleteAnimation;
       case _LayersTransition.pushFromOrPopToEmpty:
       case _LayersTransition.dragToPopToEmpty:
       case _LayersTransition.dragToExpandOrCollapseRoute:
       case _LayersTransition.expandOrCollapseRoute:
-        return _peekAnimation;
+        if (visibleComponents.optionsHandle != null) {
+          return _peekAnimation;
+        } else {
+          return kAlwaysDismissedAnimation;
+        }
       case _LayersTransition.push:
       case _LayersTransition.pop:
       case _LayersTransition.replace:
@@ -866,7 +894,7 @@ class _OptionsLayer extends StatelessWidget {
         assert(hiddenComponents != null);
         if (hiddenComponents!.optionsHandle != null) {
           if (visibleComponents.optionsHandle != null) {
-            return kAlwaysCompleteAnimation;
+            return kAlwaysPeekAnimation;
           } else {
             return ReverseAnimation(_peekAnimation);
           }
@@ -877,18 +905,7 @@ class _OptionsLayer extends StatelessWidget {
         }
       case _LayersTransition.dragToExpandOrCollapseOptions:
       case _LayersTransition.expandOrCollapseOptions:
-        return animation;
-    }
-  }
-  
-  bool get _expand {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
-        return true;
-      default:
-        return false;
+        return animation.drive(kExpandTween);
     }
   }
 
@@ -932,7 +949,6 @@ class _OptionsLayer extends StatelessWidget {
     final handleOpacity = _handleOpacity;
     return SheetWithHandle(
       animation: _position,
-      expand: _expand,
       handle: Stack(
         children: <Widget>[
           FadeTransition(
