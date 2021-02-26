@@ -21,7 +21,7 @@ class PathNode<R extends PathRoute> {
 
   String get path => route.path;
 
-  late final children = UnmodifiableMapView<String, PathNode<R>>(_children);
+  late final Map<String, PathNode<R>> children = UnmodifiableMapView<String, PathNode<R>>(_children);
   final _children = <String, PathNode<R>>{};
 }
 
@@ -33,18 +33,6 @@ enum PathRouterGoToTransition {
   none,
 }
 
-class PathRouterGoToResult<R extends PathRoute> {
-
-  PathRouterGoToResult._({
-    required this.transition,
-    required this.stack,
-  });
-
-  final PathRouterGoToTransition transition;
-
-  final List<R> stack;
-}
-
 enum PathRouterRemoveTransition {
   popToEmpty,
   pop,
@@ -52,53 +40,36 @@ enum PathRouterRemoveTransition {
   none,
 }
 
-class PathRouterRemoveResult<R extends PathRoute> {
-
-  PathRouterRemoveResult._({
-    required this.transition,
-    required this.stack
-  });
-
-  final PathRouterRemoveTransition transition;
-
-  final List<R> stack;
-}
-
-class PathRouterDetachResult<R extends PathRoute> {
-
-  PathRouterDetachResult._({
-    required this.stack
-  });
-
-  final List<R> stack;
-}
-
 class PathRouter<R extends PathRoute> {
 
-  late final UnmodifiableMapView<String, PathNode<R>> nodes = UnmodifiableMapView<String, PathNode<R>>(_nodes);
+  late final Map<String, PathNode<R>> nodes = UnmodifiableMapView<String, PathNode<R>>(_nodes);
   final _nodes = <String, PathNode<R>>{};
-  var _stack = <String>[];
 
-  List<R> _buildRouteStack() {
+  List<R> get stack => UnmodifiableListView<R>(_routeStack);
+  var _routeStack = <R>[];
+
+  var _pathStack = <String>[];
+
+  void _rebuildRouteStack() {
     final result = <R>[];
     PathNode<R>? parentNode;
-    for (var i = 0; i < _stack.length; i++) {
-      final node = parentNode != null ? parentNode._children[_stack[i]]! : _nodes[_stack[i]]!;
+    for (var i = 0; i < _pathStack.length; i++) {
+      final node = parentNode != null ? parentNode._children[_pathStack[i]]! : _nodes[_pathStack[i]]!;
       result.add(node.route);
       parentNode = node;
     }
-    return result;
+    _routeStack = result;
   }
 
-  PathRouterGoToResult<R> goTo(
+  PathRouterGoToTransition goTo(
       String path, {
       required PathRouteFactory<R> onCreateRoute,
       PathRouteUpdateCallback<R>? onUpdateRoute,
     }) {
-    final oldStack = _stack;
+    final oldStack = _pathStack;
     final newStack = path.split("/");
     assert(newStack.isNotEmpty);
-    _stack = newStack;
+    _pathStack = newStack;
 
     late PathRouterGoToTransition transition;
 
@@ -178,12 +149,11 @@ class PathRouter<R extends PathRoute> {
       }
     }
 
-    return PathRouterGoToResult._(
-      transition: transition,
-      stack: _buildRouteStack());
+    _rebuildRouteStack();
+    return transition;
   }
 
-  PathRouterRemoveResult<R> remove(String path) {
+  PathRouterRemoveTransition remove(String path) {
     final fragments = path.split("/");
 
     late PathRouterRemoveTransition transition;
@@ -201,7 +171,7 @@ class PathRouter<R extends PathRoute> {
       }
 
       final isLastFragment = (i == fragments.length - 1);
-      final isInStack = (i < _stack.length && _stack[i] == fragment && parentsAreInStack);
+      final isInStack = (i < _pathStack.length && _pathStack[i] == fragment && parentsAreInStack);
 
       if (isLastFragment) {
         assert(node.route.fragment == fragment);
@@ -212,16 +182,16 @@ class PathRouter<R extends PathRoute> {
 
         if (i == 0 && isInStack) {
           _nodes.remove(fragment);
-          _stack.clear();
+          _pathStack.clear();
           transition =  PathRouterRemoveTransition.popToEmpty;
         } else {
           parentNode!._children.remove(fragment);
           if (parentsAreInStack && isInStack) {
-            if (isInStack && _stack.length == fragments.length) {
-              _stack.removeLast();
+            if (isInStack && _pathStack.length == fragments.length) {
+              _pathStack.removeLast();
               transition = PathRouterRemoveTransition.pop;
             } else {
-              _stack.removeRange(i, _stack.length);
+              _pathStack.removeRange(i, _pathStack.length);
               transition = PathRouterRemoveTransition.replace;
             }
           } else {
@@ -235,12 +205,11 @@ class PathRouter<R extends PathRoute> {
       }
     }
 
-    return PathRouterRemoveResult._(
-      transition: transition,
-      stack: _buildRouteStack());
+    _rebuildRouteStack();
+    return transition;
   }
 
-  PathRouterDetachResult<R> detach(String path, String newFragment) {
+  void detach(String path, String newFragment) {
     final fragments = path.split('/');
 
     PathNode<R>? parentNode;
@@ -256,7 +225,7 @@ class PathRouter<R extends PathRoute> {
       }
 
       final isLastFragment = (i == fragments.length - 1);
-      final isInStack = (i < _stack.length && _stack[i] == fragment && parentsAreInStack);
+      final isInStack = (i < _pathStack.length && _pathStack[i] == fragment && parentsAreInStack);
 
       if (isLastFragment) {
         assert(node.route.fragment == fragment);
@@ -279,15 +248,15 @@ class PathRouter<R extends PathRoute> {
           _nodes.remove(fragment);
           _nodes[newFragment] = node;
           if (isInStack) {
-            _stack[0] = newFragment;
+            _pathStack[0] = newFragment;
           }
         } else {
           assert(parentNode._children[fragment] == node);
           parentNode._children.remove(fragment);
           _nodes[newFragment] = node;
           if (isInStack) {
-            _stack = _stack.sublist(i);
-            _stack[0] = newFragment;
+            _pathStack = _pathStack.sublist(i);
+            _pathStack[0] = newFragment;
           }
         }
       } else {
@@ -296,8 +265,7 @@ class PathRouter<R extends PathRoute> {
       }
     }
 
-    return PathRouterDetachResult._(
-      stack: _buildRouteStack());
+    _rebuildRouteStack();
   }
 
   void _updateChildrenPaths(Map<String, PathNode> children, String updatePath(String oldPath)) {

@@ -33,45 +33,45 @@ void testPathRouter() {
   group('PathRouter', () {
     test('goTo', () {
       final router = PathRouter<_TestRoute>();
-      var result = router.goTo('a0', onCreateRoute: _factory('a0'));
-      expect(result.transition, PathRouterGoToTransition.pushFromEmpty);
-      expect(result.stack.toString(), ['a0'].toString());
+      var transition = router.goTo('a0', onCreateRoute: _factory('a0'));
+      expect(transition, PathRouterGoToTransition.pushFromEmpty);
+      expect(router.stack.toString(), ['a0'].toString());
       expect(_nodesString(router.nodes), {'a0': {}}.toString());
 
-      result = router.goTo('a0/a1', onCreateRoute: _factory('a1'));
-      expect(result.transition, PathRouterGoToTransition.push);
-      expect(result.stack.toString(), ['a0', 'a1'].toString());
+      transition = router.goTo('a0/a1', onCreateRoute: _factory('a1'));
+      expect(transition, PathRouterGoToTransition.push);
+      expect(router.stack.toString(), ['a0', 'a1'].toString());
       expect(_nodesString(router.nodes), {'a0': { 'a1': {}}}.toString());
 
-      result = router.goTo('a0', onCreateRoute: _errorFactory);
-      expect(result.transition, PathRouterGoToTransition.goBack);
-      expect(result.stack.toString(), ['a0'].toString());
+      transition = router.goTo('a0', onCreateRoute: _errorFactory);
+      expect(transition, PathRouterGoToTransition.goBack);
+      expect(router.stack.toString(), ['a0'].toString());
       expect(_nodesString(router.nodes), {'a0': { 'a1': {}}}.toString());
 
-      result = router.goTo('b0', onCreateRoute: _factory('b0'));
-      expect(result.transition, PathRouterGoToTransition.replace);
-      expect(result.stack.toString(), ['b0'].toString());
+      transition = router.goTo('b0', onCreateRoute: _factory('b0'));
+      expect(transition, PathRouterGoToTransition.replace);
+      expect(router.stack.toString(), ['b0'].toString());
       expect(_nodesString(router.nodes),
           {'a0': { 'a1': {}},
            'b0': {}}.toString());
 
-      result = router.goTo('b0/b1', onCreateRoute: _factory('b1'));
-      expect(result.transition, PathRouterGoToTransition.push);
-      expect(result.stack.toString(), ['b0', 'b1'].toString());
+      transition = router.goTo('b0/b1', onCreateRoute: _factory('b1'));
+      expect(transition, PathRouterGoToTransition.push);
+      expect(router.stack.toString(), ['b0', 'b1'].toString());
       expect(_nodesString(router.nodes),
           {'a0': { 'a1': {}},
            'b0': { 'b1': {}}}.toString());
 
-      result = router.goTo('a0/a1', onCreateRoute: _errorFactory);
-      expect(result.transition, PathRouterGoToTransition.replace);
-      expect(result.stack.toString(), ['a0', 'a1'].toString());
+      transition = router.goTo('a0/a1', onCreateRoute: _errorFactory);
+      expect(transition, PathRouterGoToTransition.replace);
+      expect(router.stack.toString(), ['a0', 'a1'].toString());
       expect(_nodesString(router.nodes),
           {'a0': { 'a1': {}},
            'b0': { 'b1': {}}}.toString());
 
-      result = router.goTo('a0/a1', onCreateRoute: _errorFactory);
-      expect(result.transition, PathRouterGoToTransition.none);
-      expect(result.stack.toString(), ['a0', 'a1'].toString());
+      transition = router.goTo('a0/a1', onCreateRoute: _errorFactory);
+      expect(transition, PathRouterGoToTransition.none);
+      expect(router.stack.toString(), ['a0', 'a1'].toString());
       expect(_nodesString(router.nodes),
           {'a0': { 'a1': {}},
            'b0': { 'b1': {}}}.toString());
@@ -88,9 +88,9 @@ void testPathRouter() {
       router.goTo('a0', onCreateRoute: _factory('a0'));
       expect(_nodesString(router.nodes), {'a0': {}}.toString());
 
-      var result = router.remove('a0');
-      expect(result.transition, PathRouterRemoveTransition.popToEmpty);
-      expect(result.stack.toString(), [].toString());
+      var transition = router.remove('a0');
+      expect(transition, PathRouterRemoveTransition.popToEmpty);
+      expect(router.stack.toString(), [].toString());
       expect(_nodesString(router.nodes), {}.toString());
 
       router.goTo('a0', onCreateRoute: _factory('a0'));
@@ -98,26 +98,26 @@ void testPathRouter() {
       router.goTo('a0/a1/a2', onCreateRoute: _factory('a2'));
       expect(_nodesString(router.nodes), {'a0': { 'a1': { 'a2': {}}}}.toString());
 
-      result = router.remove('a0/a1/a2');
-      expect(result.transition, PathRouterRemoveTransition.pop);
-      expect(result.stack.toString(), ['a0', 'a1'].toString());
+      transition = router.remove('a0/a1/a2');
+      expect(transition, PathRouterRemoveTransition.pop);
+      expect(router.stack.toString(), ['a0', 'a1'].toString());
       expect(_nodesString(router.nodes), {'a0': { 'a1': {}}}.toString());
 
       router.goTo('a0/a1/a2', onCreateRoute: _factory('a2'));
       expect(_nodesString(router.nodes), {'a0': { 'a1': { 'a2': {}}}}.toString());
       
-      result = router.remove('a0/a1');
-      expect(result.transition, PathRouterRemoveTransition.replace);
-      expect(result.stack.toString(), ['a0'].toString());
+      transition = router.remove('a0/a1');
+      expect(transition, PathRouterRemoveTransition.replace);
+      expect(router.stack.toString(), ['a0'].toString());
       expect(_nodesString(router.nodes), {'a0': {}}.toString());
 
       router.goTo('a0/a1', onCreateRoute: _factory('a1'));
       router.goTo('a0/b1', onCreateRoute: _factory('b1'));
       expect(_nodesString(router.nodes), {'a0': { 'a1': {}, 'b1': {}}}.toString());
 
-      result = router.remove('a0/a1');
-      expect(result.transition, PathRouterRemoveTransition.none);
-      expect(result.stack.toString(), ['a0', 'b1'].toString());
+      transition = router.remove('a0/a1');
+      expect(transition, PathRouterRemoveTransition.none);
+      expect(router.stack.toString(), ['a0', 'b1'].toString());
       expect(_nodesString(router.nodes), {'a0': { 'b1': {}}}.toString());
     });
 
@@ -128,8 +128,8 @@ void testPathRouter() {
       router.goTo('a0/a1', onCreateRoute: _factory('a1'));
       expect(_nodesString(router.nodes), {'a0': { 'a1': {}}}.toString());
 
-      var result = router.detach('a0/a1', 'b0');
-      expect(_fragmentsListString(result.stack), ['b0'].toString());
+      router.detach('a0/a1', 'b0');
+      expect(_fragmentsListString(router.stack), ['b0'].toString());
       expect(_nodesString(router.nodes), {'a0': {}, 'b0': {}}.toString());
 
       router.goTo('a0/a1', onCreateRoute: _factory('a1'));
@@ -137,8 +137,8 @@ void testPathRouter() {
       router.goTo('a0/a1/a2/a3', onCreateRoute: _factory('a3'));
       expect(_nodesString(router.nodes), {'a0': { 'a1': { 'a2': { 'a3': {}}}}, 'b0': {}}.toString());
 
-      result = router.detach('a0/a1', 'c0');
-      expect(_fragmentsListString(result.stack), ['c0', 'a2', 'a3'].toString());
+      router.detach('a0/a1', 'c0');
+      expect(_fragmentsListString(router.stack), ['c0', 'a2', 'a3'].toString());
       expect(_nodesString(router.nodes),
           {'a0': {},
            'b0': {},
@@ -150,8 +150,8 @@ void testPathRouter() {
            'b0': {},
            'c0': { 'a2': { 'a3': {}}}}.toString());
 
-      result = router.detach('a0', 'd0');
-      expect(_fragmentsListString(result.stack), ['d0'].toString());
+      router.detach('a0', 'd0');
+      expect(_fragmentsListString(router.stack), ['d0'].toString());
       expect(_nodesString(router.nodes),
           {'b0': {},
            'c0': { 'a2': { 'a3': {}}},
