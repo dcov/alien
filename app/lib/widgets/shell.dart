@@ -1,8 +1,11 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/manual_value_notifier.dart';
+import '../utils/path_router.dart';
 import '../widgets/pressable.dart';
 import '../widgets/sheet_with_handle.dart';
 import '../widgets/toolbar.dart';
@@ -38,20 +41,20 @@ class ShellComponents {
   final Widget? drawer;
 }
 
-abstract class _ShellChild {
-
-  bool _initialized = false;
+mixin _ShellChild {
 
   /// Called once by Shell to initialize any state that can be initialized through the BuildContext
   /// of Shell itself.
   void initState(BuildContext context) { }
+
+  void didChangeDependencies(BuildContext context) { }
 
   /// Called once by Shell dispose of any state that can be disposed through the BuildContext of
   /// Shell itself.
   void dispose(BuildContext context) { }
 }
 
-abstract class ShellRoute extends _ShellChild {
+abstract class ShellRoute extends PathRoute with _ShellChild {
 
   String get path => _path!;
   String? _path;
@@ -61,26 +64,14 @@ abstract class ShellRoute extends _ShellChild {
   Widget? buildDrawer(BuildContext context) => null;
 }
 
-class ShellNode {
+abstract class ShellRoot with _ShellChild {
 
-  ShellNode({ required this.route });
+  bool _initialized = false;
 
-  final ShellRoute route;
-
-  late final children = UnmodifiableMapView<String, ShellNode>(_children);
-  final _children = <String, ShellNode>{};
-}
-
-abstract class ShellRoot extends _ShellChild {
-
-  Widget buildLayer(BuildContext context, Map<String, ShellNode> nodes);
+  Widget buildLayer(BuildContext context, ValueListenable<Map<String, PathNode<ShellRoute>>> nodes);
 
   Widget? buildDrawer(BuildContext context) => null;
 }
-
-typedef ShellRouteFactory = ShellRoute Function();
-
-typedef ShellRouteUpdater = void Function(ShellRoute route);
 
 class Shell extends StatefulWidget {
 
@@ -117,8 +108,8 @@ extension ShellExtension on BuildContext {
 
   void goTo(
       String fullPath, {
-      required ShellRouteFactory onCreateRoute,
-      required ShellRouteUpdater onUpdateRoute
+      required PathRouteFactory<ShellRoute> onCreateRoute,
+      required PathRouteUpdateCallback<ShellRoute> onUpdateRoute
     }) {
     _state.goTo(
         fullPath,
@@ -129,86 +120,91 @@ extension ShellExtension on BuildContext {
 
 class _ShellState extends State<Shell> {
 
-  final _nodes = <String, ShellNode>{};
-
-  var _currentRouteStack = <ShellRoute>[];
+  final _layersKey = GlobalKey<_LayersState>();
+  final _router = PathRouter<ShellRoute>();
+  late final _nodes = ManualValueNotifier<Map<String, PathNode<ShellRoute>>>(_router.nodes);
 
   void goTo(
-      String fullPath, {
-      required ShellRouteFactory onCreateRoute,
-      required ShellRouteUpdater onUpdateRoute
+      String path, {
+      required PathRouteFactory<ShellRoute> onCreateRoute,
+      required PathRouteUpdateCallback<ShellRoute> onUpdateRoute
     }) {
-    final subPaths = fullPath.split("/");
-    assert(subPaths.isNotEmpty);
+    final transition = _router.goTo(
+      path,
+      onCreateRoute: () {
+        final route = onCreateRoute();
+        route.initState(context);
+        route.didChangeDependencies(context);
+        return route;
+      },
+      onUpdateRoute: onUpdateRoute
+    );
 
-    final routeStack = <ShellRoute>[];
-
-    ShellNode? parentNode;
-    for (var i = 0; i < subPaths.length; i++) {
-      ShellNode? node;
-      if (parentNode == null) {
-        node = _nodes[subPaths[i]];
-      } else {
-        node = parentNode._children[subPaths[i]];
-      }
-
-      if (node == null) {
-        assert(i == subPaths.length - 1,
-            'Called goTo with $fullPath, but there was no parent at ${subPaths.sublist(0, i + 1).join('/')}');
-
-        final newNode = ShellNode(route: onCreateRoute());
-        newNode.route._path = fullPath;
-        if (parentNode == null) {
-          _nodes[fullPath] = newNode;
-        } else {
-          parentNode._children[fullPath] = newNode;
-        }
-        routeStack.add(newNode.route);
-      } else {
-        routeStack.add(node.route);
-        if (i == subPaths.length - 1) {
-          // If this is the end of the subPaths list then the node's path should match fullPath
-          assert(node.route._path == fullPath);
-          onUpdateRoute(node.route);
-        } else {
-          parentNode = node;
-        }
-      }
+    switch (transition) {
+      case PathRouterGoToTransition.push:
+        _layersKey.currentState!.push(_router.stack.last);
+        break;
+      case PathRouterGoToTransition.pop:
+        _layersKey.currentState!.pop();
+        break;
+      case PathRouterGoToTransition.replace:
+        _layersKey.currentState!.replace(_router.stack);
+        break;
+      case PathRouterGoToTransition.none:
+        break;
     }
-
-    assert(routeStack.isNotEmpty);
-    setState(() {
-      _currentRouteStack = routeStack;
-    });
+    _nodes.notify();
   }
 
-  void move(String fromPath, String toPath) {
-    // TODO
+  void remove(String path) {
+    final transition = _router.remove(path);
+    switch (transition) {
+      case PathRouterRemoveTransition.pop:
+        break;
+      case PathRouterRemoveTransition.replace:
+        break;
+      case PathRouterRemoveTransition.none:
+        break;
+    }
+    _nodes.notify();
   }
 
-  void pop() {
-    // TODO
+  void detach(String path, String newFragment) {
+    _router.detach(path, newFragment);
+    _nodes.notify();
+  }
+
+  void _handleLayersPop() {
+  }
+
+  void _updateNodeDependencies(Iterable<PathNode<ShellRoute>> nodes) {
+    for (final node in nodes) {
+      node.route.didChangeDependencies(context);
+      _updateNodeDependencies(node.children.values);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    widget.root.didChangeDependencies(context);
+    _updateNodeDependencies(_router.nodes.values);
   }
 
   @override
   Widget build(BuildContext context) {
     if (!widget.root._initialized) {
       widget.root.initState(context);
-    }
-
-    if (_currentRouteStack.isNotEmpty && !_currentRouteStack.last._initialized) {
-      final route = _currentRouteStack.last;
-      route.initState(context);
-      route._initialized = true;
+      widget.root._initialized = true;
     }
 
     return _ShellScope(
       state: this,
       child: _Layers(
-        rootLayer: widget.root.buildLayer(context, const {}),
+        key: _layersKey,
+        rootLayer: widget.root.buildLayer(context, _nodes),
         rootDrawer: widget.root.buildDrawer(context),
-        routes: _currentRouteStack,
-        onPopEntry: pop));
+        onPopEntry: _handleLayersPop));
   }
 }
 
@@ -218,15 +214,12 @@ class _Layers extends StatefulWidget {
     Key? key,
     required this.rootLayer,
     this.rootDrawer,
-    this.routes = const <ShellRoute>[],
     required this.onPopEntry
   }) : super(key: key);
 
   final Widget rootLayer;
   
   final Widget? rootDrawer;
-
-  final List<ShellRoute> routes;
 
   final VoidCallback onPopEntry;
 
@@ -269,6 +262,7 @@ enum _DrawersTransition {
 }
 
 class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin { 
+
   late final _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       lowerBound: 0.0,
@@ -276,10 +270,8 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       value: 0.0,
       vsync: this);
 
-  late var _routes = List<ShellRoute>.of(widget.routes);
-
+  var _routes = <ShellRoute>[];
   var _layersTransition = _LayersTransition.idleAtRoot;
-
   int? _replacedEntriesLength;
   ShellRoute? _hiddenRoute;
   ShellRoute? _visibleRoute;
@@ -288,6 +280,58 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void push(ShellRoute route) {
+    setState(() {
+      _routes.add(route);
+      if (_routes.isEmpty) {
+        assert(_layersTransition == _LayersTransition.idleAtRoot);
+        _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
+        _hiddenRoute = null;
+        _visibleRoute = route;
+      } else {
+        final hiddenRoute = _routes[_routes.length - 2];
+        switch (_layersTransition) {
+          case _LayersTransition.idleAtRoot:
+            _layersTransition = _LayersTransition.expandOrCollapseRoute;
+            _hiddenRoute = hiddenRoute;
+            _visibleRoute = route;
+            break;
+          case _LayersTransition.idleAtRoute:
+            _layersTransition = _LayersTransition.push;
+            _hiddenRoute = hiddenRoute;
+            _visibleRoute = route;
+            break;
+          case _LayersTransition.idleAtOptions:
+            _layersTransition = _LayersTransition.expandOrCollapseOptions;
+            _hiddenRoute = _routes.length > 2 ? _routes[_routes.length - 3] : null;
+            _visibleRoute = hiddenRoute;
+            _controller
+                ..reverseDuration = const Duration(milliseconds: 150)
+                ..reverse(from: 1.0).then((_) {
+                  setState(() {
+                    _layersTransition = _LayersTransition.push;
+                    _hiddenRoute = hiddenRoute;
+                    _visibleRoute = route;
+                    _controller.forward(from: 0.0).then((_) {
+                      setState(() {
+                        _layersTransition = _LayersTransition.idleAtRoute;
+                        _
+                      });
+                    });
+                  });
+                });
+            break;
+        }
+      }
+    });
+  }
+
+  void pop() {
+  }
+
+  void replace(List<ShellRoute> stack) {
   }
 
   @override

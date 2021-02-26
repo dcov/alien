@@ -26,15 +26,13 @@ class PathNode<R extends PathRoute> {
 }
 
 enum PathRouterGoToTransition {
-  pushFromEmpty,
   push,
-  goBack,
+  pop,
   replace,
   none,
 }
 
 enum PathRouterRemoveTransition {
-  popToEmpty,
   pop,
   replace,
   none,
@@ -45,8 +43,8 @@ class PathRouter<R extends PathRoute> {
   late final Map<String, PathNode<R>> nodes = UnmodifiableMapView<String, PathNode<R>>(_nodes);
   final _nodes = <String, PathNode<R>>{};
 
-  List<R> get stack => UnmodifiableListView<R>(_routeStack);
-  var _routeStack = <R>[];
+  List<R> get stack => _routeStack;
+  var _routeStack = UnmodifiableListView<R>(List<R>.empty());
 
   var _pathStack = <String>[];
 
@@ -58,7 +56,7 @@ class PathRouter<R extends PathRoute> {
       result.add(node.route);
       parentNode = node;
     }
-    _routeStack = result;
+    _routeStack = UnmodifiableListView(result);
   }
 
   PathRouterGoToTransition goTo(
@@ -106,7 +104,7 @@ class PathRouter<R extends PathRoute> {
 
         if (oldStack.isEmpty) {
           if (newStack.length == 1) {
-            transition = PathRouterGoToTransition.pushFromEmpty;
+            transition = PathRouterGoToTransition.push;
           } else {
             transition = PathRouterGoToTransition.replace;
           }
@@ -134,7 +132,7 @@ class PathRouter<R extends PathRoute> {
           } else if (newStack.length == oldStack.length - 1) {
             // The stack was popped, but since this was a call to goTo and not remove, the route
             // is not removed and instead we just 'go back' to the parent.
-            transition = PathRouterGoToTransition.goBack;
+            transition = PathRouterGoToTransition.pop;
           } else {
             // The stack was popped more than one route so we'll treat it as a replace
             transition = PathRouterGoToTransition.replace;
@@ -183,7 +181,7 @@ class PathRouter<R extends PathRoute> {
         if (i == 0 && isInStack) {
           _nodes.remove(fragment);
           _pathStack.clear();
-          transition =  PathRouterRemoveTransition.popToEmpty;
+          transition =  PathRouterRemoveTransition.pop;
         } else {
           parentNode!._children.remove(fragment);
           if (parentsAreInStack && isInStack) {
