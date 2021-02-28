@@ -138,6 +138,27 @@ void testPathRouter() {
 
     });
 
+    test('goTo empty path from existing path', () {
+      final router = PathRouter<_TestRoute>();
+      router.goTo('a0', onCreateRoute: _factory('a0'), onUpdateRoute: _errorUpdate);
+      final transition = router.goTo('', onCreateRoute: _errorFactory, onUpdateRoute: _errorUpdate);
+      expect(transition, equals(PathRouterGoToTransition.pop));
+      expect(_stack(router.stack), equals([]));
+      expect(_nodes(router.nodes), equals({'a0': {}}));
+    });
+
+    test('goTo existing path from empty path', () {
+      final router = PathRouter<_TestRoute>();
+      router.goTo('a0', onCreateRoute: _factory('a0'), onUpdateRoute: _errorUpdate);
+      router.goTo('', onCreateRoute: _errorFactory, onUpdateRoute: _errorUpdate);
+      final update = _update();
+      final transition = router.goTo('a0', onCreateRoute: _errorFactory, onUpdateRoute: update);
+      expect(transition, equals(PathRouterGoToTransition.replace));
+      expect(_stack(router.stack), equals(['a0']));
+      expect(_nodes(router.nodes), equals({'a0': {}}));
+      expect(update(), equals(1));
+    });
+
     test('goTo path with non existing parents', () {
       final router = PathRouter<_TestRoute>();
       expect(() => router.goTo('a0/a1', onCreateRoute: _errorFactory, onUpdateRoute: _errorUpdate), throwsAssertionError);
