@@ -2,7 +2,7 @@ import 'dart:collection';
 
 typedef PathRouteFactory<R extends PathRoute> = R Function();
 
-typedef PathRouteUpdateCallback<R extends PathRoute> = void Function(R route);
+typedef PathRouteVisitor<R extends PathRoute> = void Function(R route);
 
 abstract class PathRoute {
 
@@ -38,6 +38,11 @@ enum PathRouterRemoveTransition {
   none,
 }
 
+enum PathRouterDetachTransition {
+  replace,
+  none
+}
+
 class PathRouter<R extends PathRoute> {
 
   late final Map<String, PathNode<R>> nodes = UnmodifiableMapView<String, PathNode<R>>(_nodes);
@@ -59,100 +64,124 @@ class PathRouter<R extends PathRoute> {
     _routeStack = UnmodifiableListView(result);
   }
 
+  List<String> _splitAndNormalize(String path) {
+    final stack = path.split('/');
+    if (stack.first.isEmpty) {
+      assert(stack.length == 1);
+      stack.clear();
+    }
+    return stack;
+  }
+
   PathRouterGoToTransition goTo(
       String path, {
-      required PathRouteFactory<R> onCreateRoute,
-      PathRouteUpdateCallback<R>? onUpdateRoute,
+      PathRouteFactory<R>? onCreateRoute,
+      PathRouteVisitor<R>? onUpdateRoute,
     }) {
     final oldStack = _pathStack;
-    final newStack = path.split("/");
-    assert(newStack.isNotEmpty);
+    final newStack = _splitAndNormalize(path);
     _pathStack = newStack;
 
     late PathRouterGoToTransition transition;
 
-    PathNode<R>? parentNode;
-    bool parentsAreInOldStack = true;
-    for (var i = 0; i < newStack.length; i++) {
-      final fragment = newStack[i];
-
-      PathNode<R>? node;
-      if (parentNode == null) {
-        node = _nodes[fragment];
+    if (newStack.isEmpty) {
+      if (oldStack.isEmpty) {
+        transition = PathRouterGoToTransition.none;
+      } else if (oldStack.length == 1) {
+        transition = PathRouterGoToTransition.pop;
       } else {
-        node = parentNode._children[fragment];
+        transition = PathRouterGoToTransition.replace;
       }
+    } else {
+      PathNode<R>? parentNode;
+      bool parentsAreInOldStack = true;
+      for (var i = 0; i < newStack.length; i++) {
+        final fragment = newStack[i];
+        assert(fragment.isNotEmpty);
 
-      final isLastFragment = (i == (newStack.length - 1));
-      final isInOldStack = (i < oldStack.length && oldStack[i] == fragment && parentsAreInOldStack);
-
-      if (node == null) {
-        // This should be the last fragment in the path
-        assert(isLastFragment,
-            '$fragment is a parent in $path but it does not exist.');
-
-        final newRoute = onCreateRoute();
-        newRoute.._fragment = fragment
-                .._path = path;
-
-        final newNode = PathNode(newRoute);
+        PathNode<R>? node;
         if (parentNode == null) {
-          _nodes[fragment] = newNode;
+          node = _nodes[fragment];
         } else {
-          parentNode._children[fragment] = newNode;
+          node = parentNode._children[fragment];
         }
 
-        if (oldStack.isEmpty) {
-          if (newStack.length == 1) {
-            transition = PathRouterGoToTransition.push;
+        final isLastFragment = (i == (newStack.length - 1));
+        final isInOldStack = (i < oldStack.length && oldStack[i] == fragment && parentsAreInOldStack);
+
+        if (node == null) {
+          // This should be the last fragment in the path
+          assert(isLastFragment,
+              '$fragment is a parent in $path but it does not exist.');
+          assert(onCreateRoute != null,
+              'Had to create route for $path but onCreateRoute was not provided.');
+
+          final newRoute = onCreateRoute!();
+          newRoute.._fragment = fragment
+                  .._path = path;
+
+          final newNode = PathNode(newRoute);
+          if (parentNode == null) {
+            _nodes[fragment] = newNode;
+          } else {
+            parentNode._children[fragment] = newNode;
+          }
+
+          if (oldStack.isEmpty) {
+            if (newStack.length == 1) {
+              transition = PathRouterGoToTransition.push;
+            } else {
+              transition = PathRouterGoToTransition.replace;
+            }
+          } else if (parentsAreInOldStack) {
+            if (oldStack.length == newStack.length - 1) {
+              transition = PathRouterGoToTransition.push;
+            } else {
+              transition = PathRouterGoToTransition.replace;
+            }
           } else {
             transition = PathRouterGoToTransition.replace;
           }
-        } else if (parentsAreInOldStack) {
-          if (oldStack.length == newStack.length - 1) {
-            transition = PathRouterGoToTransition.push;
+        } else if (isLastFragment) {
+          assert(node.route.fragment == fragment);
+          assert(node.route.path == path);
+          if (onUpdateRoute != null) {
+            onUpdateRoute(node.route);
+          }
+          // Check if the new stack matches the new stack up to this point, in which case it might be
+          // the exact same stack, a popped route (that isn't removed from the tree), or just a replace.
+          if (parentsAreInOldStack && isInOldStack) {
+            if (oldStack.length == newStack.length) {
+              // The Stack did not change
+              transition = PathRouterGoToTransition.none;
+            } else if (newStack.length == oldStack.length - 1) {
+              // The stack was popped, but since this was a call to goTo and not remove, the route
+              // is not removed and instead we just 'go back' to the parent.
+              transition = PathRouterGoToTransition.pop;
+            } else {
+              // The stack was popped more than one route so we'll treat it as a replace
+              transition = PathRouterGoToTransition.replace;
+            }
           } else {
+            // The parents aren't the same, or this route isn't the same so it's a replace.
             transition = PathRouterGoToTransition.replace;
           }
         } else {
-          transition = PathRouterGoToTransition.replace;
+          parentNode = node;
+          parentsAreInOldStack = (parentsAreInOldStack && isInOldStack);
         }
-      } else if (isLastFragment) {
-        assert(node.route.fragment == fragment);
-        assert(node.route.path == path);
-        if (onUpdateRoute != null) {
-          onUpdateRoute(node.route);
-        }
-        // Check if the new stack matches the new stack up to this point, in which case it might be
-        // the exact same stack, a popped route (that isn't removed from the tree), or just a replace.
-        if (parentsAreInOldStack && isInOldStack) {
-          if (oldStack.length == newStack.length) {
-            // The Stack did not change
-            transition =  PathRouterGoToTransition.none;
-          } else if (newStack.length == oldStack.length - 1) {
-            // The stack was popped, but since this was a call to goTo and not remove, the route
-            // is not removed and instead we just 'go back' to the parent.
-            transition = PathRouterGoToTransition.pop;
-          } else {
-            // The stack was popped more than one route so we'll treat it as a replace
-            transition = PathRouterGoToTransition.replace;
-          }
-        } else {
-          // The parents aren't the same, or this route isn't the same so it's a replace.
-          transition = PathRouterGoToTransition.replace;
-        }
-      } else {
-        parentNode = node;
-        parentsAreInOldStack = (parentsAreInOldStack && isInOldStack);
       }
     }
 
-    _rebuildRouteStack();
+    if (transition != PathRouterGoToTransition.none) {
+      _rebuildRouteStack();
+    }
+
     return transition;
   }
 
-  PathRouterRemoveTransition remove(String path) {
-    final fragments = path.split("/");
+  PathRouterRemoveTransition remove(String path, { PathRouteVisitor<R>? onRemovedRoute }) {
+    final fragments = _splitAndNormalize(path);
 
     late PathRouterRemoveTransition transition;
 
@@ -174,16 +203,18 @@ class PathRouter<R extends PathRoute> {
       if (isLastFragment) {
         assert(node.route.fragment == fragment);
         assert(node.route.path == path);
-        // The node does not have a 
-        node.route.._fragment = null
-                  .._path = null;
 
-        if (i == 0 && isInStack) {
-          _nodes.remove(fragment);
-          _pathStack.clear();
-          transition =  PathRouterRemoveTransition.pop;
+        PathNode<R> removedNode;
+        if (i == 0) {
+          removedNode = _nodes.remove(fragment)!;
+          if (isInStack) {
+            _pathStack.clear();
+            transition = PathRouterRemoveTransition.pop;
+          } else {
+            transition = PathRouterRemoveTransition.none;
+          }
         } else {
-          parentNode!._children.remove(fragment);
+          removedNode = parentNode!._children.remove(fragment)!;
           if (parentsAreInStack && isInStack) {
             if (isInStack && _pathStack.length == fragments.length) {
               _pathStack.removeLast();
@@ -197,18 +228,33 @@ class PathRouter<R extends PathRoute> {
             transition = PathRouterRemoveTransition.none;
           }
         }
+
+        if (onRemovedRoute != null)
+          _visitNodes(removedNode, onRemovedRoute);
+
+        node.route.._fragment = null
+                  .._path = null;
       } else {
         parentNode = node;
         parentsAreInStack = (parentsAreInStack && isInStack);
       }
     }
 
-    _rebuildRouteStack();
+    if (transition != PathRouterRemoveTransition.none)
+      _rebuildRouteStack();
+
     return transition;
   }
 
-  void detach(String path, String newFragment) {
-    final fragments = path.split('/');
+  void _visitNodes(PathNode<R> node, PathRouteVisitor<R> visitor) {
+    visitor(node.route);
+    node.children.values.forEach((node) => _visitNodes(node, visitor));
+  }
+
+  PathRouterDetachTransition detach(String path, String newFragment) {
+    final fragments = _splitAndNormalize(path);
+
+    late PathRouterDetachTransition transition;
 
     PathNode<R>? parentNode;
     bool parentsAreInStack = true;
@@ -247,6 +293,9 @@ class PathRouter<R extends PathRoute> {
           _nodes[newFragment] = node;
           if (isInStack) {
             _pathStack[0] = newFragment;
+            transition = PathRouterDetachTransition.replace;
+          } else {
+            transition = PathRouterDetachTransition.none;
           }
         } else {
           assert(parentNode._children[fragment] == node);
@@ -255,6 +304,9 @@ class PathRouter<R extends PathRoute> {
           if (isInStack) {
             _pathStack = _pathStack.sublist(i);
             _pathStack[0] = newFragment;
+            transition = PathRouterDetachTransition.replace;
+          } else {
+            transition = PathRouterDetachTransition.none;
           }
         }
       } else {
@@ -263,7 +315,10 @@ class PathRouter<R extends PathRoute> {
       }
     }
 
-    _rebuildRouteStack();
+    if (transition != PathRouterDetachTransition.none)
+      _rebuildRouteStack();
+
+    return transition;
   }
 
   void _updateChildrenPaths(Map<String, PathNode> children, String updatePath(String oldPath)) {
