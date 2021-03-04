@@ -68,6 +68,7 @@ void testPathRouter() {
       expect(transition, equals(PathRouterGoToTransition.push));
       expect(_stack(router.stack), equals(['a0']));
       expect(_nodes(router.nodes), equals({'a0': {}}));
+      expect(router.stack.first.path, equals('a0'));
     });
 
     test('goTo new child path', () {

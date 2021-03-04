@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -11,9 +10,22 @@ import '../widgets/sheet_with_handle.dart';
 import '../widgets/toolbar.dart';
 import '../widgets/widget_extensions.dart';
 
-class ShellComponents {
+mixin _ShellChild {
 
-  ShellComponents({
+  /// Called once by Shell to initialize any state that can be initialized through the BuildContext
+  /// of Shell itself.
+  void initState(BuildContext context) { }
+
+  void didChangeDependencies(BuildContext context) { }
+
+  /// Called once by Shell dispose of any state that can be disposed through the BuildContext of
+  /// Shell itself.
+  void dispose(BuildContext context) { }
+}
+
+class RouteComponents {
+
+  RouteComponents({
     this.titleDecoration,
     this.titleMiddle,
     this.titleTrailing,
@@ -41,36 +53,34 @@ class ShellComponents {
   final Widget? drawer;
 }
 
-mixin _ShellChild {
-
-  /// Called once by Shell to initialize any state that can be initialized through the BuildContext
-  /// of Shell itself.
-  void initState(BuildContext context) { }
-
-  void didChangeDependencies(BuildContext context) { }
-
-  /// Called once by Shell dispose of any state that can be disposed through the BuildContext of
-  /// Shell itself.
-  void dispose(BuildContext context) { }
-}
-
 abstract class ShellRoute extends PathRoute with _ShellChild {
 
-  String get path => _path!;
-  String? _path;
+  RouteComponents build(BuildContext context);
+}
 
-  ShellComponents buildComponents(BuildContext context);
+class RootComponents {
 
-  Widget? buildDrawer(BuildContext context) => null;
+  RootComponents({
+    required this.layer,
+    required this.handle,
+    required this.drawer
+  });
+
+  final Widget layer;
+
+  final Widget handle;
+
+  final Widget drawer;
 }
 
 abstract class ShellRoot with _ShellChild {
 
   bool _initialized = false;
 
-  Widget buildLayer(BuildContext context, ValueListenable<Map<String, PathNode<ShellRoute>>> nodes);
-
-  Widget? buildDrawer(BuildContext context) => null;
+  RootComponents build(
+      BuildContext context,
+      ValueListenable<Map<String, PathNode<ShellRoute>>> nodes,
+      ValueListenable<List<ShellRoute>> stack);
 }
 
 class Shell extends StatefulWidget {
@@ -108,8 +118,8 @@ extension ShellExtension on BuildContext {
 
   void goTo(
       String fullPath, {
-      required PathRouteFactory<ShellRoute> onCreateRoute,
-      required PathRouteUpdateCallback<ShellRoute> onUpdateRoute
+      PathRouteFactory<ShellRoute>? onCreateRoute,
+      PathRouteVisitor<ShellRoute>? onUpdateRoute
     }) {
     _state.goTo(
         fullPath,
@@ -123,16 +133,18 @@ class _ShellState extends State<Shell> {
   final _layersKey = GlobalKey<_LayersState>();
   final _router = PathRouter<ShellRoute>();
   late final _nodes = ManualValueNotifier<Map<String, PathNode<ShellRoute>>>(_router.nodes);
+  late final _stack = ManualValueNotifier<List<ShellRoute>>(_router.stack);
 
   void goTo(
       String path, {
-      required PathRouteFactory<ShellRoute> onCreateRoute,
-      required PathRouteUpdateCallback<ShellRoute> onUpdateRoute
+      PathRouteFactory<ShellRoute>? onCreateRoute,
+      PathRouteVisitor<ShellRoute>? onUpdateRoute
     }) {
     final transition = _router.goTo(
       path,
       onCreateRoute: () {
-        final route = onCreateRoute();
+        assert(onCreateRoute != null);
+        final route = onCreateRoute!();
         route.initState(context);
         route.didChangeDependencies(context);
         return route;
@@ -143,12 +155,15 @@ class _ShellState extends State<Shell> {
     switch (transition) {
       case PathRouterGoToTransition.push:
         _layersKey.currentState!.push(_router.stack.last);
+        _stack.notify();
         break;
       case PathRouterGoToTransition.pop:
         _layersKey.currentState!.pop();
+        _stack.notify();
         break;
       case PathRouterGoToTransition.replace:
-        _layersKey.currentState!.replace(_router.stack);
+        _layersKey.currentState!.replace(_router.stack, animate: true);
+        _stack.notify();
         break;
       case PathRouterGoToTransition.none:
         break;
@@ -160,8 +175,12 @@ class _ShellState extends State<Shell> {
     final transition = _router.remove(path);
     switch (transition) {
       case PathRouterRemoveTransition.pop:
+        _layersKey.currentState!.pop();
+        _stack.notify();
         break;
       case PathRouterRemoveTransition.replace:
+        _layersKey.currentState!.replace(_router.stack, animate: true);
+        _stack.notify();
         break;
       case PathRouterRemoveTransition.none:
         break;
@@ -170,7 +189,15 @@ class _ShellState extends State<Shell> {
   }
 
   void detach(String path, String newFragment) {
-    _router.detach(path, newFragment);
+    final transition = _router.detach(path, newFragment);
+    switch (transition) {
+      case PathRouterDetachTransition.replace:
+        _layersKey.currentState!.replace(_router.stack, animate: false);
+        _stack.notify();
+        break;
+      case PathRouterDetachTransition.none:
+        break;
+    }
     _nodes.notify();
   }
 
@@ -187,23 +214,22 @@ class _ShellState extends State<Shell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!widget.root._initialized) {
+      widget.root.initState(context);
+      widget.root._initialized = true;
+    }
     widget.root.didChangeDependencies(context);
     _updateNodeDependencies(_router.nodes.values);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.root._initialized) {
-      widget.root.initState(context);
-      widget.root._initialized = true;
-    }
-
+    final rootComponents = widget.root.build(context, _nodes, _stack);
     return _ShellScope(
       state: this,
       child: _Layers(
         key: _layersKey,
-        rootLayer: widget.root.buildLayer(context, _nodes),
-        rootDrawer: widget.root.buildDrawer(context),
+        rootComponents: rootComponents,
         onPopEntry: _handleLayersPop));
   }
 }
@@ -212,14 +238,11 @@ class _Layers extends StatefulWidget {
 
   _Layers({
     Key? key,
-    required this.rootLayer,
-    this.rootDrawer,
+    required this.rootComponents,
     required this.onPopEntry
   }) : super(key: key);
 
-  final Widget rootLayer;
-  
-  final Widget? rootDrawer;
+  final RootComponents rootComponents;
 
   final VoidCallback onPopEntry;
 
@@ -228,25 +251,39 @@ class _Layers extends StatefulWidget {
 }
 
 enum _LayersTransition {
-  // idle
+  idleAtEmpty,
   idleAtRoot,
   idleAtRoute,
   idleAtOptions,
 
-  // navigation
+  // navigation when idleAtEmpty or idleAtRoute
   pushFromOrPopToEmpty,
-  push,
-  pop,
-  replace,
 
-  // drag
+  // navigation when idleAtRoot
+  popFromRootToEmpty,
+  popAtRoot,
+  replaceAtRoot,
+  replaceFromRoot,
+
+  // navigation when idleAtRoute
+  pushAtRoute,
+  popAtRoute,
+  replaceAtRoute,
+
+  // drag from idleAtRoute
   dragToPop,
   dragToPopToEmpty,
+
+  // drag from idleAtRoot or idleAtRoute
   dragToExpandOrCollapseRoute,
+
+  // drag from idleAtRoute or idleAtOptions
   dragToExpandOrCollapseOptions,
 
-  // expand/collapse
+  // expand from idleAtRoot or idleAtRoute
   expandOrCollapseRoute,
+
+  // expand from idleAtRoute or idleAtOptions
   expandOrCollapseOptions,
 }
 
@@ -254,7 +291,6 @@ enum _DrawersTransition {
   // root drawer
   dragToOrFromRoot,
   revealOrHideRoot,
-
 
   // entry drawer
   dragToOrFromEntry,
@@ -271,7 +307,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       vsync: this);
 
   var _routes = <ShellRoute>[];
-  var _layersTransition = _LayersTransition.idleAtRoot;
+  var _layersTransition = _LayersTransition.idleAtEmpty;
   int? _replacedEntriesLength;
   ShellRoute? _hiddenRoute;
   ShellRoute? _visibleRoute;
@@ -284,278 +320,298 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
   void push(ShellRoute route) {
     setState(() {
-      _routes.add(route);
       if (_routes.isEmpty) {
-        assert(_layersTransition == _LayersTransition.idleAtRoot);
+        assert(_layersTransition == _LayersTransition.idleAtEmpty);
         _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
-        _hiddenRoute = null;
-        _visibleRoute = route;
+        _controller.forward(from: 0.0).then((_) {
+          setState(() {
+            _layersTransition = _LayersTransition.idleAtRoute;
+          });
+        });
       } else {
-        final hiddenRoute = _routes[_routes.length - 2];
         switch (_layersTransition) {
           case _LayersTransition.idleAtRoot:
-            _layersTransition = _LayersTransition.expandOrCollapseRoute;
-            _hiddenRoute = hiddenRoute;
-            _visibleRoute = route;
+            _layersTransition = _LayersTransition.replaceFromRoot;
+            _controller.forward(from: 0.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtRoute;
+              });
+            });
             break;
           case _LayersTransition.idleAtRoute:
-            _layersTransition = _LayersTransition.push;
-            _hiddenRoute = hiddenRoute;
-            _visibleRoute = route;
+            _layersTransition = _LayersTransition.pushAtRoute;
+            _controller.forward(from: 0.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtRoute;
+              });
+            });
             break;
-          case _LayersTransition.idleAtOptions:
-            _layersTransition = _LayersTransition.expandOrCollapseOptions;
-            _hiddenRoute = _routes.length > 2 ? _routes[_routes.length - 3] : null;
-            _visibleRoute = hiddenRoute;
-            _controller
-                ..reverseDuration = const Duration(milliseconds: 150)
-                ..reverse(from: 1.0).then((_) {
-                  setState(() {
-                    _layersTransition = _LayersTransition.push;
-                    _hiddenRoute = hiddenRoute;
-                    _visibleRoute = route;
-                    _controller.forward(from: 0.0).then((_) {
-                      setState(() {
-                        _layersTransition = _LayersTransition.idleAtRoute;
-                        _
-                      });
-                    });
-                  });
-                });
-            break;
+          default:
+            throw StateError('Tried to push to _Layers while it was not idling at root or route layers');
         }
       }
+      _routes.add(route);
     });
   }
 
   void pop() {
-  }
-
-  void replace(List<ShellRoute> stack) {
-  }
-
-  @override
-  void didUpdateWidget(_Layers oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    final oldRoutes = _routes;
-    final newRoutes = List.of(widget.routes);
-    if (oldRoutes.isEmpty && newRoutes.isEmpty) {
-      // If they're both empty we can't transition to or from anything.
-      return;
-    }
-
     setState(() {
-      _routes = newRoutes;
-
-      if (oldRoutes.isEmpty) {
-        _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
-        _hiddenRoute = null;
-        _visibleRoute = _routes.last;
-        _controller.forward(from: 0.0).then((_) {
-          setState(() {
-            _layersTransition = _LayersTransition.idleAtRoute;
-            _visibleRoute = null;
-          });
-        });
-        return;
-      }
-
-      if (newRoutes.isEmpty) {
-        _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
-        _hiddenRoute = null;
-        _visibleRoute = oldRoutes.last;
-        _controller.reverse(from: 1.0).then((_) {
-          setState(() {
-            _layersTransition = _LayersTransition.idleAtRoot;
-            _visibleRoute = null;
-          });
-        });
-        return;
-      }
-
-      if (oldRoutes.last == newRoutes.last) {
-        if (_layersTransition == _LayersTransition.idleAtRoot) {
-          _layersTransition = _LayersTransition.expandOrCollapseRoute;
-          _controller.forward(from: 0.0).then((_) {
-            setState(() {
-              _layersTransition = _LayersTransition.idleAtRoute;
+      final removed = _routes.removeLast();
+      _hiddenRoute = _routes.isNotEmpty ? _routes.last : null;
+      _visibleRoute = removed;
+      if (_routes.isEmpty) {
+        switch (_layersTransition) {
+          case _LayersTransition.idleAtRoot:
+            _layersTransition = _LayersTransition.popFromRootToEmpty;
+            _controller.reverse(from: 1.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtEmpty;
+                _hiddenRoute = null;
+                _visibleRoute = null;
+              });
             });
-          });
+            break;
+          case _LayersTransition.idleAtRoute:
+            _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
+            _controller.reverse(from: 1.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtEmpty;
+                _hiddenRoute = null;
+                _visibleRoute = null;
+              });
+            });
+            break;
+          default:
+            throw StateError('Tried to pop from _Layers while it was not idling at root or route layers. Transition was: $_layersTransition');
         }
-        return;
+      } else {
+        switch (_layersTransition) {
+          case _LayersTransition.idleAtRoot:
+            _layersTransition = _LayersTransition.popAtRoot;
+            _controller.forward(from: 0.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtRoot;
+                _hiddenRoute = null;
+                _visibleRoute = null;
+              });
+            });
+            break;
+          case _LayersTransition.idleAtRoute:
+            _layersTransition = _LayersTransition.popAtRoute;
+            _controller.reverse(from: 1.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtRoute;
+                _hiddenRoute = null;
+                _visibleRoute = null;
+              });
+            });
+            break;
+          default:
+            throw StateError('Tried to pop from _Layers while it was not idling at root or route layers. Transition was: $_layersTransition');
+        }
       }
-
-      final lengthDiff = newRoutes.length - oldRoutes.length;
-      if (lengthDiff == 1 && (oldRoutes.last == newRoutes[oldRoutes.length - 2])) {
-        _layersTransition = _LayersTransition.push;
-        _hiddenRoute = oldRoutes.last;
-        _visibleRoute = newRoutes.last;
-        _controller.forward(from: 0.0).then((_) {
-          setState(() {
-            _layersTransition = _LayersTransition.idleAtRoute;
-            _hiddenRoute = null;
-            _visibleRoute = null;
-          });
-        });
-        return;
-      }
-
-      if (lengthDiff == -1 && (oldRoutes[oldRoutes.length - 2] == newRoutes.last)) {
-        _layersTransition = _LayersTransition.pop;
-        _hiddenRoute = newRoutes.last;
-        _visibleRoute = oldRoutes.last;
-        _controller.reverse(from: 1.0).then((_) {
-          setState(() {
-            _layersTransition = _LayersTransition.idleAtRoute;
-            _hiddenRoute = null;
-            _visibleRoute = null;
-          });
-        });
-        return;
-      }
-      
-      if (_layersTransition == _LayersTransition.idleAtRoot) {
-        _layersTransition = _LayersTransition.expandOrCollapseRoute;
-        _controller.forward(from: 0.0).then((_) {
-          setState(() {
-            _layersTransition = _LayersTransition.idleAtRoute;
-          });
-        });
-        return;
-      }
-
-      _layersTransition = _LayersTransition.replace;
-      _replacedEntriesLength = oldRoutes.length;
-      _hiddenRoute = oldRoutes.last;
-      _visibleRoute = newRoutes.last;
-      _controller.forward(from: 0.0).then((_) {
-        setState(() {
-          _layersTransition = _LayersTransition.idleAtRoute;
-          _replacedEntriesLength = null;
-          _hiddenRoute = null;
-          _visibleRoute = null;
-        });
-      });
     });
   }
 
-  final _contentKey = GlobalKey(debugLabel: 'content layer key');
-  double get _contentHeight {
-    return (_contentKey.currentContext!.findRenderObject() as RenderBox).size.height;
-  }
-
-  void _handleContentDragStart(DragStartDetails details) {
+  void replace(List<ShellRoute> stack, { required bool animate }) {
     setState(() {
-      _layersTransition = _LayersTransition.dragToExpandOrCollapseRoute;
+      if (animate) {
+        _hiddenRoute = _routes.isNotEmpty ? _routes.last : null;
+        _replacedEntriesLength = _routes.length;
+        _routes = stack;
+        switch (_layersTransition) {
+          case _LayersTransition.idleAtEmpty:
+            _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
+            _controller.forward(from: 0.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtRoute;
+              _hiddenRoute = null;
+              _replacedEntriesLength = null;
+              });
+            });
+            break;
+          case _LayersTransition.idleAtRoot:
+            _layersTransition = _LayersTransition.replaceFromRoot;
+            _controller.forward(from: 0.0).then((_) {
+              setState(() {
+                _layersTransition = _LayersTransition.idleAtRoute;
+              _hiddenRoute = null;
+              _replacedEntriesLength = null;
+              });
+            });
+            break;
+          case _LayersTransition.idleAtRoute:
+            _layersTransition = _LayersTransition.replaceAtRoute;
+            _controller.forward(from: 0.0).then((_) {
+              _layersTransition = _LayersTransition.idleAtRoute;
+              _hiddenRoute = null;
+              _replacedEntriesLength = null;
+            });
+            break;
+          default:
+            throw StateError('Tried to replace the _Layers stack while it was not idling at empty, root, or route layers. Transition was: $_layersTransition');
+        }
+      } else {
+        _routes = stack;
+      }
     });
   }
 
-  void _handleContentDragUpdate(DragUpdateDetails details) {
-    _controller.value -= details.primaryDelta! / _contentHeight;
+  void _handleSheetDragUpdate(
+      DragUpdateDetails details, {
+      required double expandableHeight
+    }) {
+    _controller.value -= details.primaryDelta! / expandableHeight;
   }
 
-  void _handleContentDragEnd(DragEndDetails details) {
+  void _handleSheetDragEnd({
+      DragEndDetails? details,
+      required double expandableHeight,
+      required _LayersTransition transition,
+      required VoidCallback onDismissed,
+      required VoidCallback onCompleted,
+    }) {
     setState(() {
       if (_controller.isDismissed) {
-        _layersTransition = _LayersTransition.idleAtRoot;
+        onDismissed();
         return;
       }
-
       if (_controller.isCompleted) {
-        _layersTransition = _LayersTransition.idleAtRoute;
+        onCompleted();
         return;
       }
-      
-      _layersTransition = _LayersTransition.expandOrCollapseRoute;
 
-      // Is it a fling gesture?
-      if (details.velocity.pixelsPerSecond.dy.abs() > 700) {
-        final flingVelocity = -(details.velocity.pixelsPerSecond.dy / _contentHeight);
+      assert(details != null);
+
+      _layersTransition = transition;
+
+      if (details!.velocity.pixelsPerSecond.dy.abs() > 700) {
+        final flingVelocity = -(details.velocity.pixelsPerSecond.dy / expandableHeight);
         _controller.fling(velocity: flingVelocity).then((_) {
           setState(() {
             if (flingVelocity < 0.0) {
-              _layersTransition = _LayersTransition.idleAtRoot;
+              onDismissed();
             } else {
-              _layersTransition = _LayersTransition.idleAtRoute;
+              onCompleted();
             }
           });
         });
-      } else if (_controller.value > 0.5) {
-        _controller.forward().then((_) {
+      } else if (_controller.value < 0.5) {
+        _controller.reverse().then((_) {
           setState(() {
-            _layersTransition = _LayersTransition.idleAtRoute;
+            onDismissed();
           });
         });
       } else {
-        _controller.reverse().then((_) {
+        _controller.forward().then((_) {
           setState(() {
-            _layersTransition = _LayersTransition.idleAtRoot;
+            onCompleted();
           });
         });
       }
     });
   }
 
-  void _handleContentDragCancel() {
-    if (_layersTransition == _LayersTransition.dragToExpandOrCollapseRoute) {
-      setState(() {
-        assert(!_controller.isAnimating);
-        _layersTransition = _controller.isDismissed ? _LayersTransition.idleAtRoot : _LayersTransition.idleAtRoute;
+  final _contentSheetKey = GlobalKey(debugLabel: '_ContentLayer=>SheetWithHandle.key');
+  double get _contentSheetExpandableHeight => SheetWithHandle.calculateExpandableHeight(
+      sheetHeight: (_contentSheetKey.currentContext!.findRenderObject() as RenderBox).size.height,
+      peekHeight: _ContentLayer._kPeekHandleHeight);
+
+  void _handleContentDragStart(DragStartDetails _) {
+    setState(() => _layersTransition = _LayersTransition.dragToExpandOrCollapseRoute);
+  }
+
+  void _handleContentDragUpdate(DragUpdateDetails details) {
+    _handleSheetDragUpdate(details, expandableHeight: _contentSheetExpandableHeight);
+  }
+
+  void _handleContentDragEnd([DragEndDetails? details]) {
+    _handleSheetDragEnd(
+      details: details,
+      expandableHeight: _contentSheetExpandableHeight,
+      transition: _LayersTransition.expandOrCollapseRoute,
+      onDismissed: () {
+        _layersTransition = _LayersTransition.idleAtRoot;
+      },
+      onCompleted: () {
+        _layersTransition = _LayersTransition.idleAtRoute;
       });
-    }
+  }
+
+  final _optionsSheetKey = GlobalKey(debugLabel: '_OptionsLayer=>SheetWithHandle.key');
+  double get _optionsSheetExpandableHeight => SheetWithHandle.calculateExpandableHeight(
+      sheetHeight: (_optionsSheetKey.currentContext!.findRenderObject() as RenderBox).size.height,
+      peekHeight: _OptionsLayer._kHandleHeight);
+
+  void _handleOptionsDragStart(DragStartDetails _) {
+    setState(() {
+      if (_layersTransition == _LayersTransition.idleAtRoute) {
+        _controller.value = 0.0;
+      }
+      _layersTransition = _LayersTransition.dragToExpandOrCollapseOptions;
+    });
+  }
+
+  void _handleOptionsDragUpdate(DragUpdateDetails details) {
+    _handleSheetDragUpdate(details, expandableHeight: _optionsSheetExpandableHeight);
+  }
+
+  void _handleOptionsDragEnd([DragEndDetails? details]) {
+    _handleSheetDragEnd(
+      details: details,
+      expandableHeight: _optionsSheetExpandableHeight,
+      transition: _LayersTransition.expandOrCollapseOptions,
+      onDismissed: () {
+        _layersTransition = _LayersTransition.idleAtRoute;
+        _controller.value = 1.0;
+      },
+      onCompleted: () {
+        _layersTransition = _LayersTransition.idleAtOptions;
+      });
   }
   
   @override
   Widget build(BuildContext context) {
-    final layers = <Widget>[
-      widget.rootLayer
-    ];
-    if (_visibleRoute != null || _routes.isNotEmpty) {
-      final ShellComponents? hiddenComponents;
-      if (_hiddenRoute != null) {
-        hiddenComponents = _hiddenRoute!.buildComponents(context);
-      } else if (_routes.length > 2) {
-        hiddenComponents = _routes[_routes.length - 2].buildComponents(context);
-      } else {
-        hiddenComponents = null;
-      }
+    final hiddenComponents = _hiddenRoute?.build(context) ??
+        (_routes.length > 2 ? _routes[_routes.length - 2].build(context) : null);
 
-      final ShellComponents visibleComponents;
-      if (_visibleRoute != null) {
-        visibleComponents = _visibleRoute!.buildComponents(context);
-      } else {
-        visibleComponents = _routes.last.buildComponents(context);
-      }
+    final visibleComponents = _visibleRoute?.build(context) ??
+        (_routes.isNotEmpty ? _routes.last.build(context) : null);
 
-      layers.add(_TitleLayer(
+    return Stack(
+      children: <Widget>[
+        widget.rootComponents.layer,
+        _TitleLayer(
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
           animation: _controller,
           layersTransition: _layersTransition,
           replacedEntriesLength: _replacedEntriesLength,
           entriesLength: _routes.length,
-          onPopEntry: widget.onPopEntry));
-      
-      layers.add(_ContentLayer(
+          onPopEntry: widget.onPopEntry),
+        _ContentLayer(
+          peekHandle: widget.rootComponents.handle,
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
           animation: _controller,
           layersTransition: _layersTransition,
-          contentKey: _contentKey,
+          sheetKey: _contentSheetKey,
           onPopEntry: widget.onPopEntry,
           onDragStart: _handleContentDragStart,
           onDragUpdate: _handleContentDragUpdate,
           onDragEnd: _handleContentDragEnd,
-          onDragCancel: _handleContentDragCancel));
-
-      layers.add(_OptionsLayer(
+          onDragCancel: _handleContentDragEnd),
+        _OptionsLayer(
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
           animation: _controller,
-          layersTransition: _layersTransition));
-    }
-    return Stack(children: layers);
+          layersTransition: _layersTransition,
+          sheetKey: _optionsSheetKey,
+          onDragStart: _handleOptionsDragStart,
+          onDragUpdate: _handleOptionsDragUpdate,
+          onDragEnd: _handleOptionsDragEnd,
+          onDragCancel: _handleOptionsDragEnd)
+      ]);
   }
 }
 
@@ -564,23 +620,21 @@ class _TitleLayer extends StatelessWidget {
   _TitleLayer({
     Key? key,
     this.hiddenComponents,
-    required this.visibleComponents,
+    this.visibleComponents,
     required this.animation,
     required this.layersTransition,
     this.replacedEntriesLength,
     required this.entriesLength,
     this.onPopEntry
   }) : super(key: key) {
-    assert((replacedEntriesLength == null && layersTransition != _LayersTransition.replace) ||
-           (replacedEntriesLength != null && layersTransition == _LayersTransition.replace));
     _decorationTween = DecorationTween(
       begin: hiddenComponents?.titleDecoration ?? const BoxDecoration(),
-      end: visibleComponents.titleDecoration ?? const BoxDecoration());
+      end: visibleComponents?.titleDecoration ?? const BoxDecoration());
   }
 
-  final ShellComponents? hiddenComponents;
+  final RouteComponents? hiddenComponents;
 
-  final ShellComponents visibleComponents;
+  final RouteComponents? visibleComponents;
 
   final Animation<double> animation;
 
@@ -599,15 +653,19 @@ class _TitleLayer extends StatelessWidget {
   Animation<Offset> get _position {
     Animation<double> parent;
     switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
       case _LayersTransition.idleAtRoot:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
         // We are out of frame.
         parent = kAlwaysDismissedAnimation;
         break;
       case _LayersTransition.idleAtRoute:
       case _LayersTransition.idleAtOptions:
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
-      case _LayersTransition.replace:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
       case _LayersTransition.dragToPop:
       case _LayersTransition.dragToExpandOrCollapseOptions:
       case _LayersTransition.expandOrCollapseOptions:
@@ -615,6 +673,7 @@ class _TitleLayer extends StatelessWidget {
         parent = kAlwaysCompleteAnimation;
         break;
       case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.replaceFromRoot:
       case _LayersTransition.dragToPopToEmpty:
       case _LayersTransition.dragToExpandOrCollapseRoute:
       case _LayersTransition.expandOrCollapseRoute:
@@ -631,9 +690,9 @@ class _TitleLayer extends StatelessWidget {
   Animation<Decoration> get _decoration {
     Animation<double> parent;
     switch (layersTransition) {
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
-      case _LayersTransition.replace:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
       case _LayersTransition.dragToPop:
         parent = animation;
         break;
@@ -651,6 +710,12 @@ class _TitleLayer extends StatelessWidget {
   Animation<double> get _rotation {
     Animation<double> parent;
     switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.dragToPopToEmpty:
+        parent = kAlwaysDismissedAnimation;
+        break;
       case _LayersTransition.idleAtRoot:
       case _LayersTransition.idleAtRoute:
       case _LayersTransition.idleAtOptions:
@@ -660,20 +725,19 @@ class _TitleLayer extends StatelessWidget {
       case _LayersTransition.expandOrCollapseOptions:
         parent = (entriesLength < 2 ? kAlwaysDismissedAnimation : kAlwaysCompleteAnimation);
         break;
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.dragToPopToEmpty:
-        parent = kAlwaysDismissedAnimation;
-        break;
-      case _LayersTransition.push:
+      case _LayersTransition.pushAtRoute:
         parent = (entriesLength == 2 ? animation : kAlwaysCompleteAnimation);
         break;
-      case _LayersTransition.pop:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.popAtRoute:
         parent = (entriesLength == 1 ? animation : kAlwaysCompleteAnimation);
         break;
       case _LayersTransition.dragToPop:
         parent = (entriesLength == 2 ? animation : kAlwaysCompleteAnimation);
         break;
-      case _LayersTransition.replace:
+      case _LayersTransition.replaceAtRoot:
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.replaceAtRoute:
         if (replacedEntriesLength! < 2) {
           parent = (entriesLength < 2 ? kAlwaysDismissedAnimation : animation);
         } else {
@@ -686,9 +750,9 @@ class _TitleLayer extends StatelessWidget {
 
   Animation<double> get _opacity {
     switch (layersTransition) {
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
-      case _LayersTransition.replace:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
       case _LayersTransition.dragToPop:
         return animation;
       default:
@@ -719,7 +783,7 @@ class _TitleLayer extends StatelessWidget {
                   child: hiddenComponents?.titleMiddle),
                 FadeTransition(
                   opacity: _opacity,
-                  child: visibleComponents.titleMiddle)
+                  child: visibleComponents?.titleMiddle)
               ]),
             trailing: Stack(
               children: <Widget>[
@@ -728,7 +792,7 @@ class _TitleLayer extends StatelessWidget {
                   child: hiddenComponents?.titleTrailing),
                 FadeTransition(
                   opacity: _opacity,
-                  child: visibleComponents.titleTrailing)
+                  child: visibleComponents?.titleTrailing)
               ])))));
   }
 }
@@ -737,11 +801,12 @@ class _ContentLayer extends StatelessWidget {
 
   _ContentLayer({
     Key? key,
+    required this.peekHandle,
     this.hiddenComponents,
-    required this.visibleComponents,
+    this.visibleComponents,
     required this.animation,
     required this.layersTransition,
-    required this.contentKey,
+    required this.sheetKey,
     this.onPopEntry,
     required this.onDragStart,
     required this.onDragUpdate,
@@ -749,15 +814,17 @@ class _ContentLayer extends StatelessWidget {
     required this.onDragCancel,
   }) : super(key: key);
 
-  final ShellComponents? hiddenComponents;
+  final Widget peekHandle;
 
-  final ShellComponents visibleComponents;
+  final RouteComponents? hiddenComponents;
+
+  final RouteComponents? visibleComponents;
 
   final Animation<double> animation;
 
   final _LayersTransition layersTransition;
 
-  final GlobalKey contentKey;
+  final GlobalKey sheetKey;
 
   final VoidCallback? onPopEntry;
 
@@ -769,24 +836,55 @@ class _ContentLayer extends StatelessWidget {
 
   final GestureDragCancelCallback onDragCancel;
 
-  Animation<double> get _layerPosition {
+  Animation<double> get _sheetPosition {
     switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
       case _LayersTransition.idleAtRoot:
-        return kAlwaysPeekAnimation;
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+        return kAlwaysDismissedAnimation;
       case _LayersTransition.idleAtRoute:
       case _LayersTransition.idleAtOptions:
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
-      case _LayersTransition.replace:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
       case _LayersTransition.dragToExpandOrCollapseOptions:
       case _LayersTransition.expandOrCollapseOptions:
         return kAlwaysCompleteAnimation;
       case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.dragToPop:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.replaceFromRoot:
       case _LayersTransition.dragToPopToEmpty:
       case _LayersTransition.dragToExpandOrCollapseRoute:
       case _LayersTransition.expandOrCollapseRoute:
-        return animation.drive(kExpandTween);
+        return animation;
+    }
+  }
+
+  SheetWithHandleMode get _sheetMode {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.dragToPopToEmpty:
+        return SheetWithHandleMode.hideOrExpand;
+      case _LayersTransition.idleAtRoot:
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
+      case _LayersTransition.dragToExpandOrCollapseRoute:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersTransition.expandOrCollapseOptions:
+        return SheetWithHandleMode.peekOrExpand;
+      case _LayersTransition.popFromRootToEmpty:
+        return SheetWithHandleMode.hideOrPeek;
     }
   }
 
@@ -797,15 +895,14 @@ class _ContentLayer extends StatelessWidget {
   Animation<Offset> get _hiddenBodyPosition {
     Animation<double> parent;
     switch (layersTransition) {
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
       case _LayersTransition.dragToPop:
         parent = animation;
         break;
       default:
-        parent = kAlwaysDismissedAnimation;
+        parent = kAlwaysCompleteAnimation;
     }
-
     return parent.drive(_kHiddenBodyPositionTween);
   }
 
@@ -816,31 +913,83 @@ class _ContentLayer extends StatelessWidget {
   Animation<Offset> get _visibleBodyPosition {
     Animation<double> parent;
     switch (layersTransition) {
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
       case _LayersTransition.dragToPop:
         parent = animation;
         break;
       default:
         parent = kAlwaysCompleteAnimation;
     }
-
     return parent.drive(_kVisibleBodyPositionTween);
   }
 
-  Animation<double> get _opacity {
+  Animation<double> get _hiddenHandleOpacity {
     switch (layersTransition) {
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
-      case _LayersTransition.replace:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
       case _LayersTransition.dragToPop:
-        return animation;
+        return ReverseAnimation(animation);
       default:
-        return kAlwaysCompleteAnimation;
+        return kAlwaysDismissedAnimation;
     }
   }
 
-  static int _buildCount = 0;
+  Animation<double> get _visibleHandleOpacity {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.idleAtRoot:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+        return kAlwaysDismissedAnimation;
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.dragToPopToEmpty:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseOptions:
+        return kAlwaysCompleteAnimation;
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
+      case _LayersTransition.dragToExpandOrCollapseRoute:
+      case _LayersTransition.expandOrCollapseRoute:
+        return animation;
+    }
+  }
+
+  Animation<double> get _peekHandleOpacity {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
+      case _LayersTransition.dragToPopToEmpty:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseOptions:
+        return kAlwaysDismissedAnimation;
+      case _LayersTransition.idleAtRoot:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+        return kAlwaysCompleteAnimation;
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.dragToExpandOrCollapseRoute:
+      case _LayersTransition.expandOrCollapseRoute:
+        return ReverseAnimation(animation);
+    }
+  }
+
+  static const _kHandleHeight = 40.0;
+  static const _kPeekHandleHeight = 48.0;
 
   @override
   Widget build(BuildContext context) {
@@ -848,41 +997,45 @@ class _ContentLayer extends StatelessWidget {
       padding: EdgeInsets.only(
         top: context.mediaPadding.top + Toolbar.kHeight),
       child: SheetWithHandle(
-        key: contentKey,
-        animation: _layerPosition,
-        handle: GestureDetector(
+        key: sheetKey,
+        animation: _sheetPosition,
+        mode: _sheetMode,
+        body: Stack(
+          children: <Widget>[
+            SlideTransition(
+              position: _hiddenBodyPosition,
+              child: hiddenComponents?.contentBody),
+            SlideTransition(
+              position: _visibleBodyPosition,
+              child: visibleComponents?.contentBody)
+          ]),
+        handleMaterial: GestureDetector(
           onVerticalDragStart: onDragStart,
           onVerticalDragUpdate: onDragUpdate,
           onVerticalDragEnd: onDragEnd,
           onVerticalDragCancel: onDragCancel,
           child: Material(
             elevation: 2.0,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
-            child: SizedBox(
-              height: 36.0,
-              child: Stack(
-                children: <Widget>[
-                  FadeTransition(
-                    opacity: ReverseAnimation(_opacity),
-                    child: hiddenComponents?.contentHandle),
-                  FadeTransition(
-                    opacity: _opacity,
-                    child: visibleComponents.contentHandle)
-                ])))),
-        body: Builder(
-          builder: (_) {
-            print('built content body: ${_buildCount++}');
-            print('_visibleBodyPosition: ${_visibleBodyPosition.value}');
-            return Stack(
+            borderRadius: SheetWithHandle.kDefaultBorderRadius,
+            child: const SizedBox.expand())),
+        handle: SizedBox(
+          height: _kHandleHeight,
+          child: Center(
+            child: Stack(
               children: <Widget>[
-                SlideTransition(
-                  position: _hiddenBodyPosition,
-                  child: hiddenComponents?.contentBody),
-                SlideTransition(
-                  position: _visibleBodyPosition,
-                  child: visibleComponents.contentBody)
-              ]);
-          })));
+                FadeTransition(
+                  opacity: _hiddenHandleOpacity,
+                  child: hiddenComponents?.contentHandle),
+                FadeTransition(
+                  opacity: _visibleHandleOpacity,
+                  child: visibleComponents?.contentHandle)
+              ]))),
+        peekHandle: SizedBox(
+          height: _kPeekHandleHeight,
+          child: Center(
+            child: FadeTransition(
+              opacity: _peekHandleOpacity,
+              child: peekHandle)))));
   }
 }
 
@@ -891,83 +1044,124 @@ class _OptionsLayer extends StatelessWidget {
   _OptionsLayer({
     Key? key,
     this.hiddenComponents,
-    required this.visibleComponents,
+    this.visibleComponents,
     required this.animation,
-    required this.layersTransition
+    required this.layersTransition,
+    required this.sheetKey,
+    required this.onDragStart,
+    required this.onDragUpdate,
+    required this.onDragEnd,
+    required this.onDragCancel
   }) : super(key: key);
 
-  final ShellComponents? hiddenComponents;
+  final RouteComponents? hiddenComponents;
 
-  final ShellComponents visibleComponents;
+  final RouteComponents? visibleComponents;
 
   final Animation<double> animation;
 
   final _LayersTransition layersTransition;
 
-  Animation<double> get _peekAnimation => CurvedAnimation(
-        parent: animation,
-        // Animate during the final third of the animation
-        curve: const Interval(0.66, 1.0)
-      ).drive(kPeekTween);
+  final GlobalKey sheetKey;
 
-  Animation<double> get _position {
+  final GestureDragStartCallback onDragStart;
+
+  final GestureDragUpdateCallback onDragUpdate;
+
+  final GestureDragEndCallback onDragEnd;
+
+  final GestureDragCancelCallback onDragCancel;
+
+  Animation<double> get _sheetPosition {
     switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
       case _LayersTransition.idleAtRoot:
-        return kAlwaysDismissedAnimation;
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
       case _LayersTransition.idleAtRoute:
-        if (visibleComponents.optionsHandle != null) {
-          return kAlwaysPeekAnimation;
-        } else {
-          return kAlwaysDismissedAnimation;
-        }
+        return kAlwaysDismissedAnimation;
       case _LayersTransition.idleAtOptions:
         return kAlwaysCompleteAnimation;
       case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.replaceFromRoot:
       case _LayersTransition.dragToPopToEmpty:
       case _LayersTransition.dragToExpandOrCollapseRoute:
       case _LayersTransition.expandOrCollapseRoute:
-        if (visibleComponents.optionsHandle != null) {
-          return _peekAnimation;
+        if (visibleComponents?.optionsHandle != null) {
+          return CurvedAnimation(
+              parent: animation,
+              curve: const Interval(0.66, 1.0));
         } else {
           return kAlwaysDismissedAnimation;
         }
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
-      case _LayersTransition.replace:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
       case _LayersTransition.dragToPop:
         assert(hiddenComponents != null);
         if (hiddenComponents!.optionsHandle != null) {
-          if (visibleComponents.optionsHandle != null) {
-            return kAlwaysPeekAnimation;
+          if (visibleComponents?.optionsHandle != null) {
+            return kAlwaysDismissedAnimation;
           } else {
-            return ReverseAnimation(_peekAnimation);
+            return ReverseAnimation(animation);
           }
-        } else if (visibleComponents.optionsHandle != null) {
-          return _peekAnimation;
+        } else if (visibleComponents?.optionsHandle != null) {
+          return animation;
         } else {
           return kAlwaysDismissedAnimation;
         }
       case _LayersTransition.dragToExpandOrCollapseOptions:
       case _LayersTransition.expandOrCollapseOptions:
-        return animation.drive(kExpandTween);
+        return animation;
+    }
+  }
+
+  SheetWithHandleMode get _sheetMode {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.idleAtRoot:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.dragToPopToEmpty:
+      case _LayersTransition.dragToExpandOrCollapseRoute:
+      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
+        return SheetWithHandleMode.hideOrPeek;
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseOptions:
+        return SheetWithHandleMode.peekOrExpand;
     }
   }
 
   Animation<double> get _handleOpacity {
     switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
       case _LayersTransition.idleAtRoot:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
         return kAlwaysDismissedAnimation;
       case _LayersTransition.idleAtRoute:
       case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.replaceFromRoot:
       case _LayersTransition.dragToPopToEmpty:
       case _LayersTransition.dragToExpandOrCollapseRoute:
       case _LayersTransition.expandOrCollapseRoute:
         return kAlwaysCompleteAnimation;
       case _LayersTransition.idleAtOptions:
         return kAlwaysDismissedAnimation;
-      case _LayersTransition.push:
-      case _LayersTransition.pop:
-      case _LayersTransition.replace:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
       case _LayersTransition.dragToPop:
         return animation;
       case _LayersTransition.dragToExpandOrCollapseOptions:
@@ -988,22 +1182,42 @@ class _OptionsLayer extends StatelessWidget {
     }
   }
 
+  static const _kHandleHeight = 40.0;
+
   @override
   Widget build(BuildContext context) {
     final handleOpacity = _handleOpacity;
-    return SheetWithHandle(
-      animation: _position,
-      handle: Stack(
-        children: <Widget>[
-          FadeTransition(
-            opacity: ReverseAnimation(handleOpacity),
-            child: hiddenComponents?.optionsHandle),
-          FadeTransition(
-            opacity: handleOpacity,
-            child: visibleComponents.optionsHandle)
-        ]),
-      body: FadeTransition(
-        opacity: _bodyOpacity,
-        child: visibleComponents.optionsBody));
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: FractionallySizedBox(
+        heightFactor: 0.5,
+        child: SheetWithHandle(
+          key: sheetKey,
+          animation: _sheetPosition,
+          mode: _sheetMode,
+          body: FadeTransition(
+            opacity: _bodyOpacity,
+            child: visibleComponents?.optionsBody),
+          handleMaterial: GestureDetector(
+            onVerticalDragStart: onDragStart,
+            onVerticalDragUpdate: onDragUpdate,
+            onVerticalDragEnd: onDragEnd,
+            onVerticalDragCancel: onDragCancel,
+            child: Material(
+              elevation: 2.0,
+              borderRadius: SheetWithHandle.kDefaultBorderRadius,
+              child: const SizedBox.expand())),
+          handle: SizedBox(
+            height: _kHandleHeight,
+            child: Center(
+              child: Stack(
+                children: <Widget>[
+                  FadeTransition(
+                    opacity: ReverseAnimation(handleOpacity),
+                    child: hiddenComponents?.optionsHandle),
+                  FadeTransition(
+                    opacity: handleOpacity,
+                    child: visibleComponents?.optionsHandle)
+                ]))))));
   }
 }

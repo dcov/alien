@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/app.dart';
 import '../models/subreddit.dart';
+import '../utils/path_router.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
 
@@ -17,42 +19,59 @@ class AppLayer extends ShellRoot {
   final App app;
 
   @override
-  Widget buildLayer(BuildContext context, Map<String, ShellNode> nodes) {
-    return Connector(
-      builder: (BuildContext context) {
-        final children = <Widget>[];
-        final defaults = app.defaults;
-        final subscriptions = app.subscriptions;
-        if (defaults != null) {
-          children.add(_SublistHeader(name: 'DEFAULTS'));
-          children.addAll(
-            defaults.items.map((Subreddit subreddit) {
-              return SubredditTile(
-                subreddit: subreddit,
-                routePath: subredditRoutePathFrom('defaults:', subreddit));
-            }));
-        } else {
-          assert(subscriptions != null);
-          children.add(_SublistHeader(name: 'SUBSCRIPTIONS'));
-          children.addAll(
-            subscriptions!.items.map((Subreddit subreddit) {
-              return SubredditTile(
-                subreddit: subreddit,
-                routePath: subredditRoutePathFrom('subscriptions:', subreddit));
-            }));
-        }
-        return CustomScrollView(
-          slivers: <Widget>[
-            SliverAppBar(
-              toolbarHeight: 48.0,
-              backgroundColor: Theme.of(context).canvasColor,
-              leading: PressableIcon(
-                icon: Icons.settings,
-                iconColor: Colors.grey)),
-            SliverList(
-              delegate: SliverChildListDelegate(children))
-          ]);
-      });
+  RootComponents build(
+      BuildContext context,
+      ValueListenable<Map<String, PathNode<ShellRoute>>> nodes,
+      ValueListenable<List<ShellRoute>> stack
+    ) {
+    return RootComponents(
+      layer: Connector(
+        builder: (BuildContext context) {
+          final children = <Widget>[];
+          final defaults = app.defaults;
+          final subscriptions = app.subscriptions;
+          if (defaults != null) {
+            children.add(_SublistHeader(name: 'DEFAULTS'));
+            children.addAll(
+              defaults.items.map((Subreddit subreddit) {
+                return SubredditTile(
+                  subreddit: subreddit,
+                  routePath: subredditRoutePathFrom('defaults:', subreddit));
+              }));
+          } else {
+            assert(subscriptions != null);
+            children.add(_SublistHeader(name: 'SUBSCRIPTIONS'));
+            children.addAll(
+              subscriptions!.items.map((Subreddit subreddit) {
+                return SubredditTile(
+                  subreddit: subreddit,
+                  routePath: subredditRoutePathFrom('subscriptions:', subreddit));
+              }));
+          }
+          return CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                pinned: true,
+                toolbarHeight: 48.0,
+                backgroundColor: Theme.of(context).canvasColor,
+                leading: PressableIcon(
+                  icon: Icons.settings,
+                  iconColor: Colors.grey)),
+              SliverList(
+                delegate: SliverChildListDelegate(children))
+            ]);
+        }),
+      handle: ValueListenableBuilder(
+        valueListenable: stack,
+        builder: (_, List<ShellRoute> stack, __) {
+          return SizedBox(
+            height: 48.0,
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.add)
+              ]));
+        }),
+      drawer: const SizedBox());
   }
 }
 
