@@ -7,6 +7,7 @@ import '../models/subreddit.dart';
 import '../utils/path_router.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
+import '../widgets/toolbar.dart';
 
 import 'subreddit_route.dart';
 
@@ -48,28 +49,42 @@ class AppLayer extends ShellRoot {
                   routePath: subredditRoutePathFrom('subscriptions:', subreddit));
               }));
           }
-          return CustomScrollView(
-            slivers: <Widget>[
-              SliverAppBar(
-                pinned: true,
-                toolbarHeight: 48.0,
-                backgroundColor: Theme.of(context).canvasColor,
-                leading: PressableIcon(
-                  icon: Icons.settings,
-                  iconColor: Colors.grey)),
-              SliverList(
-                delegate: SliverChildListDelegate(children))
+          return Column(
+            children: <Widget>[
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 0.0,
+                      color: Colors.grey))),
+                child: Toolbar(
+                  leading: PressableIcon(
+                    icon: Icons.settings,
+                    iconColor: Colors.grey))),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: children))
             ]);
         }),
       handle: ValueListenableBuilder(
         valueListenable: stack,
         builder: (_, List<ShellRoute> stack, __) {
-          return SizedBox(
-            height: 48.0,
-            child: Row(
-              children: <Widget>[
-                Icon(Icons.add)
-              ]));
+          return Stack(
+            children: <Widget>[
+              IgnorePointer(
+                ignoring: true,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).canvasColor),
+                  child: const SizedBox.expand())),
+              SizedBox(
+                height: 48.0,
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.add)
+                  ]))
+            ]);
         }),
       drawer: const SizedBox());
   }

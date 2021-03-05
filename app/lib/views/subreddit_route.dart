@@ -130,12 +130,25 @@ class SubredditRoute extends ShellRoute {
       contentBody: _ContentBody(
         key: ValueKey(path),
         posts: _posts),
-      optionsHandle: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      optionsHandle: Stack(
         children: <Widget>[
-          PressableIcon(
-            icon: Icons.sort,
-            iconColor: Colors.grey)
+          IgnorePointer(
+            ignoring: true,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    width: 0.0,
+                    color: Colors.grey))),
+              child: SizedBox.expand())),
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                PressableIcon(
+                  icon: Icons.sort,
+                  iconColor: Colors.grey)
+              ])),
         ]),
       optionsBody: Material());
   }

@@ -5,10 +5,32 @@ import 'package:flutter/material.dart';
 
 import '../utils/manual_value_notifier.dart';
 import '../utils/path_router.dart';
+import '../widgets/ignored_decoration.dart';
 import '../widgets/pressable.dart';
 import '../widgets/sheet_with_handle.dart';
 import '../widgets/toolbar.dart';
 import '../widgets/widget_extensions.dart';
+
+const kExpandedHandleHeight = 40.0;
+const kCollapsedHandleHeight = 48.0;
+
+BoxDecoration _createExpandedHandleDecoration(BuildContext context) {
+  return BoxDecoration(
+    color: Theme.of(context).canvasColor,
+    border: Border(
+      bottom: BorderSide(
+        width: 0.0,
+        color: Colors.grey)));
+}
+
+BoxDecoration _createCollapsedHandleDecoration(BuildContext context) {
+  return BoxDecoration(
+    color: Theme.of(context).canvasColor,
+    border: Border(
+      top: BorderSide(
+        width: 0.0,
+        color: Colors.grey)));
+}
 
 mixin _ShellChild {
 
@@ -125,6 +147,14 @@ extension ShellExtension on BuildContext {
         fullPath,
         onCreateRoute: onCreateRoute,
         onUpdateRoute: onUpdateRoute);
+  }
+
+  void remove(String path) {
+    _state.remove(path);
+  }
+
+  void detach(String path, String newFragment) {
+    _state.detach(path, newFragment);
   }
 }
 
@@ -512,23 +542,20 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
     });
   }
 
-  final _contentSheetKey = GlobalKey(debugLabel: '_ContentLayer=>SheetWithHandle.key');
-  double get _contentSheetExpandableHeight => SheetWithHandle.calculateExpandableHeight(
-      sheetHeight: (_contentSheetKey.currentContext!.findRenderObject() as RenderBox).size.height,
-      peekHeight: _ContentLayer._kPeekHandleHeight);
+  late double _contentSheetDraggableExtent;
 
   void _handleContentDragStart(DragStartDetails _) {
     setState(() => _layersTransition = _LayersTransition.dragToExpandOrCollapseRoute);
   }
 
   void _handleContentDragUpdate(DragUpdateDetails details) {
-    _handleSheetDragUpdate(details, expandableHeight: _contentSheetExpandableHeight);
+    _handleSheetDragUpdate(details, expandableHeight: _contentSheetDraggableExtent);
   }
 
   void _handleContentDragEnd([DragEndDetails? details]) {
     _handleSheetDragEnd(
       details: details,
-      expandableHeight: _contentSheetExpandableHeight,
+      expandableHeight: _contentSheetDraggableExtent,
       transition: _LayersTransition.expandOrCollapseRoute,
       onDismissed: () {
         _layersTransition = _LayersTransition.idleAtRoot;
@@ -538,10 +565,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       });
   }
 
-  final _optionsSheetKey = GlobalKey(debugLabel: '_OptionsLayer=>SheetWithHandle.key');
-  double get _optionsSheetExpandableHeight => SheetWithHandle.calculateExpandableHeight(
-      sheetHeight: (_optionsSheetKey.currentContext!.findRenderObject() as RenderBox).size.height,
-      peekHeight: _OptionsLayer._kHandleHeight);
+  late double _optionsSheetDraggableExtent;
 
   void _handleOptionsDragStart(DragStartDetails _) {
     setState(() {
@@ -553,13 +577,13 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   }
 
   void _handleOptionsDragUpdate(DragUpdateDetails details) {
-    _handleSheetDragUpdate(details, expandableHeight: _optionsSheetExpandableHeight);
+    _handleSheetDragUpdate(details, expandableHeight: _optionsSheetDraggableExtent);
   }
 
   void _handleOptionsDragEnd([DragEndDetails? details]) {
     _handleSheetDragEnd(
       details: details,
-      expandableHeight: _optionsSheetExpandableHeight,
+      expandableHeight: _optionsSheetDraggableExtent,
       transition: _LayersTransition.expandOrCollapseOptions,
       onDismissed: () {
         _layersTransition = _LayersTransition.idleAtRoute;
@@ -580,7 +604,10 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
     return Stack(
       children: <Widget>[
-        widget.rootComponents.layer,
+        _RootLayer(
+          components: widget.rootComponents,
+          animation: _controller,
+          transition: _layersTransition),
         _TitleLayer(
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
@@ -595,7 +622,9 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           visibleComponents: visibleComponents,
           animation: _controller,
           layersTransition: _layersTransition,
-          sheetKey: _contentSheetKey,
+          onDraggableExtent: (double value) {
+            _contentSheetDraggableExtent = value;
+          },
           onPopEntry: widget.onPopEntry,
           onDragStart: _handleContentDragStart,
           onDragUpdate: _handleContentDragUpdate,
@@ -606,12 +635,63 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           visibleComponents: visibleComponents,
           animation: _controller,
           layersTransition: _layersTransition,
-          sheetKey: _optionsSheetKey,
+          onDraggableExtent: (double value) {
+            _optionsSheetDraggableExtent = value;
+          },
           onDragStart: _handleOptionsDragStart,
           onDragUpdate: _handleOptionsDragUpdate,
           onDragEnd: _handleOptionsDragEnd,
           onDragCancel: _handleOptionsDragEnd)
       ]);
+  }
+}
+
+class _RootLayer extends StatelessWidget {
+
+  _RootLayer({
+    Key? key,
+    required this.components,
+    required this.animation,
+    required this.transition
+  }) : super(key: key);
+
+  final RootComponents components;
+
+  final Animation<double> animation;
+
+  final _LayersTransition transition;
+
+  Animation<double> get _opacity {
+    switch (transition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.idleAtRoot:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+        return kAlwaysCompleteAnimation;
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseOptions:
+        return kAlwaysDismissedAnimation;
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.dragToPopToEmpty:
+      case _LayersTransition.dragToExpandOrCollapseRoute:
+      case _LayersTransition.expandOrCollapseRoute:
+        return ReverseAnimation(animation);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: components.layer);
   }
 }
 
@@ -646,44 +726,31 @@ class _TitleLayer extends StatelessWidget {
 
   final VoidCallback? onPopEntry;
 
-  static final _kPositionTween = Tween<Offset>(
-    begin: const Offset(0.0, -1.0),
-    end: Offset.zero);
-
-  Animation<Offset> get _position {
-    Animation<double> parent;
+  Animation<double> get _layerOpacity {
     switch (layersTransition) {
       case _LayersTransition.idleAtEmpty:
       case _LayersTransition.idleAtRoot:
       case _LayersTransition.popFromRootToEmpty:
       case _LayersTransition.popAtRoot:
       case _LayersTransition.replaceAtRoot:
-        // We are out of frame.
-        parent = kAlwaysDismissedAnimation;
-        break;
+        return kAlwaysDismissedAnimation;
       case _LayersTransition.idleAtRoute:
       case _LayersTransition.idleAtOptions:
       case _LayersTransition.pushAtRoute:
       case _LayersTransition.popAtRoute:
       case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
       case _LayersTransition.dragToExpandOrCollapseOptions:
       case _LayersTransition.expandOrCollapseOptions:
-        // We are in frame
-        parent = kAlwaysCompleteAnimation;
-        break;
+        return kAlwaysCompleteAnimation;
       case _LayersTransition.pushFromOrPopToEmpty:
       case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.dragToPop:
       case _LayersTransition.dragToPopToEmpty:
       case _LayersTransition.dragToExpandOrCollapseRoute:
       case _LayersTransition.expandOrCollapseRoute:
-        // We are animating in or out of frame
-        parent = animation;
+        return animation;
     }
-
-    return parent.drive(_kPositionTween);
   }
-
 
   late final DecorationTween _decorationTween;
 
@@ -748,7 +815,7 @@ class _TitleLayer extends StatelessWidget {
     return parent.drive(_kRotationTween);
   }
 
-  Animation<double> get _opacity {
+  Animation<double> get _itemOpacity {
     switch (layersTransition) {
       case _LayersTransition.pushAtRoute:
       case _LayersTransition.popAtRoute:
@@ -762,8 +829,8 @@ class _TitleLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _position,
+    return FadeTransition(
+      opacity: _layerOpacity,
       child: DecoratedBoxTransition(
         decoration: _decoration,
         child: Padding(
@@ -779,19 +846,19 @@ class _TitleLayer extends StatelessWidget {
             middle: Stack(
               children: <Widget>[
                 FadeTransition(
-                  opacity: ReverseAnimation(_opacity),
+                  opacity: ReverseAnimation(_itemOpacity),
                   child: hiddenComponents?.titleMiddle),
                 FadeTransition(
-                  opacity: _opacity,
+                  opacity: _itemOpacity,
                   child: visibleComponents?.titleMiddle)
               ]),
             trailing: Stack(
               children: <Widget>[
                 FadeTransition(
-                  opacity: ReverseAnimation(_opacity),
+                  opacity: ReverseAnimation(_itemOpacity),
                   child: hiddenComponents?.titleTrailing),
                 FadeTransition(
-                  opacity: _opacity,
+                  opacity: _itemOpacity,
                   child: visibleComponents?.titleTrailing)
               ])))));
   }
@@ -806,8 +873,8 @@ class _ContentLayer extends StatelessWidget {
     this.visibleComponents,
     required this.animation,
     required this.layersTransition,
-    required this.sheetKey,
     this.onPopEntry,
+    required this.onDraggableExtent,
     required this.onDragStart,
     required this.onDragUpdate,
     required this.onDragEnd,
@@ -824,9 +891,9 @@ class _ContentLayer extends StatelessWidget {
 
   final _LayersTransition layersTransition;
 
-  final GlobalKey sheetKey;
-
   final VoidCallback? onPopEntry;
+
+  final ValueChanged<double> onDraggableExtent;
 
   final GestureDragStartCallback onDragStart;
 
@@ -885,6 +952,32 @@ class _ContentLayer extends StatelessWidget {
         return SheetWithHandleMode.peekOrExpand;
       case _LayersTransition.popFromRootToEmpty:
         return SheetWithHandleMode.hideOrPeek;
+    }
+  }
+
+  Animation<double> get _bodyOpacity {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.idleAtRoot:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+        return kAlwaysDismissedAnimation;
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseOptions:
+        return kAlwaysCompleteAnimation;
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.dragToPopToEmpty:
+      case _LayersTransition.dragToExpandOrCollapseRoute:
+      case _LayersTransition.expandOrCollapseRoute:
+        return animation;
     }
   }
 
@@ -988,8 +1081,30 @@ class _ContentLayer extends StatelessWidget {
     }
   }
 
-  static const _kHandleHeight = 40.0;
-  static const _kPeekHandleHeight = 48.0;
+  bool get _ignoreDrag {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.pushFromOrPopToEmpty:
+      case _LayersTransition.popFromRootToEmpty:
+      case _LayersTransition.popAtRoot:
+      case _LayersTransition.replaceAtRoot:
+      case _LayersTransition.replaceFromRoot:
+      case _LayersTransition.pushAtRoute:
+      case _LayersTransition.popAtRoute:
+      case _LayersTransition.replaceAtRoute:
+      case _LayersTransition.dragToPop:
+      case _LayersTransition.dragToPopToEmpty:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseOptions:
+        return true;
+      case _LayersTransition.idleAtRoot:
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.dragToExpandOrCollapseRoute:
+      case _LayersTransition.expandOrCollapseRoute:
+        return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -997,45 +1112,58 @@ class _ContentLayer extends StatelessWidget {
       padding: EdgeInsets.only(
         top: context.mediaPadding.top + Toolbar.kHeight),
       child: SheetWithHandle(
-        key: sheetKey,
         animation: _sheetPosition,
         mode: _sheetMode,
-        body: Stack(
-          children: <Widget>[
-            SlideTransition(
-              position: _hiddenBodyPosition,
-              child: hiddenComponents?.contentBody),
-            SlideTransition(
-              position: _visibleBodyPosition,
-              child: visibleComponents?.contentBody)
-          ]),
-        handleMaterial: GestureDetector(
-          onVerticalDragStart: onDragStart,
-          onVerticalDragUpdate: onDragUpdate,
-          onVerticalDragEnd: onDragEnd,
-          onVerticalDragCancel: onDragCancel,
-          child: Material(
-            elevation: 2.0,
-            borderRadius: SheetWithHandle.kDefaultBorderRadius,
-            child: const SizedBox.expand())),
-        handle: SizedBox(
-          height: _kHandleHeight,
-          child: Center(
-            child: Stack(
-              children: <Widget>[
-                FadeTransition(
-                  opacity: _hiddenHandleOpacity,
-                  child: hiddenComponents?.contentHandle),
-                FadeTransition(
-                  opacity: _visibleHandleOpacity,
-                  child: visibleComponents?.contentHandle)
-              ]))),
-        peekHandle: SizedBox(
-          height: _kPeekHandleHeight,
-          child: Center(
+        ignoreDrag: _ignoreDrag,
+        onDraggableExtent: onDraggableExtent,
+        onDragStart: onDragStart,
+        onDragUpdate: onDragUpdate,
+        onDragEnd: onDragEnd,
+        onDragCancel: onDragCancel,
+        body: IgnorePointer(
+          ignoring: layersTransition != _LayersTransition.idleAtRoute,
+          child: IgnoredDecoration(
+            decoration: BoxDecoration(
+              color: Theme.of(context).canvasColor),
             child: FadeTransition(
-              opacity: _peekHandleOpacity,
-              child: peekHandle)))));
+              opacity: _bodyOpacity,
+              child: Stack(
+                children: <Widget>[
+                  SlideTransition(
+                    position: _hiddenBodyPosition,
+                    child: hiddenComponents?.contentBody),
+                  SlideTransition(
+                    position: _visibleBodyPosition,
+                    child: visibleComponents?.contentBody)
+                ])))),
+        handle: IgnorePointer(
+          ignoring: layersTransition != _LayersTransition.idleAtRoute,
+          child: SizedBox(
+            height: kExpandedHandleHeight,
+            child: Center(
+              child: Stack(
+                children: <Widget>[
+                  FadeTransition(
+                    opacity: _hiddenHandleOpacity,
+                    child: IgnoredDecoration(
+                      decoration: _createExpandedHandleDecoration(context),
+                      child: hiddenComponents?.contentHandle ?? const SizedBox.expand())),
+                  FadeTransition(
+                    opacity: _visibleHandleOpacity,
+                    child: IgnoredDecoration(
+                      decoration: _createExpandedHandleDecoration(context),
+                      child: visibleComponents?.contentHandle ?? const SizedBox.expand()))
+                ])))),
+        peekHandle: IgnorePointer(
+          ignoring: layersTransition != _LayersTransition.idleAtRoot,
+          child: SizedBox(
+            height: kCollapsedHandleHeight,
+            child: Center(
+              child: FadeTransition(
+                opacity: _peekHandleOpacity,
+                child: IgnoredDecoration(
+                  decoration: _createCollapsedHandleDecoration(context),
+                  child: peekHandle)))))));
   }
 }
 
@@ -1047,7 +1175,7 @@ class _OptionsLayer extends StatelessWidget {
     this.visibleComponents,
     required this.animation,
     required this.layersTransition,
-    required this.sheetKey,
+    required this.onDraggableExtent,
     required this.onDragStart,
     required this.onDragUpdate,
     required this.onDragEnd,
@@ -1062,7 +1190,7 @@ class _OptionsLayer extends StatelessWidget {
 
   final _LayersTransition layersTransition;
 
-  final GlobalKey sheetKey;
+  final ValueChanged<double> onDraggableExtent;
 
   final GestureDragStartCallback onDragStart;
 
@@ -1173,6 +1301,17 @@ class _OptionsLayer extends StatelessWidget {
   Animation<double> get _bodyOpacity {
     switch (layersTransition) {
       case _LayersTransition.idleAtOptions:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+      case _LayersTransition.expandOrCollapseOptions:
+        return kAlwaysCompleteAnimation;
+      default:
+        return kAlwaysDismissedAnimation;
+    }
+  }
+
+  Animation<double> get _barrierOpacity {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtOptions:
         return kAlwaysCompleteAnimation;
       case _LayersTransition.dragToExpandOrCollapseOptions:
       case _LayersTransition.expandOrCollapseOptions:
@@ -1182,42 +1321,65 @@ class _OptionsLayer extends StatelessWidget {
     }
   }
 
-  static const _kHandleHeight = 40.0;
+  bool get _ignoreDrag {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.idleAtOptions:
+      case _LayersTransition.dragToExpandOrCollapseOptions:
+        return false;
+      default:
+        return true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final handleOpacity = _handleOpacity;
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: FractionallySizedBox(
-        heightFactor: 0.5,
-        child: SheetWithHandle(
-          key: sheetKey,
-          animation: _sheetPosition,
-          mode: _sheetMode,
-          body: FadeTransition(
-            opacity: _bodyOpacity,
-            child: visibleComponents?.optionsBody),
-          handleMaterial: GestureDetector(
-            onVerticalDragStart: onDragStart,
-            onVerticalDragUpdate: onDragUpdate,
-            onVerticalDragEnd: onDragEnd,
-            onVerticalDragCancel: onDragCancel,
-            child: Material(
-              elevation: 2.0,
-              borderRadius: SheetWithHandle.kDefaultBorderRadius,
-              child: const SizedBox.expand())),
-          handle: SizedBox(
-            height: _kHandleHeight,
-            child: Center(
-              child: Stack(
-                children: <Widget>[
-                  FadeTransition(
-                    opacity: ReverseAnimation(handleOpacity),
-                    child: hiddenComponents?.optionsHandle),
-                  FadeTransition(
-                    opacity: handleOpacity,
-                    child: visibleComponents?.optionsHandle)
-                ]))))));
+    final barrierOpacity = _barrierOpacity;
+    return Stack(
+      children: <Widget>[
+        IgnorePointer(
+          ignoring: barrierOpacity != kAlwaysCompleteAnimation,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            child: FadeTransition(
+              opacity: barrierOpacity,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black54),
+                child: SizedBox.expand())))),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: FractionallySizedBox(
+            heightFactor: 0.5,
+            child: SheetWithHandle(
+              animation: _sheetPosition,
+              mode: _sheetMode,
+              ignoreDrag: _ignoreDrag,
+              onDraggableExtent: onDraggableExtent,
+              onDragStart: onDragStart,
+              onDragUpdate: onDragUpdate,
+              onDragEnd: onDragEnd,
+              onDragCancel: onDragCancel,
+              body: FadeTransition(
+                opacity: _bodyOpacity,
+                child: visibleComponents?.optionsBody),
+              handle: SizedBox(
+                height: kCollapsedHandleHeight,
+                child: Center(
+                  child: Stack(
+                    children: <Widget>[
+                      FadeTransition(
+                        opacity: ReverseAnimation(handleOpacity),
+                        child: IgnoredDecoration(
+                          decoration: _createCollapsedHandleDecoration(context),
+                          child: hiddenComponents?.optionsHandle ?? const SizedBox.expand())),
+                      FadeTransition(
+                        opacity: handleOpacity,
+                        child: IgnoredDecoration(
+                          decoration: _createCollapsedHandleDecoration(context),
+                          child: visibleComponents?.optionsHandle ?? const SizedBox.expand()))
+                    ]))))))
+      ]);
   }
 }

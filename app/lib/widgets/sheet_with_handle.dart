@@ -15,9 +15,14 @@ class SheetWithHandle extends StatelessWidget {
     required this.mode,
     this.borderRadius = kDefaultBorderRadius,
     required this.body,
-    required this.handleMaterial,
     required this.handle,
     this.peekHandle,
+    required this.onDraggableExtent,
+    required this.ignoreDrag,
+    required this.onDragStart,
+    required this.onDragUpdate,
+    required this.onDragEnd,
+    required this.onDragCancel
   }) : super(key: key);
 
   static const kDefaultBorderRadius = BorderRadius.vertical(top: Radius.circular(16.0));
@@ -28,27 +33,31 @@ class SheetWithHandle extends StatelessWidget {
 
   final BorderRadius borderRadius;
 
-  final Widget body;
+  final bool ignoreDrag;
 
-  final Widget handleMaterial;
+  final ValueChanged<double> onDraggableExtent;
+
+  final GestureDragStartCallback onDragStart;
+
+  final GestureDragUpdateCallback onDragUpdate;
+
+  final GestureDragEndCallback onDragEnd;
+
+  final GestureDragCancelCallback onDragCancel;
+
+  final Widget body;
 
   final Widget handle;
 
   final Widget? peekHandle;
-
-  static double calculateExpandableHeight({
-      required double sheetHeight,
-      required double peekHeight,
-    }) {
-    return sheetHeight - peekHeight;
-  }
 
   @override
   Widget build(BuildContext context) {
     return CustomMultiChildLayout(
       delegate: _SheetWithHandleLayout(
         animation: animation,
-        mode: mode),
+        mode: mode,
+        onDraggableExtent: onDraggableExtent),
       children: <Widget>[
         LayoutId(
           id: _SheetWithHandleLayoutSlot.body,
@@ -57,7 +66,17 @@ class SheetWithHandle extends StatelessWidget {
             child: body)),
         LayoutId(
           id: _SheetWithHandleLayoutSlot.handleMaterial,
-          child: handleMaterial),
+          child: ClipRRect(
+            borderRadius: borderRadius,
+            child: IgnorePointer(
+              ignoring: ignoreDrag,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onVerticalDragStart: onDragStart,
+                onVerticalDragUpdate: onDragUpdate,
+                onVerticalDragEnd: onDragEnd,
+                onVerticalDragCancel: onDragCancel,
+                child: const SizedBox.expand())))),
         LayoutId(
           id: _SheetWithHandleLayoutSlot.handle,
           child: ClipRRect(
@@ -68,7 +87,7 @@ class SheetWithHandle extends StatelessWidget {
             id: _SheetWithHandleLayoutSlot.peekHandle,
             child: ClipRRect(
               borderRadius: borderRadius,
-              child: peekHandle!)),
+              child: peekHandle)),
       ]);
   }
 }
@@ -84,12 +103,15 @@ class _SheetWithHandleLayout extends MultiChildLayoutDelegate {
 
   _SheetWithHandleLayout({
     required this.animation,
-    required this.mode
+    required this.mode,
+    required this.onDraggableExtent
   }) : super(relayout: animation);
 
   final Animation<double> animation;
 
   final SheetWithHandleMode mode;
+
+  final ValueChanged<double> onDraggableExtent;
 
   @override
   void performLayout(Size size) {
@@ -110,15 +132,21 @@ class _SheetWithHandleLayout extends MultiChildLayoutDelegate {
     switch (mode) {
       case SheetWithHandleMode.hideOrExpand:
         layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(handleSize));
-        offsetY = size.height * (1.0 - animation.value);
+        final draggableExtent = size.height;
+        onDraggableExtent(draggableExtent);
+        offsetY = draggableExtent * (1.0 - animation.value);
         break;
       case SheetWithHandleMode.hideOrPeek:
         if (peekHandleSize != null) {
           layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(peekHandleSize));
-          offsetY = size.height - (peekHandleSize.height * animation.value);
+          final draggableExtent = peekHandleSize.height;
+          onDraggableExtent(draggableExtent);
+          offsetY = size.height - (draggableExtent * animation.value);
         } else {
           layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(handleSize));
-          offsetY = size.height - (handleSize.height * animation.value);
+          final draggableExtent = handleSize.height;
+          onDraggableExtent(draggableExtent);
+          offsetY = size.height - (draggableExtent * animation.value);
         }
         break;
       case SheetWithHandleMode.peekOrExpand:
@@ -128,15 +156,15 @@ class _SheetWithHandleLayout extends MultiChildLayoutDelegate {
           layoutChild(_SheetWithHandleLayoutSlot.handleMaterial,
               BoxConstraints.tight(Size(size.width, height)));
 
-          final expandableHeight = SheetWithHandle.calculateExpandableHeight(
-              sheetHeight: size.height, peekHeight: peekHandleSize.height);
-          offsetY = size.height - peekHandleSize.height - (expandableHeight * animation.value);
+          final draggableExtent = size.height - peekHandleSize.height;
+          onDraggableExtent(draggableExtent);
+          offsetY = size.height - peekHandleSize.height - (draggableExtent * animation.value);
         } else {
           layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(handleSize));
 
-          final expandableHeight = SheetWithHandle.calculateExpandableHeight(
-              sheetHeight: size.height, peekHeight: handleSize.height);
-          offsetY = size.height - handleSize.height - (expandableHeight * animation.value);
+          final draggableExtent = size.height - handleSize.height;
+          onDraggableExtent(draggableExtent);
+          offsetY = size.height - handleSize.height - (draggableExtent * animation.value);
         }
     } 
 
