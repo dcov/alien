@@ -13,9 +13,7 @@ import 'subreddit_route.dart';
 
 class AppLayer extends ShellRoot {
 
-  AppLayer({
-    required this.app
-  });
+  AppLayer({ required this.app });
 
   final App app;
 
@@ -26,67 +24,114 @@ class AppLayer extends ShellRoot {
       ValueListenable<List<ShellRoute>> stack
     ) {
     return RootComponents(
-      layer: Connector(
-        builder: (BuildContext context) {
-          final children = <Widget>[];
-          final defaults = app.defaults;
-          final subscriptions = app.subscriptions;
-          if (defaults != null) {
-            children.add(_SublistHeader(name: 'DEFAULTS'));
-            children.addAll(
-              defaults.items.map((Subreddit subreddit) {
-                return SubredditTile(
-                  subreddit: subreddit,
-                  routePath: subredditRoutePathFrom('defaults:', subreddit));
-              }));
-          } else {
-            assert(subscriptions != null);
-            children.add(_SublistHeader(name: 'SUBSCRIPTIONS'));
-            children.addAll(
-              subscriptions!.items.map((Subreddit subreddit) {
-                return SubredditTile(
-                  subreddit: subreddit,
-                  routePath: subredditRoutePathFrom('subscriptions:', subreddit));
-              }));
-          }
-          return Column(
-            children: <Widget>[
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      width: 0.0,
-                      color: Colors.grey))),
-                child: Toolbar(
-                  leading: PressableIcon(
-                    icon: Icons.settings,
-                    iconColor: Colors.grey))),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: children))
-            ]);
-        }),
-      handle: ValueListenableBuilder(
-        valueListenable: stack,
-        builder: (_, List<ShellRoute> stack, __) {
-          return Stack(
-            children: <Widget>[
-              IgnorePointer(
-                ignoring: true,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor),
-                  child: const SizedBox.expand())),
-              SizedBox(
-                height: 48.0,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.add)
-                  ]))
-            ]);
-        }),
+      layer: _AppHome(
+        app: app,
+        nodes: nodes,
+        stack: stack),
+      handle: _RoutingHandle(
+        nodes: nodes,
+        stack: stack),
       drawer: const SizedBox());
+  }
+}
+
+class _AppHome extends StatelessWidget {
+
+  _AppHome({
+    Key? key,
+    required this.app,
+    required this.nodes,
+    required this.stack
+  }) : super(key: key);
+
+  final App app;
+
+  final ValueListenable<Map<String, PathNode<ShellRoute>>> nodes;
+
+  final ValueListenable<List<ShellRoute>> stack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Connector(
+      builder: (BuildContext context) {
+        final children = <Widget>[];
+        final defaults = app.defaults;
+        final subscriptions = app.subscriptions;
+        if (defaults != null) {
+          children.add(_SublistHeader(name: 'DEFAULTS'));
+          children.addAll(
+            defaults.items.map((Subreddit subreddit) {
+              return SubredditTile(
+                subreddit: subreddit,
+                routePath: subredditRoutePathFrom('defaults:', subreddit));
+            }));
+        } else {
+          assert(subscriptions != null);
+          children.add(_SublistHeader(name: 'SUBSCRIPTIONS'));
+          children.addAll(
+            subscriptions!.items.map((Subreddit subreddit) {
+              return SubredditTile(
+                subreddit: subreddit,
+                routePath: subredditRoutePathFrom('subscriptions:', subreddit));
+            }));
+        }
+        return Column(
+          children: <Widget>[
+            DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border( bottom: BorderSide(
+                    width: 0.0,
+                    color: Colors.grey))),
+              child: Toolbar(
+                leading: PressableIcon(
+                  onPress: () {},
+                  icon: Icons.settings,
+                  iconColor: Colors.grey,
+                  padding: EdgeInsets.symmetric(
+                    vertical: 12.0,
+                    horizontal: 16.0)))),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: children))
+          ]);
+      });
+  }
+}
+
+class _RoutingHandle extends StatelessWidget {
+
+  _RoutingHandle({
+    Key? key,
+    required this.nodes,
+    required this.stack
+  }) : super(key: key);
+
+  final ValueListenable<Map<String, PathNode<ShellRoute>>> nodes;
+
+  final ValueListenable<List<ShellRoute>> stack;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: stack,
+      builder: (_, List<ShellRoute> stack, __) {
+        return Stack(
+          children: <Widget>[
+            IgnorePointer(
+              ignoring: true,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).canvasColor),
+                child: const SizedBox.expand())),
+            SizedBox(
+              height: 48.0,
+              child: Row(
+                children: <Widget>[
+                  Icon(Icons.add)
+                ]))
+          ]);
+      });
   }
 }
 

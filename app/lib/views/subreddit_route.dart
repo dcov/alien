@@ -122,7 +122,9 @@ class SubredditRoute extends ShellRoute {
         color: Colors.grey),
       titleMiddle: Text(
         subreddit.name,
-        style: TextStyle()),
+        style: TextStyle(
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500)),
       contentHandle: ContentHandle(
         items: <ContentHandleItem>[
           _buildSortItem()

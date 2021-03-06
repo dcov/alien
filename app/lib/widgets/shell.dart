@@ -7,6 +7,7 @@ import '../utils/manual_value_notifier.dart';
 import '../utils/path_router.dart';
 import '../widgets/ignored_decoration.dart';
 import '../widgets/pressable.dart';
+import '../widgets/rrect_top_border.dart';
 import '../widgets/sheet_with_handle.dart';
 import '../widgets/toolbar.dart';
 import '../widgets/widget_extensions.dart';
@@ -14,22 +15,17 @@ import '../widgets/widget_extensions.dart';
 const kExpandedHandleHeight = 40.0;
 const kCollapsedHandleHeight = 48.0;
 
-BoxDecoration _createExpandedHandleDecoration(BuildContext context) {
-  return BoxDecoration(
-    color: Theme.of(context).canvasColor,
-    border: Border(
-      bottom: BorderSide(
-        width: 0.0,
-        color: Colors.grey)));
-}
-
-BoxDecoration _createCollapsedHandleDecoration(BuildContext context) {
-  return BoxDecoration(
-    color: Theme.of(context).canvasColor,
-    border: Border(
-      top: BorderSide(
-        width: 0.0,
-        color: Colors.grey)));
+Widget _buildHandleWithDecoration(BuildContext context, Widget child, { required bool bottomBorder }) {
+  return IgnoredDecoration(
+    decoration: BoxDecoration(
+      color: Theme.of(context).canvasColor,
+      border: !bottomBorder
+        ? null
+        : Border(
+            bottom: BorderSide(
+              width: 0.0,
+              color: Colors.grey))),
+    child: child);
 }
 
 mixin _ShellChild {
@@ -687,11 +683,23 @@ class _RootLayer extends StatelessWidget {
     }
   }
 
+  bool get _ignorePointers {
+    switch (transition) {
+      case _LayersTransition.idleAtEmpty:
+      case _LayersTransition.idleAtRoot:
+        return false;
+      default:
+        return true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _opacity,
-      child: components.layer);
+    return IgnorePointer(
+      ignoring: _ignorePointers,
+      child: FadeTransition(
+        opacity: _opacity,
+        child: components.layer));
   }
 }
 
@@ -771,8 +779,8 @@ class _TitleLayer extends StatelessWidget {
   }
 
   static final _kRotationTween = Tween<double>(
-    begin: -((90 * (math.pi/180)) / 2),
-    end: 0);
+    begin: -1/4,
+    end: 0.0);
 
   Animation<double> get _rotation {
     Animation<double> parent;
@@ -838,11 +846,15 @@ class _TitleLayer extends StatelessWidget {
           child: Toolbar(
             leading: Pressable(
               onPress: onPopEntry,
-              child: RotationTransition(
-                turns: _rotation,
-                child: Icon(
-                  Icons.arrow_back_ios_rounded,
-                  color: Colors.black))),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: 12.0,
+                  horizontal: 16.0),
+                child: RotationTransition(
+                  turns: _rotation,
+                  child: Icon(
+                    Icons.arrow_back_ios_rounded,
+                    color: Colors.black)))),
             middle: Stack(
               children: <Widget>[
                 FadeTransition(
@@ -1145,25 +1157,32 @@ class _ContentLayer extends StatelessWidget {
                 children: <Widget>[
                   FadeTransition(
                     opacity: _hiddenHandleOpacity,
-                    child: IgnoredDecoration(
-                      decoration: _createExpandedHandleDecoration(context),
-                      child: hiddenComponents?.contentHandle ?? const SizedBox.expand())),
+                    child: _buildHandleWithDecoration(
+                      context,
+                      hiddenComponents?.contentHandle ?? const SizedBox.expand(),
+                      bottomBorder: true)),
                   FadeTransition(
                     opacity: _visibleHandleOpacity,
-                    child: IgnoredDecoration(
-                      decoration: _createExpandedHandleDecoration(context),
-                      child: visibleComponents?.contentHandle ?? const SizedBox.expand()))
+                    child: _buildHandleWithDecoration(
+                      context,
+                      visibleComponents?.contentHandle ?? const SizedBox.expand(),
+                      bottomBorder: true))
                 ])))),
         peekHandle: IgnorePointer(
           ignoring: layersTransition != _LayersTransition.idleAtRoot,
           child: SizedBox(
             height: kCollapsedHandleHeight,
-            child: Center(
-              child: FadeTransition(
-                opacity: _peekHandleOpacity,
-                child: IgnoredDecoration(
-                  decoration: _createCollapsedHandleDecoration(context),
-                  child: peekHandle)))))));
+            child: RRectTopBorder(
+              radius: 16.0,
+              width: 0.0,
+              color: Colors.grey,
+              child: Center(
+                child: FadeTransition(
+                  opacity: _peekHandleOpacity,
+                  child: _buildHandleWithDecoration(
+                    context,
+                    peekHandle,
+                    bottomBorder: false))))))));
   }
 }
 
@@ -1366,20 +1385,26 @@ class _OptionsLayer extends StatelessWidget {
                 child: visibleComponents?.optionsBody),
               handle: SizedBox(
                 height: kCollapsedHandleHeight,
-                child: Center(
-                  child: Stack(
-                    children: <Widget>[
-                      FadeTransition(
-                        opacity: ReverseAnimation(handleOpacity),
-                        child: IgnoredDecoration(
-                          decoration: _createCollapsedHandleDecoration(context),
-                          child: hiddenComponents?.optionsHandle ?? const SizedBox.expand())),
-                      FadeTransition(
-                        opacity: handleOpacity,
-                        child: IgnoredDecoration(
-                          decoration: _createCollapsedHandleDecoration(context),
-                          child: visibleComponents?.optionsHandle ?? const SizedBox.expand()))
-                    ]))))))
+                child: RRectTopBorder(
+                  radius: 16.0,
+                  width: 0.0,
+                  color: Colors.grey,
+                  child: Center(
+                    child: Stack(
+                      children: <Widget>[
+                        FadeTransition(
+                          opacity: ReverseAnimation(handleOpacity),
+                          child: _buildHandleWithDecoration(
+                            context,
+                            hiddenComponents?.optionsHandle ?? const SizedBox.expand(),
+                            bottomBorder: false)),
+                        FadeTransition(
+                          opacity: handleOpacity,
+                          child: _buildHandleWithDecoration(
+                            context,
+                            visibleComponents?.optionsHandle ?? const SizedBox.expand(),
+                            bottomBorder: false)),
+                      ])))))))
       ]);
   }
 }
