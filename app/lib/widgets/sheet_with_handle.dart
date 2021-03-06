@@ -65,7 +65,7 @@ class SheetWithHandle extends StatelessWidget {
             borderRadius: borderRadius,
             child: body)),
         LayoutId(
-          id: _SheetWithHandleLayoutSlot.handleMaterial,
+          id: _SheetWithHandleLayoutSlot.drag,
           child: ClipRRect(
             borderRadius: borderRadius,
             child: IgnorePointer(
@@ -94,7 +94,7 @@ class SheetWithHandle extends StatelessWidget {
 
 enum _SheetWithHandleLayoutSlot {
   body,
-  handleMaterial,
+  drag,
   handle,
   peekHandle,
 }
@@ -131,19 +131,19 @@ class _SheetWithHandleLayout extends MultiChildLayoutDelegate {
     double offsetY;
     switch (mode) {
       case SheetWithHandleMode.hideOrExpand:
-        layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(handleSize));
+        layoutChild(_SheetWithHandleLayoutSlot.drag, BoxConstraints.tight(handleSize));
         final draggableExtent = size.height;
         onDraggableExtent(draggableExtent);
         offsetY = draggableExtent * (1.0 - animation.value);
         break;
       case SheetWithHandleMode.hideOrPeek:
         if (peekHandleSize != null) {
-          layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(peekHandleSize));
+          layoutChild(_SheetWithHandleLayoutSlot.drag, BoxConstraints.tight(peekHandleSize));
           final draggableExtent = peekHandleSize.height;
           onDraggableExtent(draggableExtent);
           offsetY = size.height - (draggableExtent * animation.value);
         } else {
-          layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(handleSize));
+          layoutChild(_SheetWithHandleLayoutSlot.drag, BoxConstraints.tight(handleSize));
           final draggableExtent = handleSize.height;
           onDraggableExtent(draggableExtent);
           offsetY = size.height - (draggableExtent * animation.value);
@@ -153,14 +153,14 @@ class _SheetWithHandleLayout extends MultiChildLayoutDelegate {
         if (peekHandleSize != null) {
           final height = handleSize.height 
               + ((peekHandleSize.height - handleSize.height) * (1.0 - animation.value));
-          layoutChild(_SheetWithHandleLayoutSlot.handleMaterial,
+          layoutChild(_SheetWithHandleLayoutSlot.drag,
               BoxConstraints.tight(Size(size.width, height)));
 
           final draggableExtent = size.height - peekHandleSize.height;
           onDraggableExtent(draggableExtent);
           offsetY = size.height - peekHandleSize.height - (draggableExtent * animation.value);
         } else {
-          layoutChild(_SheetWithHandleLayoutSlot.handleMaterial, BoxConstraints.tight(handleSize));
+          layoutChild(_SheetWithHandleLayoutSlot.drag, BoxConstraints.tight(handleSize));
 
           final draggableExtent = size.height - handleSize.height;
           onDraggableExtent(draggableExtent);
@@ -170,7 +170,7 @@ class _SheetWithHandleLayout extends MultiChildLayoutDelegate {
 
     final childOffset = Offset(0.0, offsetY);
     positionChild(_SheetWithHandleLayoutSlot.body, childOffset);
-    positionChild(_SheetWithHandleLayoutSlot.handleMaterial, childOffset);
+    positionChild(_SheetWithHandleLayoutSlot.drag, childOffset);
     positionChild(_SheetWithHandleLayoutSlot.handle, childOffset);
     if (hasChild(_SheetWithHandleLayoutSlot.peekHandle)) {
       positionChild(_SheetWithHandleLayoutSlot.peekHandle, childOffset);

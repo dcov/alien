@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../utils/manual_value_notifier.dart';
 import '../utils/path_router.dart';
 import '../widgets/ignored_decoration.dart';
+import '../widgets/ltr_drag_detector.dart';
 import '../widgets/pressable.dart';
 import '../widgets/rrect_top_border.dart';
 import '../widgets/sheet_with_handle.dart';
@@ -495,16 +496,16 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _handleSheetDragUpdate(
+  void _handleDragUpdate(
       DragUpdateDetails details, {
-      required double expandableHeight
+      required double draggableExtent
     }) {
-    _controller.value -= details.primaryDelta! / expandableHeight;
+    _controller.value -= details.primaryDelta! / draggableExtent;
   }
 
-  void _handleSheetDragEnd({
+  void _handleDragEnd({
       DragEndDetails? details,
-      required double expandableHeight,
+      required double draggableExtent,
       required _LayersTransition transition,
       required VoidCallback onDismissed,
       required VoidCallback onCompleted,
@@ -523,8 +524,8 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
       _layersTransition = transition;
 
-      if (details!.velocity.pixelsPerSecond.dy.abs() > 700) {
-        final flingVelocity = -(details.velocity.pixelsPerSecond.dy / expandableHeight);
+      if (details!.primaryVelocity!.abs() > 700) {
+        final flingVelocity = -(details.primaryVelocity! / draggableExtent);
         _controller.fling(velocity: flingVelocity).then((_) {
           setState(() {
             if (flingVelocity < 0.0) {
@@ -552,18 +553,18 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
   late double _contentSheetDraggableExtent;
 
-  void _handleContentDragStart(DragStartDetails _) {
+  void _handleContentSheetDragStart(DragStartDetails _) {
     setState(() => _layersTransition = _LayersTransition.dragToExpandOrCollapseRoute);
   }
 
-  void _handleContentDragUpdate(DragUpdateDetails details) {
-    _handleSheetDragUpdate(details, expandableHeight: _contentSheetDraggableExtent);
+  void _handleContentSheetDragUpdate(DragUpdateDetails details) {
+    _handleDragUpdate(details, draggableExtent: _contentSheetDraggableExtent);
   }
 
-  void _handleContentDragEnd([DragEndDetails? details]) {
-    _handleSheetDragEnd(
+  void _handleContentSheetDragEnd([DragEndDetails? details]) {
+    _handleDragEnd(
       details: details,
-      expandableHeight: _contentSheetDraggableExtent,
+      draggableExtent: _contentSheetDraggableExtent,
       transition: _LayersTransition.expandOrCollapseRoute,
       onDismissed: () {
         _layersTransition = _LayersTransition.idleAtRoot;
@@ -573,9 +574,51 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       });
   }
 
+  final _contentBodyKey = GlobalKey();
+  double get _contentBodyWidth {
+    return (_contentBodyKey.currentContext!.findRenderObject() as RenderBox).size.width;
+  }
+
+  void _handleBodyDragStart(DragStartDetails _) {
+    setState(() {
+      if (_routes.length == 1) {
+        _layersTransition = _LayersTransition.dragToPopToEmpty;
+      } else {
+        _layersTransition = _LayersTransition.dragToPop;
+      }
+    });
+  }
+
+  void _handleBodyDragUpdate(DragUpdateDetails details) {
+    _handleDragUpdate(details, draggableExtent: _contentBodyWidth);
+  }
+
+  void _handleBodyDragEnd([DragEndDetails? details]) {
+    _handleDragEnd(
+      details: details,
+      draggableExtent: _contentBodyWidth,
+      // we don't change the layers transition until the animation completes
+      transition: _layersTransition,
+      onDismissed: () {
+        setState(() {
+          if (_layersTransition == _LayersTransition.dragToPop) {
+            _layersTransition = _LayersTransition.idleAtRoute;
+          } else {
+            assert(_layersTransition == _LayersTransition.dragToPopToEmpty);
+            _layersTransition = _LayersTransition.idleAtEmpty;
+          }
+        });
+      },
+      onCompleted: () {
+        setState(() {
+          _layersTransition = _LayersTransition.idleAtRoute;
+        });
+      });
+  }
+
   late double _optionsSheetDraggableExtent;
 
-  void _handleOptionsDragStart(DragStartDetails _) {
+  void _handleOptionsSheetDragStart(DragStartDetails _) {
     setState(() {
       if (_layersTransition == _LayersTransition.idleAtRoute) {
         _controller.value = 0.0;
@@ -584,14 +627,14 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _handleOptionsDragUpdate(DragUpdateDetails details) {
-    _handleSheetDragUpdate(details, expandableHeight: _optionsSheetDraggableExtent);
+  void _handleOptionsSheetDragUpdate(DragUpdateDetails details) {
+    _handleDragUpdate(details, draggableExtent: _optionsSheetDraggableExtent);
   }
 
-  void _handleOptionsDragEnd([DragEndDetails? details]) {
-    _handleSheetDragEnd(
+  void _handleOptionsSheetDragEnd([DragEndDetails? details]) {
+    _handleDragEnd(
       details: details,
-      expandableHeight: _optionsSheetDraggableExtent,
+      draggableExtent: _optionsSheetDraggableExtent,
       transition: _LayersTransition.expandOrCollapseOptions,
       onDismissed: () {
         _layersTransition = _LayersTransition.idleAtRoute;
@@ -630,14 +673,18 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           visibleComponents: visibleComponents,
           animation: _controller,
           layersTransition: _layersTransition,
-          onDraggableExtent: (double value) {
+          onDraggableSheetExtent: (double value) {
             _contentSheetDraggableExtent = value;
           },
-          onPopEntry: widget.onPopEntry,
-          onDragStart: _handleContentDragStart,
-          onDragUpdate: _handleContentDragUpdate,
-          onDragEnd: _handleContentDragEnd,
-          onDragCancel: _handleContentDragEnd),
+          onSheetDragStart: _handleContentSheetDragStart,
+          onSheetDragUpdate: _handleContentSheetDragUpdate,
+          onSheetDragEnd: _handleContentSheetDragEnd,
+          onSheetDragCancel: _handleContentSheetDragEnd,
+          bodyKey: _contentBodyKey,
+          onBodyDragStart: _handleBodyDragStart,
+          onBodyDragUpdate: _handleBodyDragUpdate,
+          onBodyDragEnd: _handleBodyDragEnd,
+          onBodyDragCancel: _handleBodyDragEnd),
         _OptionsLayer(
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
@@ -646,10 +693,10 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           onDraggableExtent: (double value) {
             _optionsSheetDraggableExtent = value;
           },
-          onDragStart: _handleOptionsDragStart,
-          onDragUpdate: _handleOptionsDragUpdate,
-          onDragEnd: _handleOptionsDragEnd,
-          onDragCancel: _handleOptionsDragEnd)
+          onDragStart: _handleOptionsSheetDragStart,
+          onDragUpdate: _handleOptionsSheetDragUpdate,
+          onDragEnd: _handleOptionsSheetDragEnd,
+          onDragCancel: _handleOptionsSheetDragEnd)
       ]);
   }
 }
@@ -897,12 +944,16 @@ class _ContentLayer extends StatelessWidget {
     this.visibleComponents,
     required this.animation,
     required this.layersTransition,
-    this.onPopEntry,
-    required this.onDraggableExtent,
-    required this.onDragStart,
-    required this.onDragUpdate,
-    required this.onDragEnd,
-    required this.onDragCancel,
+    required this.onDraggableSheetExtent,
+    required this.onSheetDragStart,
+    required this.onSheetDragUpdate,
+    required this.onSheetDragEnd,
+    required this.onSheetDragCancel,
+    required this.bodyKey,
+    required this.onBodyDragStart,
+    required this.onBodyDragUpdate,
+    required this.onBodyDragEnd,
+    required this.onBodyDragCancel,
   }) : super(key: key);
 
   final Widget peekHandle;
@@ -915,17 +966,25 @@ class _ContentLayer extends StatelessWidget {
 
   final _LayersTransition layersTransition;
 
-  final VoidCallback? onPopEntry;
+  final ValueChanged<double> onDraggableSheetExtent;
 
-  final ValueChanged<double> onDraggableExtent;
+  final GestureDragStartCallback onSheetDragStart;
 
-  final GestureDragStartCallback onDragStart;
+  final GestureDragUpdateCallback onSheetDragUpdate;
 
-  final GestureDragUpdateCallback onDragUpdate;
+  final GestureDragEndCallback onSheetDragEnd;
 
-  final GestureDragEndCallback onDragEnd;
+  final GestureDragCancelCallback onSheetDragCancel;
 
-  final GestureDragCancelCallback onDragCancel;
+  final GlobalKey bodyKey;
+
+  final GestureDragStartCallback onBodyDragStart;
+
+  final GestureDragUpdateCallback onBodyDragUpdate;
+
+  final GestureDragEndCallback onBodyDragEnd;
+
+  final GestureDragCancelCallback onBodyDragCancel;
 
   Animation<double> get _sheetPosition {
     switch (layersTransition) {
@@ -1105,28 +1164,25 @@ class _ContentLayer extends StatelessWidget {
     }
   }
 
-  bool get _ignoreDrag {
+  bool get _ignoreSheetDrag {
     switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
-        return true;
       case _LayersTransition.idleAtRoot:
       case _LayersTransition.idleAtRoute:
       case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
         return false;
+      default:
+        return true;
+    }
+  }
+
+  bool get _ignoreBodyDrag {
+    switch (layersTransition) {
+      case _LayersTransition.idleAtRoute:
+      case _LayersTransition.dragToPopToEmpty:
+      case _LayersTransition.dragToPop:
+        return false;
+      default:
+        return true;
     }
   }
 
@@ -1138,27 +1194,34 @@ class _ContentLayer extends StatelessWidget {
       child: SheetWithHandle(
         animation: _sheetPosition,
         mode: _sheetMode,
-        ignoreDrag: _ignoreDrag,
-        onDraggableExtent: onDraggableExtent,
-        onDragStart: onDragStart,
-        onDragUpdate: onDragUpdate,
-        onDragEnd: onDragEnd,
-        onDragCancel: onDragCancel,
+        ignoreDrag: _ignoreSheetDrag,
+        onDraggableExtent: onDraggableSheetExtent,
+        onDragStart: onSheetDragStart,
+        onDragUpdate: onSheetDragUpdate,
+        onDragEnd: onSheetDragEnd,
+        onDragCancel: onSheetDragCancel,
         body: IgnorePointer(
-          ignoring: layersTransition != _LayersTransition.idleAtRoute,
+          ignoring: _ignoreBodyDrag,
           child: IgnoredDecoration(
             decoration: BoxDecoration(
               color: Theme.of(context).canvasColor),
             child: FadeTransition(
               opacity: _bodyOpacity,
               child: Stack(
+                key: bodyKey,
                 children: <Widget>[
                   SlideTransition(
                     position: _hiddenBodyPosition,
                     child: hiddenComponents?.contentBody),
                   SlideTransition(
                     position: _visibleBodyPosition,
-                    child: visibleComponents?.contentBody)
+                    child: visibleComponents?.contentBody),
+                  LTRDragDetector(
+                    onDragStart: onBodyDragStart,
+                    onDragUpdate: onBodyDragUpdate,
+                    onDragEnd: onBodyDragEnd,
+                    onDragCancel: onBodyDragCancel,
+                    child: SizedBox.expand())
                 ])))),
         handle: IgnorePointer(
           ignoring: layersTransition != _LayersTransition.idleAtRoute,
