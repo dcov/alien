@@ -49,19 +49,18 @@ class PathRouter<R extends PathRoute> {
   final _nodes = <String, PathNode<R>>{};
 
   List<R> get stack => _routeStack;
-  var _routeStack = UnmodifiableListView<R>(List<R>.empty());
+  final _routeStack = <R>[];
 
   var _pathStack = <String>[];
 
   void _rebuildRouteStack() {
-    final result = <R>[];
+    _routeStack.clear();
     PathNode<R>? parentNode;
     for (var i = 0; i < _pathStack.length; i++) {
       final node = parentNode != null ? parentNode._children[_pathStack[i]]! : _nodes[_pathStack[i]]!;
-      result.add(node.route);
+      _routeStack.add(node.route);
       parentNode = node;
     }
-    _routeStack = UnmodifiableListView(result);
   }
 
   List<String> _splitAndNormalize(String path) {
