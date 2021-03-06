@@ -175,8 +175,7 @@ class _ShellState extends State<Shell> {
         route.didChangeDependencies(context);
         return route;
       },
-      onUpdateRoute: onUpdateRoute
-    );
+      onUpdateRoute: onUpdateRoute);
 
     switch (transition) {
       case PathRouterGoToTransition.push:
@@ -192,6 +191,7 @@ class _ShellState extends State<Shell> {
         _stack.notify();
         break;
       case PathRouterGoToTransition.none:
+        _layersKey.currentState!.makeRouteVisible();
         break;
     }
     _nodes.notify();
@@ -480,6 +480,18 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       } else {
         _routes = stack;
       }
+    });
+  }
+
+  void makeRouteVisible() {
+    assert(_layersTransition == _LayersTransition.idleAtRoot);
+    setState(() {
+      _layersTransition = _LayersTransition.expandOrCollapseRoute;
+      _controller.forward(from: 0.0).then((_) {
+        setState(() {
+          _layersTransition = _LayersTransition.idleAtRoute;
+        });
+      });
     });
   }
 
