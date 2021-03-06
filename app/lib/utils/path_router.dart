@@ -48,7 +48,7 @@ class PathRouter<R extends PathRoute> {
   late final Map<String, PathNode<R>> nodes = UnmodifiableMapView<String, PathNode<R>>(_nodes);
   final _nodes = <String, PathNode<R>>{};
 
-  List<R> get stack => _routeStack;
+  late final List<R> stack = UnmodifiableListView<R>(_routeStack);
   final _routeStack = <R>[];
 
   var _pathStack = <String>[];
@@ -230,9 +230,6 @@ class PathRouter<R extends PathRoute> {
 
         if (onRemovedRoute != null)
           _visitNodes(removedNode, onRemovedRoute);
-
-        node.route.._fragment = null
-                  .._path = null;
       } else {
         parentNode = node;
         parentsAreInStack = (parentsAreInStack && isInStack);

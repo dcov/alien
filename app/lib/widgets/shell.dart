@@ -178,6 +178,7 @@ class _ShellState extends State<Shell> {
       },
       onUpdateRoute: onUpdateRoute);
 
+    _nodes.notify();
     switch (transition) {
       case PathRouterGoToTransition.push:
         _layersKey.currentState!.push(_router.stack.last);
@@ -195,11 +196,16 @@ class _ShellState extends State<Shell> {
         _layersKey.currentState!.makeRouteVisible();
         break;
     }
-    _nodes.notify();
   }
 
   void remove(String path) {
-    final transition = _router.remove(path);
+    final transition = _router.remove(
+        path,
+        onRemovedRoute: (ShellRoute route) {
+          assert(mounted);
+          route.dispose(context);
+        });
+    _nodes.notify();
     switch (transition) {
       case PathRouterRemoveTransition.pop:
         _layersKey.currentState!.pop();
@@ -212,11 +218,11 @@ class _ShellState extends State<Shell> {
       case PathRouterRemoveTransition.none:
         break;
     }
-    _nodes.notify();
   }
 
   void detach(String path, String newFragment) {
     final transition = _router.detach(path, newFragment);
+    _nodes.notify();
     switch (transition) {
       case PathRouterDetachTransition.replace:
         _layersKey.currentState!.replace(_router.stack, animate: false);
@@ -225,10 +231,22 @@ class _ShellState extends State<Shell> {
       case PathRouterDetachTransition.none:
         break;
     }
-    _nodes.notify();
   }
 
-  void _handleLayersPop() {
+  void _handleLayersPop(bool didPopAlready) {
+    final transition = _router.remove(
+        _router.stack.last.path,
+        onRemovedRoute: (ShellRoute route) {
+          assert(mounted);
+          route.dispose(context);
+        });
+    assert(transition == PathRouterRemoveTransition.pop);
+    _nodes.notify();
+    _stack.notify();
+    // If _Layers hasn't popped yet, we need to tell it to do so now
+    if (!didPopAlready) {
+      _layersKey.currentState!.pop();
+    }
   }
 
   void _updateNodeDependencies(Iterable<PathNode<ShellRoute>> nodes) {
@@ -257,21 +275,23 @@ class _ShellState extends State<Shell> {
       child: _Layers(
         key: _layersKey,
         rootComponents: rootComponents,
-        onPopEntry: _handleLayersPop));
+        onPop: _handleLayersPop));
   }
 }
+
+typedef _LayersPopCallback = void Function(bool didPopAlready);
 
 class _Layers extends StatefulWidget {
 
   _Layers({
     Key? key,
     required this.rootComponents,
-    required this.onPopEntry
+    required this.onPop
   }) : super(key: key);
 
   final RootComponents rootComponents;
 
-  final VoidCallback onPopEntry;
+  final _LayersPopCallback onPop;
 
   @override
   _LayersState createState() => _LayersState();
@@ -503,8 +523,8 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
     _controller.value -= details.primaryDelta! / draggableExtent;
   }
 
-  void _handleDragEnd({
-      DragEndDetails? details,
+  void _handleDragEnd(
+      DragEndDetails? details, {
       required double draggableExtent,
       required _LayersTransition transition,
       required VoidCallback onDismissed,
@@ -563,7 +583,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
   void _handleContentSheetDragEnd([DragEndDetails? details]) {
     _handleDragEnd(
-      details: details,
+      details,
       draggableExtent: _contentSheetDraggableExtent,
       transition: _LayersTransition.expandOrCollapseRoute,
       onDismissed: () {
@@ -595,18 +615,20 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
   void _handleBodyDragEnd([DragEndDetails? details]) {
     _handleDragEnd(
-      details: details,
+      details,
       draggableExtent: _contentBodyWidth,
       // we don't change the layers transition until the animation completes
       transition: _layersTransition,
       onDismissed: () {
         setState(() {
+          _routes.removeLast();
           if (_layersTransition == _LayersTransition.dragToPop) {
             _layersTransition = _LayersTransition.idleAtRoute;
           } else {
             assert(_layersTransition == _LayersTransition.dragToPopToEmpty);
             _layersTransition = _LayersTransition.idleAtEmpty;
           }
+          widget.onPop(true);
         });
       },
       onCompleted: () {
@@ -633,7 +655,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
   void _handleOptionsSheetDragEnd([DragEndDetails? details]) {
     _handleDragEnd(
-      details: details,
+      details,
       draggableExtent: _optionsSheetDraggableExtent,
       transition: _LayersTransition.expandOrCollapseOptions,
       onDismissed: () {
@@ -643,6 +665,10 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       onCompleted: () {
         _layersTransition = _LayersTransition.idleAtOptions;
       });
+  }
+
+  void _handlePop() {
+    widget.onPop(false);
   }
   
   @override
@@ -666,7 +692,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           layersTransition: _layersTransition,
           replacedEntriesLength: _replacedEntriesLength,
           entriesLength: _routes.length,
-          onPopEntry: widget.onPopEntry),
+          onPop: _handlePop),
         _ContentLayer(
           peekHandle: widget.rootComponents.handle,
           hiddenComponents: hiddenComponents,
@@ -772,7 +798,7 @@ class _TitleLayer extends StatelessWidget {
     required this.layersTransition,
     this.replacedEntriesLength,
     required this.entriesLength,
-    this.onPopEntry
+    this.onPop
   }) : super(key: key) {
     _decorationTween = DecorationTween(
       begin: hiddenComponents?.titleDecoration ?? const BoxDecoration(),
@@ -791,7 +817,7 @@ class _TitleLayer extends StatelessWidget {
 
   final int entriesLength;
 
-  final VoidCallback? onPopEntry;
+  final VoidCallback? onPop;
 
   Animation<double> get _layerOpacity {
     switch (layersTransition) {
@@ -904,7 +930,7 @@ class _TitleLayer extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 16.0),
           child: Toolbar(
             leading: Pressable(
-              onPress: onPopEntry,
+              onPress: onPop,
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   vertical: 12.0,
