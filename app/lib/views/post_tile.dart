@@ -5,17 +5,16 @@ import 'package:reddit/reddit.dart';
 import '../models/post.dart';
 import '../logic/saveable.dart';
 import '../logic/voting.dart';
+import '../views/media_thumbnail.dart';
+import '../views/post_route.dart';
+import '../views/view_extensions.dart';
+import '../views/votable_utils.dart';
 import '../widgets/circle_divider.dart';
 import '../widgets/custom_render_object.dart';
 import '../widgets/formatting.dart';
 import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
 import '../widgets/slidable.dart';
-
-import 'media_thumbnail.dart';
-import 'post_page.dart';
-import 'view_extensions.dart';
-import 'votable_utils.dart';
 
 void _showPostOptionsBottomSheet({
     required BuildContext context,
@@ -142,10 +141,13 @@ class PostTile extends StatelessWidget {
   PostTile({
     Key? key,
     required this.post,
+    required this.pathPrefix,
     required this.includeSubredditName
   }) : super(key: key);
 
   final Post post;
+
+  final String pathPrefix;
 
   final bool includeSubredditName;
 
@@ -192,9 +194,10 @@ class PostTile extends StatelessWidget {
             child: Pressable(
               behavior: HitTestBehavior.opaque,
               onPress: () {
-                showPostPage(
-                  context: context,
-                  post: post);
+                goToPostRoute(
+                  context,
+                  pathPrefix,
+                  post);
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(

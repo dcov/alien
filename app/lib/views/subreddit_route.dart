@@ -17,7 +17,7 @@ import 'listing_scroll_view.dart';
 import 'post_tile.dart';
 import 'sort_bottom_sheet.dart';
 
-String subredditRoutePathFrom(String prefix, Subreddit subreddit) {
+String _subredditRoutePathFrom(String prefix, Subreddit subreddit) {
   return '$prefix${subreddit.fullId}';
 }
 
@@ -38,18 +38,23 @@ class SubredditTile extends StatelessWidget {
   SubredditTile({
     Key? key,
     required this.subreddit,
-    required this.routePath
+    required this.pathPrefix
   }) : super(key: key);
 
   final Subreddit subreddit;
 
-  final String routePath;
+  final String pathPrefix;
 
   @override
   Widget build(_) => Connector(
     builder: (BuildContext context) {
       return CustomTile(
-        onTap: () => goToSubredditRoute(context, routePath, subreddit),
+        onTap: () {
+          goToSubredditRoute(
+            context,
+            _subredditRoutePathFrom(pathPrefix, subreddit),
+            subreddit);
+        },
         icon: Icon(
           CustomIcons.subreddit,
           color: Colors.blueGrey),
@@ -131,7 +136,8 @@ class SubredditRoute extends ShellRoute {
         ]),
       contentBody: _ContentBody(
         key: ValueKey(path),
-        posts: _posts),
+        posts: _posts,
+        postPathPrefix: childPathPrefix),
       optionsHandle: Stack(
         children: <Widget>[
           IgnorePointer(
@@ -161,9 +167,12 @@ class _ContentBody extends StatelessWidget {
   _ContentBody({
     Key? key,
     required this.posts,
+    required this.postPathPrefix,
   }) : super(key: key);
 
   final SubredditPosts posts;
+
+  final String postPathPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +188,7 @@ class _ContentBody extends StatelessWidget {
         thingBuilder: (BuildContext context, Post post) {
           return PostTile(
             post: post,
+            pathPrefix: postPathPrefix,
             includeSubredditName: false);
         },
         scrollViewBuilder: (BuildContext context, ScrollController controller, Widget refreshSliver, Widget listSliver) {

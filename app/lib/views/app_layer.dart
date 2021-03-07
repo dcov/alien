@@ -63,7 +63,7 @@ class _AppHome extends StatelessWidget {
             defaults.items.map((Subreddit subreddit) {
               return SubredditTile(
                 subreddit: subreddit,
-                routePath: subredditRoutePathFrom('defaults:', subreddit));
+                pathPrefix: 'defaults:');
             }));
         } else {
           assert(subscriptions != null);
@@ -72,7 +72,7 @@ class _AppHome extends StatelessWidget {
             subscriptions!.items.map((Subreddit subreddit) {
               return SubredditTile(
                 subreddit: subreddit,
-                routePath: subredditRoutePathFrom('subscriptions:', subreddit));
+                pathPrefix: 'subscriptions:');
             }));
         }
         return Column(

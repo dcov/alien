@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import 'package:meta/meta.dart';
+
 typedef PathRouteFactory<R extends PathRoute> = R Function();
 
 typedef PathRouteVisitor<R extends PathRoute> = void Function(R route);
@@ -11,6 +13,9 @@ abstract class PathRoute {
 
   String get path => _path!;
   String? _path;
+
+  @protected
+  String get childPathPrefix => '$path/';
 }
 
 class PathNode<R extends PathRoute> {

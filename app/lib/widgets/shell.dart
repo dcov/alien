@@ -353,7 +353,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       value: 0.0,
       vsync: this);
 
-  var _routes = <ShellRoute>[];
+  final _routes = <ShellRoute>[];
   var _layersTransition = _LayersTransition.idleAtEmpty;
   int? _replacedEntriesLength;
   ShellRoute? _hiddenRoute;
@@ -465,7 +465,8 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       if (animate) {
         _hiddenRoute = _routes.isNotEmpty ? _routes.last : null;
         _replacedEntriesLength = _routes.length;
-        _routes = stack;
+        _routes.clear();
+        _routes.addAll(stack);
         switch (_layersTransition) {
           case _LayersTransition.idleAtEmpty:
             _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
@@ -499,7 +500,8 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
             throw StateError('Tried to replace the _Layers stack while it was not idling at empty, root, or route layers. Transition was: $_layersTransition');
         }
       } else {
-        _routes = stack;
+        _routes.clear();
+        _routes.addAll(stack);
       }
     });
   }
