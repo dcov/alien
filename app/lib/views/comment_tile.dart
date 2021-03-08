@@ -138,7 +138,7 @@ class CommentTile extends StatelessWidget {
                   color: getVotableColor(comment))),
               if (comment.editedAtUtc != null)
                 Text(
-                  'edited ${formatElapsedUtc(comment.editedAtUtc)}',
+                  'edited ${formatElapsedUtc(comment.editedAtUtc!)}',
                   style: TextStyle(
                     fontSize: 12.0,
                     fontStyle: FontStyle.italic,

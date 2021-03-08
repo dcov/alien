@@ -16,7 +16,7 @@ abstract class Comment implements Model, Saveable, Votable {
     required int createdAtUtc,
     int? depth,
     String? distinguishment,
-    required int editedAtUtc,
+    int? editedAtUtc,
     required bool isSubmitter,
     required bool isSaved,
     required String id,
@@ -38,7 +38,7 @@ abstract class Comment implements Model, Saveable, Votable {
   String? get distinguishment;
   set distinguishment(String? value);
 
-  int get editedAtUtc;
+  int? get editedAtUtc;
 
   bool get isSubmitter;
 }

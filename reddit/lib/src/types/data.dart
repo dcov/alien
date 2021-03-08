@@ -285,7 +285,7 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   String get distinguishment => _data['distinguished'];
 
-  int get editedAtUtc => _parseNum(_data['edited'])!;
+  int? get editedAtUtc => _parseNum(_data['edited']);
 
   bool get isCollapsed => _data['collapsed'];
 

@@ -297,7 +297,7 @@ class _Layers extends StatefulWidget {
   _LayersState createState() => _LayersState();
 }
 
-enum _LayersTransition {
+enum _LayersMode {
   idleAtEmpty,
   idleAtRoot,
   idleAtRoute,
@@ -354,7 +354,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
       vsync: this);
 
   final _routes = <ShellRoute>[];
-  var _layersTransition = _LayersTransition.idleAtEmpty;
+  var _mode = _LayersMode.idleAtEmpty;
   int? _replacedEntriesLength;
   ShellRoute? _hiddenRoute;
   ShellRoute? _visibleRoute;
@@ -366,97 +366,72 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   }
 
   void push(ShellRoute route) {
+    // Push relies on the build method using the routes in [_routes], so there shouldn't be any overrides.
+    assert(_hiddenRoute == null);
+    assert(_visibleRoute == null);
     setState(() {
       if (_routes.isEmpty) {
-        assert(_layersTransition == _LayersTransition.idleAtEmpty);
-        _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
-        _controller.forward(from: 0.0).then((_) {
-          setState(() {
-            _layersTransition = _LayersTransition.idleAtRoute;
-          });
-        });
+        assert(_mode == _LayersMode.idleAtEmpty);
+        _mode = _LayersMode.pushFromOrPopToEmpty;
       } else {
-        switch (_layersTransition) {
-          case _LayersTransition.idleAtRoot:
-            _layersTransition = _LayersTransition.replaceFromRoot;
-            _controller.forward(from: 0.0).then((_) {
-              setState(() {
-                _layersTransition = _LayersTransition.idleAtRoute;
-              });
-            });
+        switch (_mode) {
+          case _LayersMode.idleAtRoot:
+            _mode = _LayersMode.replaceFromRoot;
             break;
-          case _LayersTransition.idleAtRoute:
-            _layersTransition = _LayersTransition.pushAtRoute;
-            _controller.forward(from: 0.0).then((_) {
-              setState(() {
-                _layersTransition = _LayersTransition.idleAtRoute;
-              });
-            });
+          case _LayersMode.idleAtRoute:
+            _mode = _LayersMode.pushAtRoute;
             break;
           default:
             throw StateError('Tried to push to _Layers while it was not idling at root or route layers');
         }
       }
       _routes.add(route);
+      _controller.forward(from: 0.0).then((_) {
+        setState(() {
+          _mode = _LayersMode.idleAtRoute;
+        });
+      });
     });
   }
 
   void pop() {
+    assert(_hiddenRoute == null);
+    assert(_visibleRoute == null);
     setState(() {
-      final removed = _routes.removeLast();
-      _hiddenRoute = _routes.isNotEmpty ? _routes.last : null;
-      _visibleRoute = removed;
-      if (_routes.isEmpty) {
-        switch (_layersTransition) {
-          case _LayersTransition.idleAtRoot:
-            _layersTransition = _LayersTransition.popFromRootToEmpty;
-            _controller.reverse(from: 1.0).then((_) {
-              setState(() {
-                _layersTransition = _LayersTransition.idleAtEmpty;
-                _hiddenRoute = null;
-                _visibleRoute = null;
-              });
-            });
+      _LayersMode modeAfterPopped;
+      if (_routes.length == 1) {
+        switch (_mode) {
+          case _LayersMode.idleAtRoot:
+            _mode = _LayersMode.popFromRootToEmpty;
             break;
-          case _LayersTransition.idleAtRoute:
-            _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
-            _controller.reverse(from: 1.0).then((_) {
-              setState(() {
-                _layersTransition = _LayersTransition.idleAtEmpty;
-                _hiddenRoute = null;
-                _visibleRoute = null;
-              });
-            });
+          case _LayersMode.idleAtRoute:
+            _mode = _LayersMode.pushFromOrPopToEmpty;
             break;
           default:
-            throw StateError('Tried to pop from _Layers while it was not idling at root or route layers. Transition was: $_layersTransition');
+            throw StateError('Tried to pop from _Layers while it was not idling at root or route layers. Transition was: $_mode');
         }
+        modeAfterPopped = _LayersMode.idleAtEmpty;
       } else {
-        switch (_layersTransition) {
-          case _LayersTransition.idleAtRoot:
-            _layersTransition = _LayersTransition.popAtRoot;
-            _controller.forward(from: 0.0).then((_) {
-              setState(() {
-                _layersTransition = _LayersTransition.idleAtRoot;
-                _hiddenRoute = null;
-                _visibleRoute = null;
-              });
-            });
+        switch (_mode) {
+          case _LayersMode.idleAtRoot:
+            _mode = _LayersMode.popAtRoot;
+            modeAfterPopped = _LayersMode.idleAtRoot;
             break;
-          case _LayersTransition.idleAtRoute:
-            _layersTransition = _LayersTransition.popAtRoute;
-            _controller.reverse(from: 1.0).then((_) {
-              setState(() {
-                _layersTransition = _LayersTransition.idleAtRoute;
-                _hiddenRoute = null;
-                _visibleRoute = null;
-              });
-            });
+          case _LayersMode.idleAtRoute:
+            _mode = _LayersMode.popAtRoute;
+            modeAfterPopped = _LayersMode.idleAtRoute;
             break;
           default:
-            throw StateError('Tried to pop from _Layers while it was not idling at root or route layers. Transition was: $_layersTransition');
+            throw StateError('Tried to pop from _Layers while it was not idling at root or route layers. Transition was: $_mode');
         }
       }
+
+      _controller.reverse(from: 1.0).then((_) {
+        setState(() {
+          _routes.removeLast();
+          _mode = modeAfterPopped;
+        });
+      });
     });
   }
 
@@ -467,37 +442,37 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
         _replacedEntriesLength = _routes.length;
         _routes.clear();
         _routes.addAll(stack);
-        switch (_layersTransition) {
-          case _LayersTransition.idleAtEmpty:
-            _layersTransition = _LayersTransition.pushFromOrPopToEmpty;
+        switch (_mode) {
+          case _LayersMode.idleAtEmpty:
+            _mode = _LayersMode.pushFromOrPopToEmpty;
             _controller.forward(from: 0.0).then((_) {
               setState(() {
-                _layersTransition = _LayersTransition.idleAtRoute;
+                _mode = _LayersMode.idleAtRoute;
               _hiddenRoute = null;
               _replacedEntriesLength = null;
               });
             });
             break;
-          case _LayersTransition.idleAtRoot:
-            _layersTransition = _LayersTransition.replaceFromRoot;
+          case _LayersMode.idleAtRoot:
+            _mode = _LayersMode.replaceFromRoot;
             _controller.forward(from: 0.0).then((_) {
               setState(() {
-                _layersTransition = _LayersTransition.idleAtRoute;
+                _mode = _LayersMode.idleAtRoute;
               _hiddenRoute = null;
               _replacedEntriesLength = null;
               });
             });
             break;
-          case _LayersTransition.idleAtRoute:
-            _layersTransition = _LayersTransition.replaceAtRoute;
+          case _LayersMode.idleAtRoute:
+            _mode = _LayersMode.replaceAtRoute;
             _controller.forward(from: 0.0).then((_) {
-              _layersTransition = _LayersTransition.idleAtRoute;
+              _mode = _LayersMode.idleAtRoute;
               _hiddenRoute = null;
               _replacedEntriesLength = null;
             });
             break;
           default:
-            throw StateError('Tried to replace the _Layers stack while it was not idling at empty, root, or route layers. Transition was: $_layersTransition');
+            throw StateError('Tried to replace the _Layers stack while it was not idling at empty, root, or route layers. Transition was: $_mode');
         }
       } else {
         _routes.clear();
@@ -507,12 +482,12 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   }
 
   void makeRouteVisible() {
-    assert(_layersTransition == _LayersTransition.idleAtRoot);
+    assert(_mode == _LayersMode.idleAtRoot);
     setState(() {
-      _layersTransition = _LayersTransition.expandOrCollapseRoute;
+      _mode = _LayersMode.expandOrCollapseRoute;
       _controller.forward(from: 0.0).then((_) {
         setState(() {
-          _layersTransition = _LayersTransition.idleAtRoute;
+          _mode = _LayersMode.idleAtRoute;
         });
       });
     });
@@ -528,45 +503,59 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   void _handleDragEnd(
       DragEndDetails? details, {
       required double draggableExtent,
-      required _LayersTransition transition,
+      required _LayersMode modeIfAnimating,
       required VoidCallback onDismissed,
       required VoidCallback onCompleted,
     }) {
     setState(() {
       if (_controller.isDismissed) {
+        print('wasDismissed');
         onDismissed();
         return;
       }
       if (_controller.isCompleted) {
+        print('wasCompleted');
         onCompleted();
         return;
       }
 
       assert(details != null);
 
-      _layersTransition = transition;
+      _mode = modeIfAnimating;
 
       if (details!.primaryVelocity!.abs() > 700) {
         final flingVelocity = -(details.primaryVelocity! / draggableExtent);
+        print('flinging: $flingVelocity');
         _controller.fling(velocity: flingVelocity).then((_) {
           setState(() {
-            if (flingVelocity < 0.0) {
+            if (_controller.isDismissed) {
+              print('flinged to dismissed');
               onDismissed();
+              print('mode: $_mode');
             } else {
+              assert(_controller.isCompleted);
+              print('flinged to completed');
               onCompleted();
+              print('mode: $_mode');
             }
           });
         });
       } else if (_controller.value < 0.5) {
+        print('dismissing');
         _controller.reverse().then((_) {
           setState(() {
+            print('dismissed');
             onDismissed();
+            print('mode: $_mode');
           });
         });
       } else {
+        print('completing');
         _controller.forward().then((_) {
           setState(() {
+            print('completed');
             onCompleted();
+            print('mode: $_mode');
           });
         });
       }
@@ -576,7 +565,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   late double _contentSheetDraggableExtent;
 
   void _handleContentSheetDragStart(DragStartDetails _) {
-    setState(() => _layersTransition = _LayersTransition.dragToExpandOrCollapseRoute);
+    setState(() => _mode = _LayersMode.dragToExpandOrCollapseRoute);
   }
 
   void _handleContentSheetDragUpdate(DragUpdateDetails details) {
@@ -587,12 +576,12 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
     _handleDragEnd(
       details,
       draggableExtent: _contentSheetDraggableExtent,
-      transition: _LayersTransition.expandOrCollapseRoute,
+      modeIfAnimating: _LayersMode.expandOrCollapseRoute,
       onDismissed: () {
-        _layersTransition = _LayersTransition.idleAtRoot;
+        _mode = _LayersMode.idleAtRoot;
       },
       onCompleted: () {
-        _layersTransition = _LayersTransition.idleAtRoute;
+        _mode = _LayersMode.idleAtRoute;
       });
   }
 
@@ -602,11 +591,12 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   }
 
   void _handleBodyDragStart(DragStartDetails _) {
+    print('body drag start');
     setState(() {
       if (_routes.length == 1) {
-        _layersTransition = _LayersTransition.dragToPopToEmpty;
+        _mode = _LayersMode.dragToPopToEmpty;
       } else {
-        _layersTransition = _LayersTransition.dragToPop;
+        _mode = _LayersMode.dragToPop;
       }
     });
   }
@@ -616,27 +606,40 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   }
 
   void _handleBodyDragEnd([DragEndDetails? details]) {
+    print('body drag end');
+    final _LayersMode modeIfAnimating;
+    if (_mode == _LayersMode.dragToPopToEmpty) {
+      modeIfAnimating = _LayersMode.pushFromOrPopToEmpty;
+    } else if (_mode == _LayersMode.dragToPop) {
+      modeIfAnimating = _LayersMode.popAtRoute;
+    } else {
+      modeIfAnimating = _mode;
+    }
     _handleDragEnd(
       details,
       draggableExtent: _contentBodyWidth,
-      // we don't change the layers transition until the animation completes
-      transition: _layersTransition,
+      modeIfAnimating: modeIfAnimating,
       onDismissed: () {
-        setState(() {
-          _routes.removeLast();
-          if (_layersTransition == _LayersTransition.dragToPop) {
-            _layersTransition = _LayersTransition.idleAtRoute;
-          } else {
-            assert(_layersTransition == _LayersTransition.dragToPopToEmpty);
-            _layersTransition = _LayersTransition.idleAtEmpty;
-          }
-          widget.onPop(true);
-        });
+        switch (_mode) {
+          case _LayersMode.dragToPopToEmpty:
+          case _LayersMode.pushFromOrPopToEmpty:
+            _mode = _LayersMode.idleAtEmpty;
+            break;
+          case _LayersMode.dragToPop:
+          case _LayersMode.popAtRoute:
+            _mode = _LayersMode.idleAtRoute;
+            _controller.value = 1.0;
+            break;
+          default:
+            _mode = _LayersMode.idleAtRoute;
+            _controller.value = 1.0;
+            return;
+        }
+        _routes.removeLast();
+        widget.onPop(true);
       },
       onCompleted: () {
-        setState(() {
-          _layersTransition = _LayersTransition.idleAtRoute;
-        });
+        _mode = _LayersMode.idleAtRoute;
       });
   }
 
@@ -644,10 +647,10 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
   void _handleOptionsSheetDragStart(DragStartDetails _) {
     setState(() {
-      if (_layersTransition == _LayersTransition.idleAtRoute) {
+      if (_mode == _LayersMode.idleAtRoute) {
         _controller.value = 0.0;
       }
-      _layersTransition = _LayersTransition.dragToExpandOrCollapseOptions;
+      _mode = _LayersMode.dragToExpandOrCollapseOptions;
     });
   }
 
@@ -659,13 +662,13 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
     _handleDragEnd(
       details,
       draggableExtent: _optionsSheetDraggableExtent,
-      transition: _LayersTransition.expandOrCollapseOptions,
+      modeIfAnimating: _LayersMode.expandOrCollapseOptions,
       onDismissed: () {
-        _layersTransition = _LayersTransition.idleAtRoute;
+        _mode = _LayersMode.idleAtRoute;
         _controller.value = 1.0;
       },
       onCompleted: () {
-        _layersTransition = _LayersTransition.idleAtOptions;
+        _mode = _LayersMode.idleAtOptions;
       });
   }
 
@@ -675,8 +678,9 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   
   @override
   Widget build(BuildContext context) {
+    print('building _Layers, mode: $_mode');
     final hiddenComponents = _hiddenRoute?.build(context) ??
-        (_routes.length > 2 ? _routes[_routes.length - 2].build(context) : null);
+        (_routes.length > 1 ? _routes[_routes.length - 2].build(context) : null);
 
     final visibleComponents = _visibleRoute?.build(context) ??
         (_routes.isNotEmpty ? _routes.last.build(context) : null);
@@ -686,12 +690,12 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
         _RootLayer(
           components: widget.rootComponents,
           animation: _controller,
-          transition: _layersTransition),
+          mode: _mode),
         _TitleLayer(
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
           animation: _controller,
-          layersTransition: _layersTransition,
+          mode: _mode,
           replacedEntriesLength: _replacedEntriesLength,
           entriesLength: _routes.length,
           onPop: _handlePop),
@@ -700,7 +704,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
           animation: _controller,
-          layersTransition: _layersTransition,
+          mode: _mode,
           onDraggableSheetExtent: (double value) {
             _contentSheetDraggableExtent = value;
           },
@@ -717,7 +721,7 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           hiddenComponents: hiddenComponents,
           visibleComponents: visibleComponents,
           animation: _controller,
-          layersTransition: _layersTransition,
+          mode: _mode,
           onDraggableExtent: (double value) {
             _optionsSheetDraggableExtent = value;
           },
@@ -735,45 +739,45 @@ class _RootLayer extends StatelessWidget {
     Key? key,
     required this.components,
     required this.animation,
-    required this.transition
+    required this.mode
   }) : super(key: key);
 
   final RootComponents components;
 
   final Animation<double> animation;
 
-  final _LayersTransition transition;
+  final _LayersMode mode;
 
   Animation<double> get _opacity {
-    switch (transition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
         return kAlwaysCompleteAnimation;
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseOptions:
         return kAlwaysDismissedAnimation;
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseRoute:
         return ReverseAnimation(animation);
     }
   }
 
   bool get _ignorePointers {
-    switch (transition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoot:
         return false;
       default:
         return true;
@@ -797,7 +801,7 @@ class _TitleLayer extends StatelessWidget {
     this.hiddenComponents,
     this.visibleComponents,
     required this.animation,
-    required this.layersTransition,
+    required this.mode,
     this.replacedEntriesLength,
     required this.entriesLength,
     this.onPop
@@ -813,7 +817,7 @@ class _TitleLayer extends StatelessWidget {
 
   final Animation<double> animation;
 
-  final _LayersTransition layersTransition;
+  final _LayersMode mode;
 
   final int? replacedEntriesLength;
 
@@ -822,27 +826,27 @@ class _TitleLayer extends StatelessWidget {
   final VoidCallback? onPop;
 
   Animation<double> get _layerOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
         return kAlwaysDismissedAnimation;
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseOptions:
         return kAlwaysCompleteAnimation;
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.dragToPop:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseRoute:
         return animation;
     }
   }
@@ -851,11 +855,11 @@ class _TitleLayer extends StatelessWidget {
 
   Animation<Decoration> get _decoration {
     Animation<double> parent;
-    switch (layersTransition) {
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
+    switch (mode) {
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
         parent = animation;
         break;
       default:
@@ -871,35 +875,31 @@ class _TitleLayer extends StatelessWidget {
 
   Animation<double> get _rotation {
     Animation<double> parent;
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.dragToPopToEmpty:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.dragToPopToEmpty:
         parent = kAlwaysDismissedAnimation;
         break;
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseOptions:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseOptions:
         parent = (entriesLength < 2 ? kAlwaysDismissedAnimation : kAlwaysCompleteAnimation);
         break;
-      case _LayersTransition.pushAtRoute:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.dragToPop:
         parent = (entriesLength == 2 ? animation : kAlwaysCompleteAnimation);
         break;
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.popAtRoute:
-        parent = (entriesLength == 1 ? animation : kAlwaysCompleteAnimation);
-        break;
-      case _LayersTransition.dragToPop:
-        parent = (entriesLength == 2 ? animation : kAlwaysCompleteAnimation);
-        break;
-      case _LayersTransition.replaceAtRoot:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.replaceAtRoute:
+      case _LayersMode.replaceAtRoot:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.replaceAtRoute:
         if (replacedEntriesLength! < 2) {
           parent = (entriesLength < 2 ? kAlwaysDismissedAnimation : animation);
         } else {
@@ -911,11 +911,11 @@ class _TitleLayer extends StatelessWidget {
   }
 
   Animation<double> get _itemOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
+    switch (mode) {
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
         return animation;
       default:
         return kAlwaysCompleteAnimation;
@@ -971,7 +971,7 @@ class _ContentLayer extends StatelessWidget {
     this.hiddenComponents,
     this.visibleComponents,
     required this.animation,
-    required this.layersTransition,
+    required this.mode,
     required this.onDraggableSheetExtent,
     required this.onSheetDragStart,
     required this.onSheetDragUpdate,
@@ -992,7 +992,7 @@ class _ContentLayer extends StatelessWidget {
 
   final Animation<double> animation;
 
-  final _LayersTransition layersTransition;
+  final _LayersMode mode;
 
   final ValueChanged<double> onDraggableSheetExtent;
 
@@ -1015,79 +1015,79 @@ class _ContentLayer extends StatelessWidget {
   final GestureDragCancelCallback onBodyDragCancel;
 
   Animation<double> get _sheetPosition {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
         return kAlwaysDismissedAnimation;
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseOptions:
         return kAlwaysCompleteAnimation;
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseRoute:
         return animation;
     }
   }
 
   SheetWithHandleMode get _sheetMode {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.dragToPopToEmpty:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.dragToPopToEmpty:
         return SheetWithHandleMode.hideOrExpand;
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseOptions:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseOptions:
         return SheetWithHandleMode.peekOrExpand;
-      case _LayersTransition.popFromRootToEmpty:
+      case _LayersMode.popFromRootToEmpty:
         return SheetWithHandleMode.hideOrPeek;
     }
   }
 
   Animation<double> get _bodyOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
         return kAlwaysDismissedAnimation;
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseOptions:
         return kAlwaysCompleteAnimation;
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseRoute:
         return animation;
     }
   }
@@ -1098,10 +1098,10 @@ class _ContentLayer extends StatelessWidget {
 
   Animation<Offset> get _hiddenBodyPosition {
     Animation<double> parent;
-    switch (layersTransition) {
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.dragToPop:
+    switch (mode) {
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.dragToPop:
         parent = animation;
         break;
       default:
@@ -1116,10 +1116,10 @@ class _ContentLayer extends StatelessWidget {
 
   Animation<Offset> get _visibleBodyPosition {
     Animation<double> parent;
-    switch (layersTransition) {
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.dragToPop:
+    switch (mode) {
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.dragToPop:
         parent = animation;
         break;
       default:
@@ -1129,11 +1129,11 @@ class _ContentLayer extends StatelessWidget {
   }
 
   Animation<double> get _hiddenHandleOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
+    switch (mode) {
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
         return ReverseAnimation(animation);
       default:
         return kAlwaysDismissedAnimation;
@@ -1141,62 +1141,62 @@ class _ContentLayer extends StatelessWidget {
   }
 
   Animation<double> get _visibleHandleOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
         return kAlwaysDismissedAnimation;
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseOptions:
         return kAlwaysCompleteAnimation;
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseRoute:
         return animation;
     }
   }
 
   Animation<double> get _peekHandleOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.idleAtOptions:
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseOptions:
         return kAlwaysDismissedAnimation;
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
         return kAlwaysCompleteAnimation;
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseRoute:
         return ReverseAnimation(animation);
     }
   }
 
   bool get _ignoreSheetDrag {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
+    switch (mode) {
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.dragToExpandOrCollapseRoute:
         return false;
       default:
         return true;
@@ -1204,10 +1204,10 @@ class _ContentLayer extends StatelessWidget {
   }
 
   bool get _ignoreBodyDrag {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToPop:
+    switch (mode) {
+      case _LayersMode.idleAtRoute:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToPop:
         return false;
       default:
         return true;
@@ -1228,31 +1228,32 @@ class _ContentLayer extends StatelessWidget {
         onDragUpdate: onSheetDragUpdate,
         onDragEnd: onSheetDragEnd,
         onDragCancel: onSheetDragCancel,
-        body: IgnorePointer(
-          ignoring: _ignoreBodyDrag,
-          child: IgnoredDecoration(
-            decoration: BoxDecoration(
-              color: Theme.of(context).canvasColor),
-            child: FadeTransition(
-              opacity: _bodyOpacity,
-              child: Stack(
-                key: bodyKey,
-                children: <Widget>[
-                  SlideTransition(
-                    position: _hiddenBodyPosition,
-                    child: hiddenComponents?.contentBody),
-                  SlideTransition(
-                    position: _visibleBodyPosition,
-                    child: visibleComponents?.contentBody),
-                  LTRDragDetector(
-                    onDragStart: onBodyDragStart,
-                    onDragUpdate: onBodyDragUpdate,
-                    onDragEnd: onBodyDragEnd,
-                    onDragCancel: onBodyDragCancel,
-                    child: SizedBox.expand())
-                ])))),
+        body: Material(
+          child: IgnorePointer(
+            ignoring: _ignoreBodyDrag,
+            child: IgnoredDecoration(
+              decoration: BoxDecoration(
+                color: Theme.of(context).canvasColor),
+              child: FadeTransition(
+                opacity: _bodyOpacity,
+                child: Stack(
+                  key: bodyKey,
+                  children: <Widget>[
+                    SlideTransition(
+                      position: _hiddenBodyPosition,
+                      child: hiddenComponents?.contentBody),
+                    SlideTransition(
+                      position: _visibleBodyPosition,
+                      child: visibleComponents?.contentBody),
+                    LTRDragDetector(
+                      onDragStart: onBodyDragStart,
+                      onDragUpdate: onBodyDragUpdate,
+                      onDragEnd: onBodyDragEnd,
+                      onDragCancel: onBodyDragCancel,
+                      child: SizedBox.expand())
+                  ]))))),
         handle: IgnorePointer(
-          ignoring: layersTransition != _LayersTransition.idleAtRoute,
+          ignoring: mode != _LayersMode.idleAtRoute,
           child: SizedBox(
             height: kExpandedHandleHeight,
             child: Center(
@@ -1272,7 +1273,7 @@ class _ContentLayer extends StatelessWidget {
                       bottomBorder: true))
                 ])))),
         peekHandle: IgnorePointer(
-          ignoring: layersTransition != _LayersTransition.idleAtRoot,
+          ignoring: mode != _LayersMode.idleAtRoot,
           child: SizedBox(
             height: kCollapsedHandleHeight,
             child: RRectTopBorder(
@@ -1296,7 +1297,7 @@ class _OptionsLayer extends StatelessWidget {
     this.hiddenComponents,
     this.visibleComponents,
     required this.animation,
-    required this.layersTransition,
+    required this.mode,
     required this.onDraggableExtent,
     required this.onDragStart,
     required this.onDragUpdate,
@@ -1310,7 +1311,7 @@ class _OptionsLayer extends StatelessWidget {
 
   final Animation<double> animation;
 
-  final _LayersTransition layersTransition;
+  final _LayersMode mode;
 
   final ValueChanged<double> onDraggableExtent;
 
@@ -1322,142 +1323,101 @@ class _OptionsLayer extends StatelessWidget {
 
   final GestureDragCancelCallback onDragCancel;
 
-  Animation<double> get _sheetPosition {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
-      case _LayersTransition.idleAtRoute:
-        return kAlwaysDismissedAnimation;
-      case _LayersTransition.idleAtOptions:
-        return kAlwaysCompleteAnimation;
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
-        if (visibleComponents?.optionsHandle != null) {
-          return CurvedAnimation(
-              parent: animation,
-              curve: const Interval(0.66, 1.0));
-        } else {
-          return kAlwaysDismissedAnimation;
-        }
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-        assert(hiddenComponents != null);
-        if (hiddenComponents!.optionsHandle != null) {
-          if (visibleComponents?.optionsHandle != null) {
-            return kAlwaysDismissedAnimation;
-          } else {
-            return ReverseAnimation(animation);
-          }
-        } else if (visibleComponents?.optionsHandle != null) {
-          return animation;
-        } else {
-          return kAlwaysDismissedAnimation;
-        }
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
-        return animation;
-    }
-  }
-
-  SheetWithHandleMode get _sheetMode {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-        return SheetWithHandleMode.hideOrPeek;
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
-        return SheetWithHandleMode.peekOrExpand;
-    }
-  }
-
-  Animation<double> get _handleOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtEmpty:
-      case _LayersTransition.idleAtRoot:
-      case _LayersTransition.popFromRootToEmpty:
-      case _LayersTransition.popAtRoot:
-      case _LayersTransition.replaceAtRoot:
-        return kAlwaysDismissedAnimation;
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.pushFromOrPopToEmpty:
-      case _LayersTransition.replaceFromRoot:
-      case _LayersTransition.dragToPopToEmpty:
-      case _LayersTransition.dragToExpandOrCollapseRoute:
-      case _LayersTransition.expandOrCollapseRoute:
-        return kAlwaysCompleteAnimation;
-      case _LayersTransition.idleAtOptions:
-        return kAlwaysDismissedAnimation;
-      case _LayersTransition.pushAtRoute:
-      case _LayersTransition.popAtRoute:
-      case _LayersTransition.replaceAtRoute:
-      case _LayersTransition.dragToPop:
-        return animation;
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
-        return ReverseAnimation(animation);
-    }
-  }
-
-  Animation<double> get _bodyOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
-        return kAlwaysCompleteAnimation;
-      default:
-        return kAlwaysDismissedAnimation;
-    }
-  }
-
-  Animation<double> get _barrierOpacity {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtOptions:
-        return kAlwaysCompleteAnimation;
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-      case _LayersTransition.expandOrCollapseOptions:
-        return animation;
-      default:
-        return kAlwaysDismissedAnimation;
-    }
-  }
-
-  bool get _ignoreDrag {
-    switch (layersTransition) {
-      case _LayersTransition.idleAtRoute:
-      case _LayersTransition.idleAtOptions:
-      case _LayersTransition.dragToExpandOrCollapseOptions:
-        return false;
-      default:
-        return true;
-    }
+  static Animation<double> _hideOrPeekAnimation(Animation<double> parent) {
+    return CurvedAnimation(
+      parent: parent,
+      curve: const Interval(0.66, 1.0));
   }
 
   @override
   Widget build(BuildContext context) {
-    final handleOpacity = _handleOpacity;
-    final barrierOpacity = _barrierOpacity;
+    Animation<double> sheetPosition;
+    SheetWithHandleMode sheetMode;
+    Animation<double> hiddenHandleOpacity;
+    Animation<double> visibleHandleOpacity;
+    Animation<double> bodyOpacity;
+    Animation<double> barrierOpacity;
+    bool ignoreDrag;
+    switch (mode) {
+      case _LayersMode.idleAtEmpty:
+      case _LayersMode.idleAtRoot:
+      case _LayersMode.popFromRootToEmpty:
+      case _LayersMode.popAtRoot:
+      case _LayersMode.replaceAtRoot:
+        sheetPosition = hiddenHandleOpacity = visibleHandleOpacity =
+            bodyOpacity = barrierOpacity = kAlwaysDismissedAnimation;
+        sheetMode = SheetWithHandleMode.hideOrPeek;
+        ignoreDrag = true;
+        break;
+      case _LayersMode.idleAtRoute:
+        if (visibleComponents?.optionsHandle != null) {
+          sheetMode = SheetWithHandleMode.peekOrExpand;
+          visibleHandleOpacity = kAlwaysCompleteAnimation;
+          ignoreDrag = false;
+        } else {
+          sheetMode = SheetWithHandleMode.hideOrPeek;
+          visibleHandleOpacity = kAlwaysDismissedAnimation;
+          ignoreDrag = true;
+        }
+        sheetPosition = hiddenHandleOpacity = bodyOpacity = barrierOpacity = kAlwaysDismissedAnimation;
+        break;
+      case _LayersMode.idleAtOptions:
+        sheetPosition = bodyOpacity = barrierOpacity = kAlwaysCompleteAnimation;
+        sheetMode = SheetWithHandleMode.peekOrExpand;
+        hiddenHandleOpacity = visibleHandleOpacity = kAlwaysDismissedAnimation;
+        ignoreDrag = false;
+        break;
+      case _LayersMode.pushFromOrPopToEmpty:
+      case _LayersMode.replaceFromRoot:
+      case _LayersMode.dragToPopToEmpty:
+      case _LayersMode.dragToExpandOrCollapseRoute:
+      case _LayersMode.expandOrCollapseRoute:
+        if (visibleComponents?.optionsHandle != null) {
+          sheetPosition = _hideOrPeekAnimation(animation);
+          visibleHandleOpacity = kAlwaysCompleteAnimation;
+        } else {
+          sheetPosition = visibleHandleOpacity = kAlwaysDismissedAnimation;
+        }
+        sheetMode = SheetWithHandleMode.hideOrPeek;
+        hiddenHandleOpacity = bodyOpacity = barrierOpacity = kAlwaysDismissedAnimation;
+        ignoreDrag = true;
+        break;
+      case _LayersMode.pushAtRoute:
+      case _LayersMode.popAtRoute:
+      case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
+        if (hiddenComponents?.optionsHandle != null) {
+          if (visibleComponents?.optionsHandle != null) {
+            sheetPosition = kAlwaysCompleteAnimation;
+            visibleHandleOpacity = animation;
+          } else {
+            sheetPosition = _hideOrPeekAnimation(ReverseAnimation(animation));
+            visibleHandleOpacity = kAlwaysDismissedAnimation;
+          }
+          hiddenHandleOpacity = ReverseAnimation(animation);
+        } else if (visibleComponents?.optionsHandle != null) {
+          sheetPosition = _hideOrPeekAnimation(animation);
+          hiddenHandleOpacity = kAlwaysDismissedAnimation;
+          visibleHandleOpacity = animation;
+        } else {
+          sheetPosition = kAlwaysDismissedAnimation;
+          hiddenHandleOpacity = visibleHandleOpacity = kAlwaysDismissedAnimation;
+        }
+        sheetMode = SheetWithHandleMode.hideOrPeek;
+        bodyOpacity = barrierOpacity = kAlwaysDismissedAnimation;
+        ignoreDrag = true;
+        break;
+      case _LayersMode.dragToExpandOrCollapseOptions:
+      case _LayersMode.expandOrCollapseOptions:
+        sheetPosition = animation;
+        sheetMode = SheetWithHandleMode.peekOrExpand;
+        hiddenHandleOpacity = kAlwaysDismissedAnimation;
+        visibleHandleOpacity = ReverseAnimation(animation);
+        bodyOpacity = barrierOpacity = animation;
+        ignoreDrag = (mode == _LayersMode.expandOrCollapseOptions);
+        break;
+    }
+
     return Stack(
       children: <Widget>[
         IgnorePointer(
@@ -1475,16 +1435,16 @@ class _OptionsLayer extends StatelessWidget {
           child: FractionallySizedBox(
             heightFactor: 0.5,
             child: SheetWithHandle(
-              animation: _sheetPosition,
-              mode: _sheetMode,
-              ignoreDrag: _ignoreDrag,
+              animation: sheetPosition,
+              mode: sheetMode,
+              ignoreDrag: ignoreDrag,
               onDraggableExtent: onDraggableExtent,
               onDragStart: onDragStart,
               onDragUpdate: onDragUpdate,
               onDragEnd: onDragEnd,
               onDragCancel: onDragCancel,
               body: FadeTransition(
-                opacity: _bodyOpacity,
+                opacity: bodyOpacity,
                 child: visibleComponents?.optionsBody),
               handle: SizedBox(
                 height: kCollapsedHandleHeight,
@@ -1496,13 +1456,13 @@ class _OptionsLayer extends StatelessWidget {
                     child: Stack(
                       children: <Widget>[
                         FadeTransition(
-                          opacity: ReverseAnimation(handleOpacity),
+                          opacity: hiddenHandleOpacity,
                           child: _buildHandleWithDecoration(
                             context,
                             hiddenComponents?.optionsHandle ?? const SizedBox.expand(),
                             bottomBorder: false)),
                         FadeTransition(
-                          opacity: handleOpacity,
+                          opacity: visibleHandleOpacity,
                           child: _buildHandleWithDecoration(
                             context,
                             visibleComponents?.optionsHandle ?? const SizedBox.expand(),

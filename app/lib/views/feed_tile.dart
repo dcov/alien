@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../logic/feeds.dart';
 import '../models/feed.dart';
+import '../views/feed_route.dart';
+import '../widgets/tile.dart';
 
 class FeedTile extends StatelessWidget {
 
   FeedTile({
     Key? key,
     required this.feed,
+    required this.pathPrefix,
   }) : super(key: key);
 
   final Feed feed;
+
+  final String pathPrefix;
 
   IconData get _feedTypeIcon {
     switch (feed) {
@@ -25,9 +31,12 @@ class FeedTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomTile(
-      onTap: () => _showFeedPage(
-        context: context,
-        feed: feed),
+      onTap: () {
+        FeedRoute.goTo(
+          context,
+          feed,
+          pathPrefix);
+      },
       icon: Icon(_feedTypeIcon),
       title: Text(
         feed.displayName,

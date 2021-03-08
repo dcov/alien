@@ -22,7 +22,7 @@ class FeedRoute extends ShellRoute {
 
   late final FeedPosts _posts;
 
-  static void goTo(BuildContext context, { required Feed feed, required String pathPrefix }) {
+  static void goTo(BuildContext context, Feed feed, String pathPrefix) {
     context.goTo(
       '$pathPrefix${feed.name}',
       onCreateRoute: () {
