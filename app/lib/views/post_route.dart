@@ -7,26 +7,14 @@ import '../logic/post_comments.dart';
 import '../logic/thing.dart';
 import '../models/post.dart';
 import '../models/post_comments.dart';
+import '../utils/formatting.dart';
 import '../views/media_thumbnail.dart';
 import '../views/post_comments_slivers.dart';
 import '../views/snudown_body.dart';
 import '../views/sort_bottom_sheet.dart';
 import '../views/votable_utils.dart';
 import '../widgets/circle_divider.dart';
-import '../widgets/formatting.dart';
 import '../widgets/shell.dart';
-
-void goToPostRoute(BuildContext context, String pathPrefix, Post post) {
-  context.goTo(
-    '$pathPrefix${post.fullId}',
-    onCreateRoute: () {
-      return PostRoute(post: post);
-    },
-    onUpdateRoute: (ShellRoute route) {
-      assert(route is PostRoute);
-      // TODO
-    });
-}
 
 class PostRoute extends ShellRoute {
 
@@ -34,6 +22,18 @@ class PostRoute extends ShellRoute {
 
   final Post post;
   late PostComments _comments;
+
+  static void goTo(BuildContext context, Post post, String pathPrefix) {
+    context.goTo(
+      '$pathPrefix${post.fullId}',
+      onCreateRoute: () {
+        return PostRoute(post: post);
+      },
+      onUpdateRoute: (ShellRoute route) {
+        assert(route is PostRoute);
+        // TODO
+      });
+  }
 
   @override
   void initState(BuildContext context) {

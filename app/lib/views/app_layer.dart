@@ -9,7 +9,7 @@ import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
 import '../widgets/toolbar.dart';
 
-import 'subreddit_route.dart';
+import 'subreddit_tile.dart';
 
 class AppLayer extends ShellRoot {
 

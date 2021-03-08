@@ -7,8 +7,6 @@ import '../logic/media.dart';
 import '../models/media.dart';
 import '../widgets/pressable.dart';
 
-import 'media_page.dart';
-
 class MediaThumbnail extends StatelessWidget {
 
   MediaThumbnail({
@@ -44,9 +42,7 @@ class MediaThumbnail extends StatelessWidget {
 
       return Pressable(
         behavior: HitTestBehavior.opaque,
-        onPress: () => showMediaPage(
-          context: context,
-          media: media),
+        onPress: () { },
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           child: KeyedSubtree(

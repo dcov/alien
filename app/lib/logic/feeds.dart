@@ -32,7 +32,7 @@ FeedPosts postsFromFeed(Feed feed) {
 
 extension FeedExtensions on Feed {
 
-  String get _name {
+  String get name {
     switch (this) {
       case Feed.home:
         return 'home';
@@ -129,7 +129,7 @@ class GetFeedPosts implements Effect {
             .getHomePosts(page, posts.sortBy as HomeSort, posts.sortFrom);
       } else {
         assert(posts.sortBy is SubredditSort);
-        final subredditName = posts.type._name;
+        final subredditName = posts.type.name;
         listing = await context.clientFromUser(user)
             .getSubredditPosts(subredditName, page, posts.sortBy as SubredditSort, posts.sortFrom);
       }

@@ -8,65 +8,12 @@ import '../models/listing.dart' show ListingStatus;
 import '../models/post.dart';
 import '../models/subreddit.dart';
 import '../widgets/content_handle.dart';
-import '../widgets/icons.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
-import '../widgets/tile.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_tile.dart';
 import 'sort_bottom_sheet.dart';
-
-String _subredditRoutePathFrom(String prefix, Subreddit subreddit) {
-  return '$prefix${subreddit.fullId}';
-}
-
-void goToSubredditRoute(BuildContext context, String routePath, Subreddit subreddit) {
-  context.goTo(
-    routePath,
-    onCreateRoute: () {
-      return SubredditRoute(subreddit: subreddit);
-    },
-    onUpdateRoute: (ShellRoute route) {
-      assert(route is SubredditRoute);
-
-    });
-}
-
-class SubredditTile extends StatelessWidget {
-
-  SubredditTile({
-    Key? key,
-    required this.subreddit,
-    required this.pathPrefix
-  }) : super(key: key);
-
-  final Subreddit subreddit;
-
-  final String pathPrefix;
-
-  @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context) {
-      return CustomTile(
-        onTap: () {
-          goToSubredditRoute(
-            context,
-            _subredditRoutePathFrom(pathPrefix, subreddit),
-            subreddit);
-        },
-        icon: Icon(
-          CustomIcons.subreddit,
-          color: Colors.blueGrey),
-        title: Text(
-          subreddit.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 14.0,
-            fontWeight: FontWeight.w500)));
-    });
-}
 
 class SubredditRoute extends ShellRoute {
 
@@ -77,6 +24,18 @@ class SubredditRoute extends ShellRoute {
   final Subreddit subreddit;
 
   late final SubredditPosts _posts;
+
+  static void goTo(BuildContext context, Subreddit subreddit, String pathPrefix) {
+    context.goTo(
+      '$pathPrefix${subreddit.fullId}',
+      onCreateRoute: () {
+        return SubredditRoute(subreddit: subreddit);
+      },
+      onUpdateRoute: (ShellRoute route) {
+        assert(route is SubredditRoute);
+
+      });
+  }
 
   @override
   void initState(BuildContext context) {

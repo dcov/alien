@@ -5,13 +5,13 @@ import 'package:reddit/reddit.dart';
 import '../models/post.dart';
 import '../logic/saveable.dart';
 import '../logic/voting.dart';
+import '../utils/formatting.dart';
 import '../views/media_thumbnail.dart';
 import '../views/post_route.dart';
 import '../views/view_extensions.dart';
 import '../views/votable_utils.dart';
 import '../widgets/circle_divider.dart';
 import '../widgets/custom_render_object.dart';
-import '../widgets/formatting.dart';
 import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
 import '../widgets/slidable.dart';
@@ -194,10 +194,10 @@ class PostTile extends StatelessWidget {
             child: Pressable(
               behavior: HitTestBehavior.opaque,
               onPress: () {
-                goToPostRoute(
+                PostRoute.goTo(
                   context,
-                  pathPrefix,
-                  post);
+                  post,
+                  pathPrefix);
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(

@@ -5,8 +5,6 @@ import 'package:muex_flutter/muex_flutter.dart';
 import '../models/media.dart';
 import '../models/snudown.dart';
 
-import 'media_page.dart';
-
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {
   final ThemeData theme = Theme.of(context);
   return MarkdownStyleSheet(
@@ -68,9 +66,6 @@ class SnudownBody extends StatelessWidget {
         onTapLink: (String text, String? ref, String title) {
           final link = snudown.links[ref!];
           if (link is Media) {
-            showMediaPage(
-              context: context,
-              media: link);
           }
         },
         scrollable: scrollable);
