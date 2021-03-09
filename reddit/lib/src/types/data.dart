@@ -113,6 +113,13 @@ String? _parseString(String? s, { Iterable<String>? exclude }) {
   return null;
 }
 
+String? _parseImageUrl(String? url) {
+  if (url != null) {
+    return url.split('?')[0];
+  }
+  return null;
+}
+
 int? _parseColor(String? color) {
   color = _parseString(color);
   if (color != null) {
@@ -184,7 +191,7 @@ mixin VotableData {
   int get upvoteCount => _parseNum(_data['ups'])!;
 
   VoteDir get voteDir {
-    final bool likes = _data['likes'];
+    final bool? likes = _data['likes'];
     if (likes == null)
       return VoteDir.none;
     
@@ -596,9 +603,9 @@ class SubredditData with ThingData, CreatedData {
 
   int get activeUserCount => _parseNum(_data["active_user_count"])!;
 
-  int get bannerBackgroundColor => _parseColor(_data['banner_background_color'])!;
+  int? get bannerBackgroundColor => _parseColor(_data['banner_background_color']);
 
-  String get bannerImageUrl => _parseString(_data['banner_background_image']) ?? _parseString(_data["banner_img"])!;
+  String? get bannerImageUrl => _parseImageUrl(_data['banner_background_image']) ?? _parseImageUrl(_data["banner_img"]);
 
   String get description => _data["description"];
 
