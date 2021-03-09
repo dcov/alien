@@ -24,7 +24,7 @@ class AppLayer extends ShellRoot {
       ValueListenable<List<ShellRoute>> stack
     ) {
     return RootComponents(
-      layer: _AppHome(
+      layer: _HomeScreen(
         app: app,
         nodes: nodes,
         stack: stack),
@@ -35,9 +35,9 @@ class AppLayer extends ShellRoot {
   }
 }
 
-class _AppHome extends StatelessWidget {
+class _HomeScreen extends StatelessWidget {
 
-  _AppHome({
+  _HomeScreen({
     Key? key,
     required this.app,
     required this.nodes,

@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:muex/muex.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 import 'package:reddit/reddit.dart' show SubredditSort, TimeSort;
 
@@ -25,6 +27,8 @@ class SubredditRoute extends ShellRoute {
 
   late final SubredditPosts _posts;
 
+  late Connection _connection;
+
   static void goTo(BuildContext context, Subreddit subreddit, String pathPrefix) {
     context.goTo(
       '$pathPrefix${subreddit.fullId}',
@@ -33,7 +37,7 @@ class SubredditRoute extends ShellRoute {
       },
       onUpdateRoute: (ShellRoute route) {
         assert(route is SubredditRoute);
-
+        // TODO
       });
   }
 
@@ -82,8 +86,7 @@ class SubredditRoute extends ShellRoute {
   @override
   RouteComponents build(BuildContext context) {
     return RouteComponents(
-      titleDecoration: BoxDecoration(
-        color: Colors.grey),
+      titleDecoration: _buildTitleDecoration(context, subreddit),
       titleMiddle: Text(
         subreddit.name,
         style: TextStyle(
@@ -119,6 +122,29 @@ class SubredditRoute extends ShellRoute {
         ]),
       optionsBody: Material());
   }
+}
+
+BoxDecoration _buildTitleDecoration(
+    BuildContext context,
+    Subreddit subreddit
+  ) {
+  Color color;
+  if (subreddit.bannerBackgroundColor != null) {
+    color = Color(subreddit.bannerBackgroundColor!);
+  } else {
+    color = Theme.of(context).canvasColor;
+  }
+
+  DecorationImage? image;
+  if (subreddit.bannerImageUrl != null) {
+    image = DecorationImage(
+      image: CachedNetworkImageProvider(
+        subreddit.bannerImageUrl),
+      fit: BoxFit.cover);
+  }
+  return BoxDecoration(
+    color: color,
+    image: image);
 }
 
 class _ContentBody extends StatelessWidget {

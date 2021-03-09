@@ -7,7 +7,7 @@ class UpdateTheme implements Update {
 
   UpdateTheme({
     required this.theming,
-    this.type = ThemeType.light
+    this.type = ThemeType.dark
   });
 
   final Theming theming;

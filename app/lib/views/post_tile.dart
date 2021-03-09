@@ -159,7 +159,8 @@ class PostTile extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: Colors.grey.shade200))),
+                width: 0.0,
+                color: Colors.grey.shade800))),
           child: Slidable(
             actions: <SlidableAction>[
               if (context.userIsSignedIn)

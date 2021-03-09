@@ -68,35 +68,36 @@ class _PostContentBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        PostCommentsRefreshSliver(
-          comments: comments),
-        _PostSliver(
-          post: comments.post),
-        Connector(
-          builder: (_) {
-            return SortSliver(
-              sortArgs: const <CommentsSort>[
-                // TODO: possibly move this into the reddit package as a static field i.e. CommentsSort.values
-                CommentsSort.best,
-                CommentsSort.top,
-                CommentsSort.newest,
-                CommentsSort.controversial,
-                CommentsSort.old,
-                CommentsSort.qa
-              ],
-              currentSortBy: comments.sortBy,
-              onSort: (CommentsSort parameter, _) {
-                context.then(Then(
-                    RefreshPostComments(
-                      comments: comments,
-                      sortBy: parameter)));
-              });
-          }),
-        PostCommentsTreeSliver(
-          comments: comments)
-      ]);
+    return Material(
+      child: CustomScrollView(
+        slivers: <Widget>[
+          PostCommentsRefreshSliver(
+            comments: comments),
+          _PostSliver(
+            post: comments.post),
+          Connector(
+            builder: (_) {
+              return SortSliver(
+                sortArgs: const <CommentsSort>[
+                  // TODO: possibly move this into the reddit package as a static field i.e. CommentsSort.values
+                  CommentsSort.best,
+                  CommentsSort.top,
+                  CommentsSort.newest,
+                  CommentsSort.controversial,
+                  CommentsSort.old,
+                  CommentsSort.qa
+                ],
+                currentSortBy: comments.sortBy,
+                onSort: (CommentsSort parameter, _) {
+                  context.then(Then(
+                      RefreshPostComments(
+                        comments: comments,
+                        sortBy: parameter)));
+                });
+            }),
+          PostCommentsTreeSliver(
+            comments: comments)
+        ]));
   }
 }
 

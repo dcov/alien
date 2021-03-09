@@ -7,5 +7,7 @@ Subreddit subredditFromData(SubredditData data) {
     kind: data.kind,
     id: data.id,
     name: data.displayName,
+    bannerBackgroundColor: data.bannerBackgroundColor,
+    bannerImageUrl: data.bannerImageUrl,
     userIsSubscriber: data.userIsSubscriber);
 }

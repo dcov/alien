@@ -509,12 +509,10 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
     }) {
     setState(() {
       if (_controller.isDismissed) {
-        print('wasDismissed');
         onDismissed();
         return;
       }
       if (_controller.isCompleted) {
-        print('wasCompleted');
         onCompleted();
         return;
       }
@@ -525,37 +523,26 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
 
       if (details!.primaryVelocity!.abs() > 700) {
         final flingVelocity = -(details.primaryVelocity! / draggableExtent);
-        print('flinging: $flingVelocity');
         _controller.fling(velocity: flingVelocity).then((_) {
           setState(() {
             if (_controller.isDismissed) {
-              print('flinged to dismissed');
               onDismissed();
-              print('mode: $_mode');
             } else {
               assert(_controller.isCompleted);
-              print('flinged to completed');
               onCompleted();
-              print('mode: $_mode');
             }
           });
         });
       } else if (_controller.value < 0.5) {
-        print('dismissing');
         _controller.reverse().then((_) {
           setState(() {
-            print('dismissed');
             onDismissed();
-            print('mode: $_mode');
           });
         });
       } else {
-        print('completing');
         _controller.forward().then((_) {
           setState(() {
-            print('completed');
             onCompleted();
-            print('mode: $_mode');
           });
         });
       }
@@ -591,7 +578,6 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   }
 
   void _handleBodyDragStart(DragStartDetails _) {
-    print('body drag start');
     setState(() {
       if (_routes.length == 1) {
         _mode = _LayersMode.dragToPopToEmpty;
@@ -606,7 +592,6 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   }
 
   void _handleBodyDragEnd([DragEndDetails? details]) {
-    print('body drag end');
     final _LayersMode modeIfAnimating;
     if (_mode == _LayersMode.dragToPopToEmpty) {
       modeIfAnimating = _LayersMode.pushFromOrPopToEmpty;
@@ -678,7 +663,6 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
   
   @override
   Widget build(BuildContext context) {
-    print('building _Layers, mode: $_mode');
     final hiddenComponents = _hiddenRoute?.build(context) ??
         (_routes.length > 1 ? _routes[_routes.length - 2].build(context) : null);
 

@@ -10,11 +10,19 @@ part 'subreddit.g.dart';
 abstract class Subreddit implements Model, Thing {
 
   factory Subreddit({
-    required bool userIsSubscriber,
+    int? bannerBackgroundColor,
+    String? bannerImageUrl,
     required String name,
+    required bool userIsSubscriber,
     required String id,
     required String kind,
   }) = _$Subreddit;
+
+  int? get bannerBackgroundColor;
+  set bannerBackgroundColor(int? value);
+
+  String? get bannerImageUrl;
+  set bannerImageUrl(String? value);
 
   String get name;
 
