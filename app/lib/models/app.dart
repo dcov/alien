@@ -5,24 +5,30 @@ import 'auth.dart';
 import 'feed.dart';
 import 'refreshable.dart';
 import 'subreddit.dart';
-import 'theming.dart';
 
 part 'app.g.dart';
 
-abstract class App implements Model, AccountsOwner, AuthOwner, ThemingOwner {
+enum AppTheme {
+  dark
+}
+
+abstract class App implements Model, AccountsOwner, AuthOwner {
 
   factory App({
     required bool initialized,
+    required AppTheme theme,
     List<Feed> feeds,
     Refreshable<Subreddit> defaults,
     Refreshable<Subreddit> subscriptions,
     required Accounts accounts,
     required Auth auth,
-    required Theming theming,
   }) = _$App;
 
   bool get initialized;
   set initialized(bool value);
+
+  AppTheme get theme;
+  set theme(AppTheme value);
 
   List<Feed> get feeds;
 

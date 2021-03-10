@@ -26,7 +26,7 @@ class AppScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
+    final theme = Theme.of(context);
     return Connector(
       builder: (BuildContext context) {
         final children = <Widget>[];
@@ -60,13 +60,13 @@ class AppScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    width: 0.0,
-                    color: Colors.grey))),
+                    width: 0.5,
+                    color: theme.dividerColor))),
               child: Toolbar(
                 trailing: PressableIcon(
                   onPress: () {},
                   icon: Icons.settings,
-                  iconColor: Colors.grey,
+                  iconColor: theme.disabledColor,
                   padding: EdgeInsets.symmetric(
                     vertical: 12.0,
                     horizontal: 16.0)))),

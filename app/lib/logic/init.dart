@@ -1,5 +1,4 @@
 import 'package:muex/muex.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:stash/stash_api.dart';
@@ -11,13 +10,11 @@ import '../models/app.dart';
 import '../models/auth.dart';
 import '../models/feed.dart';
 import '../models/refreshable.dart';
-import '../models/theming.dart';
 import '../models/user.dart';
 
 import 'accounts.dart';
 import 'defaults.dart';
 import 'subscriptions.dart';
-import 'theming.dart';
 
 class InitApp implements Initial {
   
@@ -38,12 +35,12 @@ class InitApp implements Initial {
     return Init(
       state: App(
         initialized: false,
+        theme: AppTheme.dark,
         accounts: Accounts(
           isInScriptMode: isInScriptMode),
         auth: Auth(
           appId: appId,
-          appRedirect: appRedirect),
-        theming: Theming()),
+          appRedirect: appRedirect)),
       then: Then(_InitEffectContext()));
   }
 }
@@ -78,12 +75,9 @@ class _InitCoreState implements Update {
 
   @override
   Then update(App app) {
-    return Then.all({
-      UpdateTheme(theming: app.theming),
-      InitAccounts(
+    return Then(InitAccounts(
         onInitialized: () => Then(_ResetUserState()),
-        onFailed: () => Then(_ResetUserState())),
-    });
+        onFailed: () => Then(_ResetUserState())));
   }
 }
 
