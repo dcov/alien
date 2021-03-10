@@ -12,6 +12,7 @@ abstract class Subreddit implements Model, Thing {
   factory Subreddit({
     int? bannerBackgroundColor,
     String? bannerImageUrl,
+    String? iconImageUrl,
     required String name,
     required bool userIsSubscriber,
     required String id,
@@ -23,6 +24,9 @@ abstract class Subreddit implements Model, Thing {
 
   String? get bannerImageUrl;
   set bannerImageUrl(String? value);
+
+  String? get iconImageUrl;
+  set iconImageUrl(String? value);
 
   String get name;
 

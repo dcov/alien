@@ -114,10 +114,7 @@ String? _parseString(String? s, { Iterable<String>? exclude }) {
 }
 
 String? _parseImageUrl(String? url) {
-  if (url != null) {
-    return url.split('?')[0];
-  }
-  return null;
+  return url?.isNotEmpty == true ? url!.split('?')[0] : null;
 }
 
 int? _parseColor(String? color) {
@@ -613,7 +610,7 @@ class SubredditData with ThingData, CreatedData {
 
   String get headerImageUrl => _parseString(_data["header_img"])!;
 
-  String get iconImageUrl => _parseString(_data['community_icon']) ?? _parseString(_data['icon_img'])!;
+  String? get iconImageUrl => _parseImageUrl(_data['icon_img']) ?? _parseImageUrl(_data['community_icon']);
 
   bool get isOver18 => _data["over_18"];
 

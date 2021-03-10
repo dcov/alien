@@ -153,6 +153,10 @@ extension ShellExtension on BuildContext {
   void detach(String path, String newFragment) {
     _state.detach(path, newFragment);
   }
+
+  void makeRouteVisible() {
+    _state.makeRouteVisible();
+  }
 }
 
 class _ShellState extends State<Shell> {
@@ -231,6 +235,10 @@ class _ShellState extends State<Shell> {
       case PathRouterDetachTransition.none:
         break;
     }
+  }
+
+  void makeRouteVisible() {
+    _layersKey.currentState!.makeRouteVisible();
   }
 
   void _handleLayersPop(bool didPopAlready) {

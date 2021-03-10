@@ -9,5 +9,6 @@ Subreddit subredditFromData(SubredditData data) {
     name: data.displayName,
     bannerBackgroundColor: data.bannerBackgroundColor,
     bannerImageUrl: data.bannerImageUrl,
+    iconImageUrl: data.iconImageUrl,
     userIsSubscriber: data.userIsSubscriber);
 }
