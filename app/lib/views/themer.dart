@@ -34,9 +34,9 @@ ThemingData _createThemingData(AppTheme theme) {
           fontWeight: FontWeight.w400),
         captionText: TextStyle(
           color: Colors.grey[50]!,
-          fontSize: 12.0,
+          fontSize: 10.0,
           fontWeight: FontWeight.w500,
-          letterSpacing: 0.5));
+          letterSpacing: 1.0));
   }
 }
 

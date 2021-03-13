@@ -69,7 +69,7 @@ class PostRoute extends ShellRoute {
     return RouteComponents(
       titleMiddle: Text(
         'Comments',
-        style: theming.titleText),
+        style: theming.headerText),
       contentHandle: ContentHandle(
         items: <ContentHandleItem>[
           ContentHandleItem(

@@ -49,11 +49,10 @@ class ContentHandle extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
-              textBaseline: TextBaseline.alphabetic,
               children: <Widget>[
                 Icon(
                   item.icon,
-                  size: 16.0,
+                  size: 12.0,
                   color: iconColor ?? theming.iconColor),
                 Padding(
                   padding: const EdgeInsets.only(left: 2.0),

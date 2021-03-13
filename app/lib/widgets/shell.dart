@@ -6,24 +6,21 @@ import '../utils/path_router.dart';
 import '../widgets/ignored_decoration.dart';
 import '../widgets/ltr_drag_detector.dart';
 import '../widgets/pressable.dart';
-import '../widgets/rrect_top_border.dart';
 import '../widgets/sheet_with_handle.dart';
 import '../widgets/theming.dart';
 import '../widgets/toolbar.dart';
 import '../widgets/widget_extensions.dart';
 
-// const kExpandedHandleHeight = 40.0;
+const kExpandedHandleHeight = 40.0;
 const kCollapsedHandleHeight = 48.0;
 
-Widget _buildHandle(ThemingData theming, Widget child) {
-  return IgnoredDecoration(
-    decoration: BoxDecoration(
-      color: theming.canvasColor,
-      border: Border.all(
-        color: theming.borderColor,
-        width: 0.5),
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0))),
-    child: child);
+BoxDecoration _createSheetDecoration(ThemingData theming) {
+  return BoxDecoration(
+    color: theming.canvasColor,
+    border: Border.all(
+      color: theming.borderColor,
+      width: 0.5),
+    borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)));
 }
 
 mixin _ShellChild {
@@ -1214,6 +1211,8 @@ class _ContentLayer extends StatelessWidget {
         animation: _sheetPosition,
         mode: _sheetMode,
         ignoreDrag: _ignoreSheetDrag,
+        bodyDecoration: _createSheetDecoration(theming),
+        handleDecoration: _createSheetDecoration(theming),
         onDraggableExtent: onDraggableSheetExtent,
         onDragStart: onSheetDragStart,
         onDragUpdate: onSheetDragUpdate,
@@ -1221,46 +1220,39 @@ class _ContentLayer extends StatelessWidget {
         onDragCancel: onSheetDragCancel,
         body: IgnorePointer(
           ignoring: _ignoreBodyDrag,
-          child: IgnoredDecoration(
-            decoration: BoxDecoration(
-              color: theming.canvasColor),
-            child:FadeTransition(
-              opacity: _bodyOpacity,
-              child: Padding(
-                padding: const EdgeInsets.only(top: kCollapsedHandleHeight),
-                child: Stack(
-                  key: bodyKey,
-                  children: <Widget>[
-                    SlideTransition(
-                      position: _hiddenBodyPosition,
-                      child: hiddenComponents?.contentBody),
-                    SlideTransition(
-                      position: _visibleBodyPosition,
-                      child: visibleComponents?.contentBody),
-                    LTRDragDetector(
-                      onDragStart: onBodyDragStart,
-                      onDragUpdate: onBodyDragUpdate,
-                      onDragEnd: onBodyDragEnd,
-                      onDragCancel: onBodyDragCancel,
-                      child: SizedBox.expand())
-                  ]))))),
+          child: FadeTransition(
+            opacity: _bodyOpacity,
+            child: Padding(
+              padding: const EdgeInsets.only(top: kExpandedHandleHeight),
+              child: Stack(
+                key: bodyKey,
+                children: <Widget>[
+                  SlideTransition(
+                    position: _hiddenBodyPosition,
+                    child: hiddenComponents?.contentBody),
+                  SlideTransition(
+                    position: _visibleBodyPosition,
+                    child: visibleComponents?.contentBody),
+                  LTRDragDetector(
+                    onDragStart: onBodyDragStart,
+                    onDragUpdate: onBodyDragUpdate,
+                    onDragEnd: onBodyDragEnd,
+                    onDragCancel: onBodyDragCancel,
+                    child: const SizedBox.expand())
+                ])))),
         handle: IgnorePointer(
           ignoring: mode != _LayersMode.idleAtRoute,
           child: SizedBox(
-            height: kCollapsedHandleHeight,
+            height: kExpandedHandleHeight,
             child: Center(
               child: Stack(
                 children: <Widget>[
                   FadeTransition(
                     opacity: _hiddenHandleOpacity,
-                    child: _buildHandle(
-                        theming,
-                        hiddenComponents?.contentHandle ?? const SizedBox.expand())),
+                    child: hiddenComponents?.contentHandle ?? const SizedBox.expand()),
                   FadeTransition(
                     opacity: _visibleHandleOpacity,
-                    child: _buildHandle(
-                        theming,
-                        visibleComponents?.contentHandle ?? const SizedBox.expand()))
+                    child: visibleComponents?.contentHandle ?? const SizedBox.expand())
                 ])))),
         peekHandle: IgnorePointer(
           ignoring: mode != _LayersMode.idleAtRoot,
@@ -1269,9 +1261,7 @@ class _ContentLayer extends StatelessWidget {
             child: Center(
               child: FadeTransition(
                 opacity: _peekHandleOpacity,
-                child: _buildHandle(
-                    theming,
-                    peekHandle)))))));
+                child: peekHandle))))));
   }
 }
 
@@ -1425,6 +1415,7 @@ class _OptionsLayer extends StatelessWidget {
               animation: sheetPosition,
               mode: sheetMode,
               ignoreDrag: ignoreDrag,
+              bodyDecoration: _createSheetDecoration(theming),
               onDraggableExtent: onDraggableExtent,
               onDragStart: onDragStart,
               onDragUpdate: onDragUpdate,
@@ -1432,10 +1423,7 @@ class _OptionsLayer extends StatelessWidget {
               onDragCancel: onDragCancel,
               body: FadeTransition(
                 opacity: bodyOpacity,
-                child: IgnoredDecoration(
-                  decoration: BoxDecoration(
-                    color: theming.canvasColor),
-                  child: visibleComponents?.optionsBody ?? const SizedBox.expand())),
+                child: visibleComponents?.optionsBody ?? const SizedBox.expand()),
               handle: SizedBox(
                 height: kCollapsedHandleHeight,
                 child: Center(
@@ -1443,14 +1431,10 @@ class _OptionsLayer extends StatelessWidget {
                     children: <Widget>[
                       FadeTransition(
                         opacity: hiddenHandleOpacity,
-                        child: _buildHandle(
-                          theming,
-                          hiddenComponents?.optionsHandle ?? const SizedBox.expand())),
+                        child: hiddenComponents?.optionsHandle ?? const SizedBox.expand()),
                       FadeTransition(
                         opacity: visibleHandleOpacity,
-                        child: _buildHandle(
-                          theming,
-                          visibleComponents?.optionsHandle ?? const SizedBox.expand())),
+                        child: visibleComponents?.optionsHandle ?? const SizedBox.expand()),
                     ]))))))
       ]);
   }

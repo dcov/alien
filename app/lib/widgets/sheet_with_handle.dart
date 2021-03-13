@@ -13,7 +13,8 @@ class SheetWithHandle extends StatelessWidget {
     Key? key,
     required this.animation,
     required this.mode,
-    this.borderRadius = kDefaultBorderRadius,
+    this.bodyDecoration,
+    this.handleDecoration,
     required this.body,
     required this.handle,
     this.peekHandle,
@@ -31,7 +32,9 @@ class SheetWithHandle extends StatelessWidget {
   
   final SheetWithHandleMode mode;
 
-  final BorderRadius borderRadius;
+  final BoxDecoration? bodyDecoration;
+
+  final BoxDecoration? handleDecoration;
 
   final bool ignoreDrag;
 
@@ -51,6 +54,35 @@ class SheetWithHandle extends StatelessWidget {
 
   final Widget? peekHandle;
 
+  Widget _buildBody() {
+    if (bodyDecoration != null) {
+      return DecoratedBox(
+        decoration: bodyDecoration!,
+        child: body);
+    }
+
+    return body;
+  }
+
+  Widget _buildDrag() {
+    final child = IgnorePointer(
+      ignoring: ignoreDrag,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onVerticalDragStart: onDragStart,
+        onVerticalDragUpdate: onDragUpdate,
+        onVerticalDragEnd: onDragEnd,
+        onVerticalDragCancel: onDragCancel,
+        child: const SizedBox.expand()));
+    if (handleDecoration != null) {
+      return DecoratedBox(
+        decoration: handleDecoration!,
+        child: child);
+    }
+
+    return child;
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomMultiChildLayout(
@@ -61,33 +93,17 @@ class SheetWithHandle extends StatelessWidget {
       children: <Widget>[
         LayoutId(
           id: _SheetWithHandleLayoutSlot.body,
-          child: ClipRRect(
-            borderRadius: borderRadius,
-            child: body)),
+          child: _buildBody()),
         LayoutId(
           id: _SheetWithHandleLayoutSlot.drag,
-          child: ClipRRect(
-            borderRadius: borderRadius,
-            child: IgnorePointer(
-              ignoring: ignoreDrag,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onVerticalDragStart: onDragStart,
-                onVerticalDragUpdate: onDragUpdate,
-                onVerticalDragEnd: onDragEnd,
-                onVerticalDragCancel: onDragCancel,
-                child: const SizedBox.expand())))),
+          child: _buildDrag()),
         LayoutId(
           id: _SheetWithHandleLayoutSlot.handle,
-          child: ClipRRect(
-            borderRadius: borderRadius,
-            child: handle)),
+          child: handle),
         if (peekHandle != null)
           LayoutId(
             id: _SheetWithHandleLayoutSlot.peekHandle,
-            child: ClipRRect(
-              borderRadius: borderRadius,
-              child: peekHandle)),
+            child: peekHandle!),
       ]);
   }
 }
