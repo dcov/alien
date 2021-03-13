@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../utils/manual_value_notifier.dart';
 import '../utils/path_router.dart';
-import '../widgets/ignored_decoration.dart';
 import '../widgets/ltr_drag_detector.dart';
 import '../widgets/pressable.dart';
 import '../widgets/sheet_with_handle.dart';
@@ -20,7 +19,7 @@ BoxDecoration _createSheetDecoration(ThemingData theming) {
     border: Border.all(
       color: theming.borderColor,
       width: 0.5),
-    borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)));
+    borderRadius: const BorderRadius.vertical(top: Radius.circular(12.0)));
 }
 
 mixin _ShellChild {
@@ -1232,7 +1231,10 @@ class _ContentLayer extends StatelessWidget {
                     child: hiddenComponents?.contentBody),
                   SlideTransition(
                     position: _visibleBodyPosition,
-                    child: visibleComponents?.contentBody),
+                    child: Material(
+                      color: theming.canvasColor,
+                      elevation: 4.0,
+                      child: visibleComponents?.contentBody)),
                   LTRDragDetector(
                     onDragStart: onBodyDragStart,
                     onDragUpdate: onBodyDragUpdate,
