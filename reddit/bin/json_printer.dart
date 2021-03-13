@@ -59,13 +59,17 @@ void main() async {
 
   await _printJson(
       'user_subreddit_posts.json',
-      anon.getSubredditPosts('pics', Page(), SubredditSort.top, TimeSort.all));
+      user.getSubredditPosts('pics', Page(), SubredditSort.top, TimeSort.all));
 
   await _printJson(
-      'anon_post_comments.json',
-      anon.getPostComments(
+      'user_post_comments.json',
+      user.getPostComments(
           '/r/pics/comments/haucpf/ive_found_a_few_funny_memories_during_lockdown/',
           CommentsSort.best));
+
+  await _printJson(
+      'user_subscriptions.json',
+      user.getUserSubreddits(UserSubreddits.subscriber, Page(), true));
 
   print('json_printer turning off...');
 }

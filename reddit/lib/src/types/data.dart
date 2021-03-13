@@ -10,6 +10,33 @@ Map _extractData(dynamic obj) {
 
 Map _extractNothing(dynamic obj) => obj;
 
+List<T>? _castList<T>(List? list) =>
+  (list != null && list.isNotEmpty) ? list.cast<T>() : null;
+
+int? _parseNum(dynamic value) =>
+  value is num ? value.round() : null;
+
+String? _parseString(String? s, { Iterable<String>? exclude }) {
+  if (s?.isNotEmpty == true && exclude?.contains(s) != true) {
+    return s;
+  }
+
+  return null;
+}
+
+String? _parseImageUrl(String? url) {
+  return url?.isNotEmpty == true ? url!.split('?')[0] : null;
+}
+
+int? _parseColor(String? color) {
+  color = _parseString(color);
+  if (color != null) {
+    color = color.replaceFirst('#', '0xFF');
+    return int.tryParse(color);
+  }
+  return null;
+}
+
 class AccessTokenData {
 
   factory AccessTokenData.fromJson(String json) {
@@ -97,33 +124,6 @@ class MultiData {
       yield sub['name'] as String;
     }
   }
-}
-
-List<T>? _castList<T>(List? list) =>
-  (list != null && list.isNotEmpty) ? list.cast<T>() : null;
-
-int? _parseNum(dynamic value) =>
-  value is num ? value.round() : null;
-
-String? _parseString(String? s, { Iterable<String>? exclude }) {
-  if (s?.isNotEmpty == true && exclude?.contains(s) != true) {
-    return s;
-  }
-
-  return null;
-}
-
-String? _parseImageUrl(String? url) {
-  return url?.isNotEmpty == true ? url!.split('?')[0] : null;
-}
-
-int? _parseColor(String? color) {
-  color = _parseString(color);
-  if (color != null) {
-    color = color.replaceFirst('#', '0xFF');
-    return int.tryParse(color);
-  }
-  return null;
 }
 
 mixin ThingData {
@@ -616,9 +616,9 @@ class SubredditData with ThingData, CreatedData {
 
   bool get isPublic => (_data['subreddit_type'] == 'public');
 
-  int get keyColor => _parseColor(_data['key_color'])!;
+  int? get keyColor => _parseColor(_data['key_color']);
 
-  int get primaryColor => _parseColor(_data['primary_color'])!;
+  int? get primaryColor => _parseColor(_data['primary_color']);
 
   String get publicDescription => _data['public_description'];
 

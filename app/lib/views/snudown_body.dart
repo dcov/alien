@@ -4,28 +4,28 @@ import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/media.dart';
 import '../models/snudown.dart';
+import '../widgets/theming.dart';
 
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {
-  final ThemeData theme = Theme.of(context);
+  final theming = Theming.of(context);
   return MarkdownStyleSheet(
-    a: const TextStyle(
+    a: theming.bodyText.copyWith(
       color: Colors.blue,
       decoration: TextDecoration.underline),
-    p: theme.textTheme.bodyText2,
-    code: TextStyle(
-      color: Colors.grey.shade700,
-      fontFamily: "monospace",
-      fontSize: theme.textTheme.bodyText2!.fontSize! * 0.85),
-    h1: theme.textTheme.headline5,
-    h2: theme.textTheme.headline6,
-    h3: theme.textTheme.subtitle1,
-    h4: theme.textTheme.bodyText1,
-    h5: theme.textTheme.bodyText1,
-    h6: theme.textTheme.bodyText1,
-    em: const TextStyle(fontStyle: FontStyle.italic),
-    strong: const TextStyle(fontWeight: FontWeight.bold),
-    blockquote: theme.textTheme.bodyText2,
-    img: theme.textTheme.bodyText2,
+    p: theming.bodyText,
+    code: theming.bodyText.copyWith(
+      color: Colors.grey[600]!,
+      fontFamily: "monospace"),
+    h1: theming.headerText.apply(fontSizeFactor: 4.0),
+    h2: theming.headerText.apply(fontSizeFactor: 3.5),
+    h3: theming.headerText.apply(fontSizeFactor: 3.0),
+    h4: theming.headerText.apply(fontSizeFactor: 2.5),
+    h5: theming.headerText.apply(fontSizeFactor: 2.0),
+    h6: theming.headerText.apply(fontSizeFactor: 1.5),
+    em: theming.bodyText.copyWith(fontStyle: FontStyle.italic),
+    strong: theming.bodyText.copyWith(fontWeight: FontWeight.w600),
+    blockquote: theming.bodyText,
+    img: theming.bodyText,
     blockSpacing: 8.0,
     listIndent: 32.0,
     blockquotePadding: EdgeInsets.all(8.0),

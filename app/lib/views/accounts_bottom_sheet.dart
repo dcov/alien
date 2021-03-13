@@ -85,7 +85,8 @@ class _AccountTile extends StatelessWidget {
                 padding: EdgeInsets.only(left: 16.0),
                 child: PressableIcon(
                   onPress: onRemove!,
-                  icon: Icons.close))
+                  icon: Icons.close,
+                  iconColor: Colors.grey))
           ])));
   }
 }

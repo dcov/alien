@@ -1,8 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:muex/muex.dart';
 import 'package:muex_flutter/muex_flutter.dart';
-import 'package:reddit/reddit.dart' show SubredditSort, TimeSort;
+import 'package:reddit/reddit.dart' show SubredditSort;
 
 import '../logic/subreddit_posts.dart';
 import '../logic/thing.dart';
@@ -12,10 +11,32 @@ import '../models/subreddit.dart';
 import '../widgets/content_handle.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
+import '../widgets/theming.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_tile.dart';
-import 'sort_bottom_sheet.dart';
+
+IconData _determineSortIcon(SubredditSort sortBy) {
+    switch (sortBy) {
+      case SubredditSort.hot:
+        return Icons.whatshot;
+      case SubredditSort.newest:
+        return Icons.fiber_new;
+      case SubredditSort.top:
+        return Icons.bar_chart;
+      case SubredditSort.controversial:
+        return Icons.face;
+      case SubredditSort.rising:
+        return Icons.trending_up;
+    }
+    return Icons.sort;
+}
+
+Color _determinePrimaryColor(ThemingData theming, Subreddit subreddit) {
+  if (subreddit.primaryColor != null)
+    return Color(subreddit.primaryColor!);
+  return theming.altCanvasColor;
+}
 
 class SubredditRoute extends ShellRoute {
 
@@ -26,8 +47,6 @@ class SubredditRoute extends ShellRoute {
   final Subreddit subreddit;
 
   late final SubredditPosts _posts;
-
-  late Connection _connection;
 
   static void goTo(BuildContext context, Subreddit subreddit, String pathPrefix) {
     context.goTo(
@@ -51,88 +70,49 @@ class SubredditRoute extends ShellRoute {
         sortBy: SubredditSort.hot)));
   }
 
-  ContentHandleItem _buildSortItem() {
-    late IconData icon;
-    late Color color;
-    switch (_posts.sortBy) {
-      case SubredditSort.hot:
-        icon = Icons.whatshot;
-        color = Colors.red;
-        break;
-      case SubredditSort.newest:
-        icon = Icons.new_releases;
-        color = Colors.blue;
-        break;
-      case SubredditSort.top:
-        icon = Icons.bar_chart;
-        color = Colors.amber.shade300;
-        break;
-      case SubredditSort.controversial:
-        icon = Icons.face;
-        color = Colors.grey;
-        break;
-      case SubredditSort.rising:
-        icon = Icons.trending_up;
-        color = Colors.red.shade100;
-    }
-    return ContentHandleItem(
-      icon: icon,
-      color: color,
-      text: _posts.sortBy.name.toUpperCase(),
-      onTap: () {
-      });
-  }
-
   @override
   RouteComponents build(BuildContext context) {
+    final theming = Theming.of(context);
+    final primaryColor = _determinePrimaryColor(theming, subreddit);
     return RouteComponents(
-      titleDecoration: _buildTitleDecoration(context, subreddit),
+      titleDecoration: _buildTitleDecoration(theming, subreddit),
       titleMiddle: Text(
         subreddit.name,
-        style: TextStyle(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w500)),
+        style: theming.headerText),
       contentHandle: ContentHandle(
+        iconColor: primaryColor,
         items: <ContentHandleItem>[
-          _buildSortItem()
+          ContentHandleItem(
+            icon: _determineSortIcon(_posts.sortBy),
+            text: _posts.sortBy.name.toUpperCase(),
+            onTap: () {
+            })
         ]),
       contentBody: _ContentBody(
         key: ValueKey(path),
         posts: _posts,
         postPathPrefix: childPathPrefix),
-      optionsHandle: Stack(
-        children: <Widget>[
-          IgnorePointer(
-            ignoring: true,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    width: 0.0,
-                    color: Colors.grey))),
-              child: SizedBox.expand())),
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                PressableIcon(
-                  icon: Icons.sort,
-                  iconColor: Colors.grey)
-              ])),
-        ]),
-      optionsBody: Material());
+      optionsHandle: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            PressableIcon(
+              icon: Icons.sort,
+              iconColor: theming.iconColor)
+          ])),
+      optionsBody: const SizedBox());
   }
 }
 
 BoxDecoration _buildTitleDecoration(
-    BuildContext context,
+    ThemingData theming,
     Subreddit subreddit
   ) {
   Color color;
   if (subreddit.bannerBackgroundColor != null) {
     color = Color(subreddit.bannerBackgroundColor!);
   } else {
-    color = Theme.of(context).canvasColor;
+    color = theming.canvasColor;
   }
 
   DecorationImage? image;
@@ -161,49 +141,19 @@ class _ContentBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: ListingScrollView(
-        listing: posts.listing,
-        onTransitionListing: (ListingStatus to) {
-          context.then(
-            Then(TransitionSubredditPosts(
-              posts: posts,
-              to: to)));
-        },
-        thingBuilder: (BuildContext context, Post post) {
-          return PostTile(
-            post: post,
-            pathPrefix: postPathPrefix,
-            includeSubredditName: false);
-        },
-        scrollViewBuilder: (BuildContext context, ScrollController controller, Widget refreshSliver, Widget listSliver) {
-          return CustomScrollView(
-            controller: controller,
-            slivers: <Widget>[
-              refreshSliver,
-              Connector(
-                builder: (BuildContext context) {
-                  return SortSliver(
-                    sortArgs: const <SubredditSort>[
-                      SubredditSort.hot,
-                      SubredditSort.newest,
-                      SubredditSort.controversial,
-                      SubredditSort.top,
-                      SubredditSort.rising
-                    ],
-                    currentSortBy: posts.sortBy,
-                    currentSortFrom: posts.sortFrom,
-                    onSort: (SubredditSort sortBy, TimeSort? sortFrom) {
-                      context.then(
-                        Then(TransitionSubredditPosts(
-                          posts: posts,
-                          to: ListingStatus.refreshing,
-                          sortBy: sortBy,
-                          sortFrom: sortFrom)));
-                    });
-                }),
-              listSliver
-            ]);
-        }));
+    return ListingScrollView(
+      listing: posts.listing,
+      onTransitionListing: (ListingStatus to) {
+        context.then(
+          Then(TransitionSubredditPosts(
+            posts: posts,
+            to: to)));
+      },
+      thingBuilder: (BuildContext context, Post post) {
+        return PostTile(
+          post: post,
+          pathPrefix: postPathPrefix,
+          includeSubredditName: false);
+      });
   }
 }

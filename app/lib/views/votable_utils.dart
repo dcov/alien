@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
-import '../models/votable.dart';
+TextStyle applyVoteDirColorToText(TextStyle parentStyle, VoteDir voteDir) {
+  return voteDir == VoteDir.none
+      ? parentStyle
+      : parentStyle.copyWith(color: getVoteDirColor(voteDir));
+}
 
 Color getVoteDirColor(VoteDir voteDir, [Color defaultColor = Colors.black54]) {
   switch (voteDir) {
@@ -13,8 +17,4 @@ Color getVoteDirColor(VoteDir voteDir, [Color defaultColor = Colors.black54]) {
       return defaultColor;
   }
   throw ArgumentError('$voteDir was not a valid value.');
-}
-
-Color getVotableColor(Votable votable, [Color defaultColor = Colors.black54]) {
-  return getVoteDirColor(votable.voteDir);
 }

@@ -55,4 +55,9 @@ extension RawRedditEndpoints on RedditClient {
   Future<String> getPostComments(String permalink, CommentsSort sortBy) {
     return get('/${permalink}/${kJsonArgs}&sort=${sortBy}');
   }
+
+  Future<String> getUserSubreddits(UserSubreddits where, Page page, bool includeCategories) {
+    return get('/subreddits/mine/${where}/?${page}'
+               '&include_categories=${includeCategories}');
+  }
 }

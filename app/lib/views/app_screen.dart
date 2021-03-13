@@ -10,6 +10,7 @@ import '../widgets/icons.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
 import '../widgets/sublist_header.dart';
+import '../widgets/theming.dart';
 import '../widgets/toolbar.dart';
 
 class AppScreen extends StatelessWidget {
@@ -26,7 +27,7 @@ class AppScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theming = Theming.of(context);
     return Connector(
       builder: (BuildContext context) {
         final children = <Widget>[];
@@ -58,15 +59,16 @@ class AppScreen extends StatelessWidget {
           children: <Widget>[
             DecoratedBox(
               decoration: BoxDecoration(
+                color: theming.canvasColor,
                 border: Border(
                   bottom: BorderSide(
                     width: 0.5,
-                    color: theme.dividerColor))),
+                    color: theming.borderColor))),
               child: Toolbar(
-                trailing: PressableIcon(
+                leading: PressableIcon(
                   onPress: () {},
                   icon: Icons.settings,
-                  iconColor: theme.disabledColor,
+                  iconColor: theming.iconColor,
                   padding: EdgeInsets.symmetric(
                     vertical: 12.0,
                     horizontal: 16.0)))),
@@ -122,8 +124,10 @@ abstract class _RouteTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
+    final theming = Theming.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theming.canvasColor),
       child: Pressable(
         onPress: () => onGoTo(context),
         child: Padding(
@@ -133,12 +137,12 @@ abstract class _RouteTile extends StatelessWidget {
             children: <Widget>[
               icon,
               Padding(
-                padding: EdgeInsets.only(left: 12.0),
+                padding: const EdgeInsets.only(left: 12.0),
                 child: Text(
                   title,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.button))
+                  style: theming.titleText))
             ]))));
   }
 }
@@ -152,7 +156,6 @@ class _SubredditTile extends _RouteTile {
     required Subreddit subreddit,
     required String pathPrefix,
   }) {
-
     Widget icon;
     if (subreddit.iconImageUrl != null) {
       icon = CircleAvatar(
@@ -166,14 +169,14 @@ class _SubredditTile extends _RouteTile {
     }
 
     return _SubredditTile._(
-        key: key,
-        depth: depth,
-        active: active,
-        icon: icon,
-        title: subreddit.name,
-        onGoTo: (BuildContext context) {
-          SubredditRoute.goTo(context, subreddit, pathPrefix);
-        });
+      key: key,
+      depth: depth,
+      active: active,
+      icon: icon,
+      title: subreddit.name,
+      onGoTo: (BuildContext context) {
+        SubredditRoute.goTo(context, subreddit, pathPrefix);
+      });
   }
 
   _SubredditTile._({

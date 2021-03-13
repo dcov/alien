@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -10,22 +8,21 @@ import '../widgets/ltr_drag_detector.dart';
 import '../widgets/pressable.dart';
 import '../widgets/rrect_top_border.dart';
 import '../widgets/sheet_with_handle.dart';
+import '../widgets/theming.dart';
 import '../widgets/toolbar.dart';
 import '../widgets/widget_extensions.dart';
 
-const kExpandedHandleHeight = 40.0;
+// const kExpandedHandleHeight = 40.0;
 const kCollapsedHandleHeight = 48.0;
 
-Widget _buildHandleWithDecoration(BuildContext context, Widget child, { required bool bottomBorder }) {
+Widget _buildHandle(ThemingData theming, Widget child) {
   return IgnoredDecoration(
     decoration: BoxDecoration(
-      color: Theme.of(context).canvasColor,
-      border: !bottomBorder
-        ? null
-        : Border(
-            bottom: BorderSide(
-              width: 0.0,
-              color: Colors.grey))),
+      color: theming.canvasColor,
+      border: Border.all(
+        color: theming.borderColor,
+        width: 0.5),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0))),
     child: child);
 }
 
@@ -916,6 +913,7 @@ class _TitleLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theming = Theming.of(context);
     return FadeTransition(
       opacity: _layerOpacity,
       child: DecoratedBoxTransition(
@@ -933,7 +931,7 @@ class _TitleLayer extends StatelessWidget {
                   turns: _rotation,
                   child: Icon(
                     Icons.arrow_back_ios_rounded,
-                    color: Colors.black)))),
+                    color: theming.iconColor)))),
             middle: Stack(
               children: <Widget>[
                 FadeTransition(
@@ -1208,6 +1206,7 @@ class _ContentLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theming = Theming.of(context);
     return Padding(
       padding: EdgeInsets.only(
         top: context.mediaPadding.top + Toolbar.kHeight),
@@ -1220,14 +1219,15 @@ class _ContentLayer extends StatelessWidget {
         onDragUpdate: onSheetDragUpdate,
         onDragEnd: onSheetDragEnd,
         onDragCancel: onSheetDragCancel,
-        body: Material(
-          child: IgnorePointer(
-            ignoring: _ignoreBodyDrag,
-            child: IgnoredDecoration(
-              decoration: BoxDecoration(
-                color: Theme.of(context).canvasColor),
-              child: FadeTransition(
-                opacity: _bodyOpacity,
+        body: IgnorePointer(
+          ignoring: _ignoreBodyDrag,
+          child: IgnoredDecoration(
+            decoration: BoxDecoration(
+              color: theming.canvasColor),
+            child:FadeTransition(
+              opacity: _bodyOpacity,
+              child: Padding(
+                padding: const EdgeInsets.only(top: kCollapsedHandleHeight),
                 child: Stack(
                   key: bodyKey,
                   children: <Widget>[
@@ -1247,38 +1247,31 @@ class _ContentLayer extends StatelessWidget {
         handle: IgnorePointer(
           ignoring: mode != _LayersMode.idleAtRoute,
           child: SizedBox(
-            height: kExpandedHandleHeight,
+            height: kCollapsedHandleHeight,
             child: Center(
               child: Stack(
                 children: <Widget>[
                   FadeTransition(
                     opacity: _hiddenHandleOpacity,
-                    child: _buildHandleWithDecoration(
-                      context,
-                      hiddenComponents?.contentHandle ?? const SizedBox.expand(),
-                      bottomBorder: true)),
+                    child: _buildHandle(
+                        theming,
+                        hiddenComponents?.contentHandle ?? const SizedBox.expand())),
                   FadeTransition(
                     opacity: _visibleHandleOpacity,
-                    child: _buildHandleWithDecoration(
-                      context,
-                      visibleComponents?.contentHandle ?? const SizedBox.expand(),
-                      bottomBorder: true))
+                    child: _buildHandle(
+                        theming,
+                        visibleComponents?.contentHandle ?? const SizedBox.expand()))
                 ])))),
         peekHandle: IgnorePointer(
           ignoring: mode != _LayersMode.idleAtRoot,
           child: SizedBox(
             height: kCollapsedHandleHeight,
-            child: RRectTopBorder(
-              radius: 16.0,
-              width: 0.0,
-              color: Colors.grey,
-              child: Center(
-                child: FadeTransition(
-                  opacity: _peekHandleOpacity,
-                  child: _buildHandleWithDecoration(
-                    context,
-                    peekHandle,
-                    bottomBorder: false))))))));
+            child: Center(
+              child: FadeTransition(
+                opacity: _peekHandleOpacity,
+                child: _buildHandle(
+                    theming,
+                    peekHandle)))))));
   }
 }
 
@@ -1410,6 +1403,8 @@ class _OptionsLayer extends StatelessWidget {
         break;
     }
 
+    final theming = Theming.of(context);
+
     return Stack(
       children: <Widget>[
         IgnorePointer(
@@ -1419,7 +1414,7 @@ class _OptionsLayer extends StatelessWidget {
             child: FadeTransition(
               opacity: barrierOpacity,
               child: DecoratedBox(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.black54),
                 child: SizedBox.expand())))),
         Align(
@@ -1437,29 +1432,26 @@ class _OptionsLayer extends StatelessWidget {
               onDragCancel: onDragCancel,
               body: FadeTransition(
                 opacity: bodyOpacity,
-                child: visibleComponents?.optionsBody),
+                child: IgnoredDecoration(
+                  decoration: BoxDecoration(
+                    color: theming.canvasColor),
+                  child: visibleComponents?.optionsBody ?? const SizedBox.expand())),
               handle: SizedBox(
                 height: kCollapsedHandleHeight,
-                child: RRectTopBorder(
-                  radius: 16.0,
-                  width: 0.0,
-                  color: Colors.grey,
-                  child: Center(
-                    child: Stack(
-                      children: <Widget>[
-                        FadeTransition(
-                          opacity: hiddenHandleOpacity,
-                          child: _buildHandleWithDecoration(
-                            context,
-                            hiddenComponents?.optionsHandle ?? const SizedBox.expand(),
-                            bottomBorder: false)),
-                        FadeTransition(
-                          opacity: visibleHandleOpacity,
-                          child: _buildHandleWithDecoration(
-                            context,
-                            visibleComponents?.optionsHandle ?? const SizedBox.expand(),
-                            bottomBorder: false)),
-                      ])))))))
+                child: Center(
+                  child: Stack(
+                    children: <Widget>[
+                      FadeTransition(
+                        opacity: hiddenHandleOpacity,
+                        child: _buildHandle(
+                          theming,
+                          hiddenComponents?.optionsHandle ?? const SizedBox.expand())),
+                      FadeTransition(
+                        opacity: visibleHandleOpacity,
+                        child: _buildHandle(
+                          theming,
+                          visibleComponents?.optionsHandle ?? const SizedBox.expand())),
+                    ]))))))
       ]);
   }
 }

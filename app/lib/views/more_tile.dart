@@ -5,6 +5,7 @@ import '../logic/post_comments.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
 import '../widgets/pressable.dart';
+import '../widgets/theming.dart';
 
 class MoreTile extends StatelessWidget {
 
@@ -18,30 +19,31 @@ class MoreTile extends StatelessWidget {
 
   final More more;
 
+  void _dispatchLoadMoreComments(BuildContext context) {
+    context.then(
+      Then(LoadMoreComments(
+        comments: comments,
+        more: more)));
+  }
+
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context) {
-
-      void dispatchLoadMoreComments() {
-        context.then(
-          Then(LoadMoreComments(
-            comments: comments,
-            more: more)));
-      }
-
-      final style = TextStyle(
-        fontSize: 12.0,
-        color: Colors.black54);
-
-      return Padding(
-        padding: EdgeInsets.only(left: (more.depth * 16.0) + 1),
-        child: Material(
-          child: Pressable(
-            onPress: !more.isLoading ? dispatchLoadMoreComments : () { },
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: !more.isLoading
-                ? Text('load ${more.count} comments', style: style)
-                : Text('loading...', style: style)))));
-    });
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
+    return Connector(
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(left: (more.depth * 16.0) + 1),
+          child: Material(
+            color: theming.canvasColor,
+            child: Pressable(
+              onPress: !more.isLoading
+                  ? () => _dispatchLoadMoreComments(context)
+                  : null,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: !more.isLoading
+                  ? Text('load ${more.count} comments', style: theming.detailText)
+                  : Text('loading...', style: theming.detailText)))));
+      });
+  }
 }

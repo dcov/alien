@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import '../models/app.dart';
 import '../utils/path_router.dart';
 import '../views/app_screen.dart';
-import '../widgets/ignored_decoration.dart';
 import '../widgets/shell.dart';
+import '../widgets/theming.dart';
 
 class AppLayer extends ShellRoot {
 
@@ -47,29 +47,29 @@ class _AppHandle extends StatelessWidget {
   final ValueListenable<List<ShellRoute>> stack;
 
   @override
-  Widget build(_) {
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
     return ValueListenableBuilder(
       valueListenable: stack,
       builder: (BuildContext context, List<ShellRoute> stack, _) {
-        return IgnoredDecoration(
-          decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              if (stack.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    context.makeRouteVisible();
-                  },
-                  child: Center(
-                    child: Transform(
-                      transform: Matrix4.rotationZ(1/4 * math.pi * 2.0),
-                      alignment: Alignment.center,
-                      child: Icon(Icons.arrow_back_ios)))),
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            if (stack.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  context.makeRouteVisible();
+                },
+                child: Center(
+                  child: Transform(
+                    transform: Matrix4.rotationZ(math.pi * 0.5),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.arrow_back_ios,
+                      color: theming.iconColor)))),
 
-            ]));
+          ]);
       });
   }
 }

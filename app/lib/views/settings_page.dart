@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info/package_info.dart';
 
-import '../widgets/draggable_page_route.dart';
 import '../widgets/pressable.dart';
 import '../widgets/widget_extensions.dart';
 
@@ -49,11 +48,11 @@ class _OptionTile extends StatelessWidget {
 }
 
 void _showLicensePage({ required BuildContext context }) {
-  context.rootNavigator.push(
+  /*context.rootNavigator.push(
     DraggablePageRoute(
       builder: (_) {
         return LicensePage();
-      }));
+      }));*/
 }
 
 class _AboutPageView extends StatelessWidget {
@@ -128,13 +127,13 @@ class _AboutPageView extends StatelessWidget {
 }
 
 void _showAboutPage({ required BuildContext context }) {
-  final packageInfoFuture = PackageInfo.fromPlatform();
+  /*final packageInfoFuture = PackageInfo.fromPlatform();
   context.rootNavigator.push(
     DraggablePageRoute(
       builder: (_) {
         return _AboutPageView(
           packageInfo: packageInfoFuture);
-      }));
+      }));*/
 }
 
 class _SettingsPageView extends StatelessWidget {
@@ -175,7 +174,7 @@ class _SettingsPageView extends StatelessWidget {
 }
 
 void showSettingsPage({ required BuildContext context }) {
-  context.rootNavigator.push(
+  /*context.rootNavigator.push(
     DraggablePageRoute(
-      builder: (_) => _SettingsPageView()));
+      builder: (_) => _SettingsPageView()));*/
 }

@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/app.dart';
+import '../views/app_layer.dart';
+import '../views/themer.dart';
 import '../widgets/scroll_configuration.dart';
 import '../widgets/shell.dart';
 import '../widgets/splash_screen.dart';
-import '../widgets/theme.dart';
-
-import 'app_layer.dart';
+import '../widgets/theming.dart';
 
 /// The root view in the tree.
 ///
@@ -39,35 +39,32 @@ class _InitViewState extends State<InitView> {
 
     return Connector(
       builder: (BuildContext context) {
-        final App app = context.state as App;
-
+        final app = context.state as App;
         final initialized = app.initialized;
         final theme = app.theme;
 
-        if (initialized) {
+        if (!initialized) {
           // TODO: use the native platform splash screen functionality instead
           return SplashScreen();
         }
 
-        CustomThemeData themeData;
-        switch (theme) {
-          case AppTheme.dark:
-            themeData = CustomThemeData.dark();
-            break;
-        }
-
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          theme: ThemeData.dark(),
           builder: (_, Widget? child) {
-            return CustomTheme(
-              themeData: themeData,
+            return Themer(
+              theme: theme,
               child: child!);
           },
           home: ScrollConfiguration(
             behavior: CustomScrollBehavior(),
-            child: Material(
-              child: Shell(
-                root: _appLayer))));
+            child: Builder(
+              builder: (BuildContext context) {
+                return Material(
+                  color: Theming.of(context).canvasColor,
+                  child: Shell(
+                    root: _appLayer));
+              })));
       });
   }
 }

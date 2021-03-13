@@ -10,6 +10,7 @@ import '../widgets/circle_divider.dart';
 import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
 import '../widgets/slidable.dart';
+import '../widgets/theming.dart';
 
 import 'snudown_body.dart';
 import 'view_extensions.dart';
@@ -60,18 +61,19 @@ class CommentTile extends StatelessWidget {
 
   final VoidCallback? onUncollapse;
 
-  Color get _authorColor {
+  TextStyle _determineAuthorStyle(ThemingData theming) {
     if (comment.distinguishment == "moderator") {
-       return Colors.green;
+      return theming.detailText.copyWith(color: Colors.lightGreen);
     } else if (comment.isSubmitter) {
-      return Colors.blue.shade900.withAlpha((80/100*255).round());
+      return theming.detailText.copyWith(color: Colors.lightBlue);
     } else {
-      return Colors.black54;
+      return theming.detailText;
     }
   }
 
-  Widget _addInsets(Widget child) {
+  Widget _addInsets(ThemingData theming, Widget child) {
     child = Material(
+      color: theming.canvasColor,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
         child: child));
@@ -85,109 +87,99 @@ class CommentTile extends StatelessWidget {
   }
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context) {
-      if (collapsed) {
-        return _addInsets(Pressable(
-          onPress: onUncollapse!,
-          onLongPress: onCollapseToRoot!,
-          child: Wrap(
-            spacing: 4.0,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: HorizontalCircleDivider.divide(<Widget>[
-              Text(
-                'u/${comment.authorName}',
-                style: TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.black54)),
-              Text(
-                formatElapsedUtc(comment.createdAtUtc),
-                style: TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.black54)),
-              Text(
-                '[+]',
-                style: TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.black54))
-            ]))));
-      }
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
+    return Connector(
+      builder: (BuildContext context) {
+        if (collapsed) {
+          return _addInsets(
+            theming,
+            Pressable(
+              onPress: onUncollapse!,
+              onLongPress: onCollapseToRoot!,
+              child: Wrap(
+                spacing: 4.0,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: HorizontalCircleDivider.divide(<Widget>[
+                  Text(
+                    'u/${comment.authorName}',
+                    style: theming.detailText),
+                  Text(
+                    formatElapsedUtc(comment.createdAtUtc),
+                    style: theming.detailText),
+                  Text(
+                    '[+]',
+                    style: theming.detailText)
+                ]))));
+          }
 
-      Widget child = Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Wrap(
-            spacing: 4.0,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: HorizontalCircleDivider.divide(<Widget>[
-              Text(
-                'u/${comment.authorName}',
-                style: TextStyle(
-                  fontSize: 12.0,
-                  color: _authorColor)),
-              Text(
-                formatElapsedUtc(comment.createdAtUtc),
-                style: TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.black54)),
-              Text(
-                '${formatCount(comment.score)} points',
-                style: TextStyle(
-                  fontSize: 12.0,
-                  color: getVotableColor(comment))),
-              if (comment.editedAtUtc != null)
+        Widget child = Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Wrap(
+              spacing: 4.0,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: HorizontalCircleDivider.divide(<Widget>[
                 Text(
-                  'edited ${formatElapsedUtc(comment.editedAtUtc!)}',
-                  style: TextStyle(
-                    fontSize: 12.0,
-                    fontStyle: FontStyle.italic,
-                    color: Colors.black54)),
-            ])),
-          Padding(
-            padding: const EdgeInsets.only(top: 2.0),
-            child: SnudownBody(
-              snudown: comment.body,
-              scrollable: false))
-        ]);
+                  'u/${comment.authorName}',
+                  style: _determineAuthorStyle(theming)),
+                Text(
+                  formatElapsedUtc(comment.createdAtUtc),
+                  style: theming.detailText),
+                Text(
+                  '${formatCount(comment.score)} points',
+                  style: applyVoteDirColorToText(theming.detailText, comment.voteDir)),
+                if (comment.editedAtUtc != null)
+                  Text(
+                    'edited ${formatElapsedUtc(comment.editedAtUtc!)}',
+                    style: theming.detailText.copyWith(fontStyle: FontStyle.italic)),
+              ])),
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: SnudownBody(
+                snudown: comment.body,
+                scrollable: false))
+          ]);
 
-      if (onCollapse != null) {
-        child = Pressable(
-          onLongPress: onCollapse!,
-          child: child);
-      }
+        if (onCollapse != null) {
+          child = Pressable(
+            onLongPress: onCollapse!,
+            child: child);
+        }
 
-      return Slidable(
-        actions: <SlidableAction>[
-          if (context.userIsSignedIn)
-            ...[
-              SlidableAction(
-                onTriggered: () {
-                  context.then(Then(Upvote(votable: comment)));
-                },
-                icon: Icons.arrow_upward_rounded,
-                iconColor: Colors.white,
-                backgroundColor: getVoteDirColor(VoteDir.up),
-                preBackgroundColor: Colors.grey),
-              SlidableAction(
-                onTriggered: () {
-                  context.then(Then(Downvote(votable: comment)));
-                },
-                icon: Icons.arrow_downward,
-                iconColor: Colors.white,
-                backgroundColor: getVoteDirColor(VoteDir.down)),
-            ],
-          SlidableAction(
-            onTriggered: () {
-              _showCommentOptionsBottomSheet(
-                context: context,
-                comment: comment);
-            },
-            icon: Icons.more_horiz,
-            iconColor: Colors.white,
-            backgroundColor: Colors.black54,
-            preBackgroundColor: Colors.grey)
-        ],
-        child: _addInsets(child));
-    });
+        return Slidable(
+          actions: <SlidableAction>[
+            if (context.userIsSignedIn)
+              ...[
+                SlidableAction(
+                  onTriggered: () {
+                    context.then(Then(Upvote(votable: comment)));
+                  },
+                  icon: Icons.arrow_upward_rounded,
+                  iconColor: Colors.white,
+                  backgroundColor: getVoteDirColor(VoteDir.up),
+                  preBackgroundColor: theming.altCanvasColor),
+                SlidableAction(
+                  onTriggered: () {
+                    context.then(Then(Downvote(votable: comment)));
+                  },
+                  icon: Icons.arrow_downward,
+                  iconColor: Colors.white,
+                  backgroundColor: getVoteDirColor(VoteDir.down)),
+              ],
+            SlidableAction(
+              onTriggered: () {
+                _showCommentOptionsBottomSheet(
+                  context: context,
+                  comment: comment);
+              },
+              icon: Icons.more_horiz,
+              iconColor: Colors.white,
+              backgroundColor: theming.canvasColor,
+              preBackgroundColor: theming.altCanvasColor)
+          ],
+          child: _addInsets(theming, child));
+      });
+  }
 }

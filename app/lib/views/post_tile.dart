@@ -15,6 +15,7 @@ import '../widgets/custom_render_object.dart';
 import '../widgets/options_bottom_sheet.dart';
 import '../widgets/pressable.dart';
 import '../widgets/slidable.dart';
+import '../widgets/theming.dart';
 
 void _showPostOptionsBottomSheet({
     required BuildContext context,
@@ -152,15 +153,16 @@ class PostTile extends StatelessWidget {
   final bool includeSubredditName;
 
   @override
-  Widget build(_) {
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
     return Connector(
       builder: (BuildContext context) {
         return DecoratedBox(
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                width: 0.0,
-                color: Colors.grey.shade800))),
+                width: 0.5,
+                color: theming.dividerColor))),
           child: Slidable(
             actions: <SlidableAction>[
               if (context.userIsSignedIn)
@@ -172,7 +174,7 @@ class PostTile extends StatelessWidget {
                     icon: Icons.arrow_upward,
                     iconColor: Colors.white,
                     backgroundColor: getVoteDirColor(VoteDir.up),
-                    preBackgroundColor: Colors.grey),
+                    preBackgroundColor: theming.dividerColor),
                   SlidableAction(
                     onTriggered: () {
                       context.then(Then(Downvote(votable: post)));
@@ -190,7 +192,7 @@ class PostTile extends StatelessWidget {
                 icon: Icons.more_horiz,
                 iconColor: Colors.white,
                 backgroundColor: Colors.black54,
-                preBackgroundColor: Colors.grey)
+                preBackgroundColor: theming.dividerColor)
             ],
             child: Pressable(
               behavior: HitTestBehavior.opaque,
@@ -207,12 +209,11 @@ class PostTile extends StatelessWidget {
                 child: _PostTileLayout(
                   title: Text(
                     post.title,
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.normal,
-                      color: post.hasBeenViewed ? Colors.black54 : Colors.black)),
+                    style: (post.hasBeenViewed)
+                        ? theming.disabledTitleText
+                        : theming.titleText),
                   details: Padding(
-                    padding: EdgeInsets.only(top: 4.0),
+                    padding: const EdgeInsets.only(top: 4.0),
                     child: Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 4.0,
@@ -220,29 +221,19 @@ class PostTile extends StatelessWidget {
                         if (includeSubredditName)
                           Text(
                             'r/${post.subredditName}',
-                            style: TextStyle(
-                              fontSize: 12.0,
-                              color: Colors.black54)),
+                            style: theming.detailText),
                         Text(
                           'u/${post.authorName}',
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            color: Colors.black54)),
+                          style: theming.detailText),
                         Text(
                           formatElapsedUtc(post.createdAtUtc),
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            color: Colors.black54)),
+                          style: theming.detailText),
                         Text(
                           '${formatCount(post.score)} points',
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            color: getVotableColor(post))),
+                          style: applyVoteDirColorToText(theming.detailText, post.voteDir)),
                         Text(
                           '${formatCount(post.commentCount)} comments',
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            color: Colors.black54))
+                          style: theming.detailText)
                       ]))),
                   thumbnail: post.media != null
                       ? Padding(

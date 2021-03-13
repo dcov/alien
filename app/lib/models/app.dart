@@ -1,10 +1,10 @@
 import 'package:muex/muex.dart';
 
-import 'accounts.dart';
-import 'auth.dart';
-import 'feed.dart';
-import 'refreshable.dart';
-import 'subreddit.dart';
+import '../models/accounts.dart';
+import '../models/auth.dart';
+import '../models/feed.dart';
+import '../models/refreshable.dart';
+import '../models/subreddit.dart';
 
 part 'app.g.dart';
 
@@ -28,7 +28,7 @@ abstract class App implements Model, AccountsOwner, AuthOwner {
   set initialized(bool value);
 
   AppTheme get theme;
-  set theme(AppTheme value);
+  set theme(AppTheme theme);
 
   List<Feed> get feeds;
 
