@@ -40,9 +40,13 @@ class PostRoute extends ShellRoute {
   final Post post;
   late PostComments _comments;
 
-  static void goTo(BuildContext context, Post post, String pathPrefix) {
+  static String pathFrom(Post post, String pathPrefix) {
+    return '$pathPrefix${post.fullId}';
+  }
+
+  static void goTo(BuildContext context, Post post, String path) {
     context.goTo(
-      '$pathPrefix${post.fullId}',
+      path,
       onCreateRoute: () {
         return PostRoute(post: post);
       },

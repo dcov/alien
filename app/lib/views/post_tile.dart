@@ -200,7 +200,7 @@ class PostTile extends StatelessWidget {
                 PostRoute.goTo(
                   context,
                   post,
-                  pathPrefix);
+                  PostRoute.pathFrom(post, pathPrefix));
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(

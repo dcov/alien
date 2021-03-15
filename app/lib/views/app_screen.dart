@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/app.dart';
+import '../models/post.dart';
 import '../models/subreddit.dart';
 import '../utils/path_router.dart';
+import '../views/post_route.dart';
 import '../views/subreddit_route.dart';
 import '../widgets/icons.dart';
 import '../widgets/pressable.dart';
@@ -25,6 +27,13 @@ class AppScreen extends StatelessWidget {
 
   final Map<String, PathNode<ShellRoute>> nodes;
 
+  Widget _maybeBuildRouteTree(String rootPath, Widget nonTreeTileBuilder()) {
+    if (nodes.containsKey(rootPath)) {
+      return _RouteTreeTile(children: _buildNode(nodes[rootPath]!, 0));
+    }
+    return nonTreeTileBuilder();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theming = Theming.of(context);
@@ -37,22 +46,20 @@ class AppScreen extends StatelessWidget {
           children.add(SublistHeader(name: 'DEFAULTS'));
           children.addAll(
             defaults.items.map((Subreddit subreddit) {
-              return _SubredditTile(
-                depth: 0,
-                active: false,
-                subreddit: subreddit,
-                pathPrefix: 'defaults:');
+              final path = SubredditRoute.pathFrom(subreddit, 'defaults:');
+              return _maybeBuildRouteTree(
+                  path,
+                  () => _SubredditRouteTile(subreddit: subreddit, path: path));
             }));
         } else {
           assert(subscriptions != null);
           children.add(SublistHeader(name: 'SUBSCRIPTIONS'));
           children.addAll(
             subscriptions!.items.map((Subreddit subreddit) {
-              return _SubredditTile(
-                depth: 0,
-                active: false,
-                subreddit: subreddit,
-                pathPrefix: 'subscriptions:');
+              final path = SubredditRoute.pathFrom(subreddit, 'subscriptions:');
+              return _maybeBuildRouteTree(
+                  path,
+                  () => _SubredditRouteTile(subreddit: subreddit, path: path));
             }));
         }
         return Column(
@@ -100,21 +107,18 @@ class _RouteTreeTile extends StatelessWidget {
 
 typedef _RouteTileGoToCallback = void Function(BuildContext);
 
-abstract class _RouteTile extends StatelessWidget {
+class _RouteTile extends StatelessWidget {
 
   _RouteTile({
     Key? key,
-    required this.depth,
-    required this.active,
+    this.depth,
     required this.icon,
     required this.title,
     required this.onGoTo,
-  }) : assert(depth >= 0),
+  }) : assert(depth == null || depth >= 0),
        super(key: key);
 
-  final int depth;
-
-  final bool active;
+  final int? depth;
 
   final Widget icon;
 
@@ -125,37 +129,52 @@ abstract class _RouteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theming = Theming.of(context);
+
+    var padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0);
+    if (depth != null) {
+      padding += EdgeInsets.only(left: 16.0 * depth!);
+    }
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: theming.canvasColor),
       child: Pressable(
         onPress: () => onGoTo(context),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0) + EdgeInsets.only(left: 16.0 * depth),
+          padding: padding,
           child: Row(
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               icon,
-              Padding(
-                padding: const EdgeInsets.only(left: 12.0),
-                child: Text(
-                  title,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: theming.titleText))
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 12.0),
+                  child: Text(
+                    title,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theming.titleText)))
             ]))));
   }
 }
 
-class _SubredditTile extends _RouteTile {
+class _SubredditRouteTile extends StatelessWidget {
 
-  factory _SubredditTile({
+  _SubredditRouteTile({
     Key? key,
-    required int depth,
-    required bool active,
-    required Subreddit subreddit,
-    required String pathPrefix,
-  }) {
+    this.depth,
+    required this.subreddit,
+    required this.path,
+  }) : super(key: key);
+
+  final int? depth;
+
+  final Subreddit subreddit;
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
     Widget icon;
     if (subreddit.iconImageUrl != null) {
       icon = CircleAvatar(
@@ -168,29 +187,67 @@ class _SubredditTile extends _RouteTile {
         size: 24.0);
     }
 
-    return _SubredditTile._(
+    return _RouteTile(
       key: key,
       depth: depth,
-      active: active,
       icon: icon,
       title: subreddit.name,
       onGoTo: (BuildContext context) {
-        SubredditRoute.goTo(context, subreddit, pathPrefix);
+        SubredditRoute.goTo(context, subreddit, path);
       });
   }
+}
 
-  _SubredditTile._({
+class _PostRouteTile extends StatelessWidget {
+
+  _PostRouteTile({
     Key? key,
-    required int depth,
-    required bool active,
-    required Widget icon,
-    required String title,
-    required _RouteTileGoToCallback onGoTo
-  }) : super(
-    key: key,
-    depth: depth,
-    active: active,
-    icon: icon,
-    title: title,
-    onGoTo: onGoTo);
+    this.depth,
+    required this.post,
+    required this.path,
+  }) : super(key: key);
+
+  final int? depth;
+
+  final Post post;
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    return _RouteTile(
+      depth: depth,
+      icon: Icon(Icons.comment),
+      title: post.title,
+      onGoTo: (BuildContext context) {
+        PostRoute.goTo(context, post, path);
+      });
+  }
+}
+
+List<Widget> _buildNode(PathNode<ShellRoute> node, int depth, [List<Widget>? result]) {
+  result ??= <Widget>[];
+  result.add(_buildRoute(node.route, depth));
+  if (node.children.isNotEmpty) {
+    for (final child in node.children.values) {
+      _buildNode(child, depth + 1, result);
+    }
+  }
+  return result;
+}
+
+Widget _buildRoute(ShellRoute route, int depth) {
+  if (route is SubredditRoute) {
+    return _SubredditRouteTile(
+      depth: depth,
+      subreddit: route.subreddit,
+      path: route.path);
+  } else if (route is PostRoute) {
+    return _PostRouteTile(
+      depth: depth,
+      post: route.post,
+      path: route.path);
+  } else {
+    throw UnimplementedError('_RouteTile for $route has not been implemented');
+  }
 }

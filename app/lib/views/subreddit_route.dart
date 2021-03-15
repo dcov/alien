@@ -48,9 +48,13 @@ class SubredditRoute extends ShellRoute {
 
   late final SubredditPosts _posts;
 
-  static void goTo(BuildContext context, Subreddit subreddit, String pathPrefix) {
+  static String pathFrom(Subreddit subreddit, String pathPrefix) {
+    return '$pathPrefix${subreddit.fullId}';
+  }
+
+  static void goTo(BuildContext context, Subreddit subreddit, String path) {
     context.goTo(
-      '$pathPrefix${subreddit.fullId}',
+      path,
       onCreateRoute: () {
         return SubredditRoute(subreddit: subreddit);
       },
