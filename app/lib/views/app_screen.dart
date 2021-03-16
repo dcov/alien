@@ -37,10 +37,8 @@ class AppScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theming = Theming.of(context);
-    print('building app screen connector');
     return Connector(
       builder: (BuildContext context) {
-        print('building app screen actual');
         final children = <Widget>[];
         final defaults = app.defaults;
         final subscriptions = app.subscriptions;
@@ -101,9 +99,12 @@ class _RouteTreeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: children);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theming.of(context).altCanvasColor),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children));
   }
 }
 
@@ -137,10 +138,7 @@ class _RouteTile extends StatelessWidget {
       padding += EdgeInsets.only(left: 16.0 * depth!);
     }
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theming.canvasColor),
-      child: Pressable(
+    return Pressable(
         onPress: () => onGoTo(context),
         child: Padding(
           padding: padding,
@@ -156,7 +154,7 @@ class _RouteTile extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: theming.titleText)))
-            ]))));
+            ])));
   }
 }
 
