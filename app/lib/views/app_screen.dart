@@ -8,6 +8,7 @@ import '../models/subreddit.dart';
 import '../utils/path_router.dart';
 import '../views/post_route.dart';
 import '../views/subreddit_route.dart';
+import '../widgets/depth_painter.dart';
 import '../widgets/icons.dart';
 import '../widgets/pressable.dart';
 import '../widgets/shell.dart';
@@ -99,12 +100,27 @@ class _RouteTreeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theming.of(context).altCanvasColor),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: children));
+    final theming = Theming.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: DecoratedBox(
+        position: DecorationPosition.background,
+        decoration: BoxDecoration(
+          color: Theming.of(context).altCanvasColor),
+        child: DecoratedBox(
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theming.of(context).altBorderColor,
+              width: 1.0),
+            borderRadius: BorderRadius.circular(4.0)),
+          child: CustomPaint(
+            painter: DepthPainter(
+              padding: 16.0,
+              linePaint: Paint()..color = theming.dividerColor),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: children)))));
   }
 }
 
@@ -132,29 +148,28 @@ class _RouteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theming = Theming.of(context);
-
-    var padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0);
-    if (depth != null) {
-      padding += EdgeInsets.only(left: 16.0 * depth!);
-    }
-
     return Pressable(
-        onPress: () => onGoTo(context),
-        child: Padding(
-          padding: padding,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: <Widget>[
-              icon,
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 12.0),
-                  child: Text(
-                    title,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: theming.titleText)))
-            ])));
+      onPress: () => onGoTo(context),
+      child: Padding(
+        padding: depth != null ? EdgeInsets.only(left: 16.0 * depth! + 1.0) : EdgeInsets.zero,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: depth != null ? theming.altCanvasColor : theming.canvasColor),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                icon,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12.0),
+                    child: Text(
+                      title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: theming.titleText)))
+              ])))));
   }
 }
 

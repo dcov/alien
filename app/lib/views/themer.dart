@@ -10,6 +10,7 @@ ThemingData _createThemingData(AppTheme theme) {
         canvasColor: Colors.grey[900]!,
         altCanvasColor: Colors.grey[850]!,
         borderColor: Colors.grey[850]!,
+        altBorderColor: Colors.grey[600]!,
         dividerColor: Colors.grey[800]!,
         iconColor: Colors.grey[50]!,
         headerText: TextStyle(
@@ -35,7 +36,7 @@ ThemingData _createThemingData(AppTheme theme) {
         captionText: TextStyle(
           color: Colors.grey[50]!,
           fontSize: 10.0,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w900,
           letterSpacing: 1.0));
   }
 }

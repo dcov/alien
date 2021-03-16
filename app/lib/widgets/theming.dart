@@ -6,6 +6,7 @@ class ThemingData {
     required this.canvasColor,
     required this.altCanvasColor,
     required this.borderColor,
+    required this.altBorderColor,
     required this.dividerColor,
     required this.iconColor,
     required this.headerText,
@@ -21,6 +22,8 @@ class ThemingData {
   final Color altCanvasColor;
 
   final Color borderColor;
+
+  final Color altBorderColor;
 
   final Color dividerColor;
 

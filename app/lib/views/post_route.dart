@@ -84,6 +84,7 @@ class PostRoute extends ShellRoute {
             text: '${post.commentCount}')
         ]),
       contentBody: _PostContentBody(
+        key: ValueKey(path),
         post: post,
         comments: _comments));
   }

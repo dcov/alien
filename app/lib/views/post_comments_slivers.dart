@@ -10,44 +10,12 @@ import '../models/comment.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
 import '../models/thing.dart';
+import '../widgets/depth_painter.dart';
 import '../widgets/sliver_custom_paint.dart';
 import '../widgets/widget_extensions.dart';
 
 import 'comment_tile.dart';
 import 'more_tile.dart';
-
-class _CommentsTreePainter extends CustomPainter {
-  
-  _CommentsTreePainter({
-    required this.depth,
-    required this.spacing,
-    required this.linePaint
-  });
-
-  final int depth;
-
-  final double spacing;
-
-  final Paint linePaint;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (int i = 1; i <= depth; i++) {
-      final dx = spacing * i;
-      canvas.drawLine(
-        Offset(dx, 0.0),
-        Offset(dx, size.height),
-        linePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CommentsTreePainter oldPainter) {
-    return depth != oldPainter.depth ||
-           spacing != oldPainter.spacing ||
-           linePaint != oldPainter.linePaint;
-  }
-}
 
 class PostCommentsTreeSliver extends StatefulWidget {
 
@@ -226,9 +194,8 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
       padding: EdgeInsets.only(
         bottom: context.mediaPadding.bottom + 24.0),
       sliver: SliverCustomPaint(
-        painter: _CommentsTreePainter(
-          depth: 10,
-          spacing: 16.0,
+        painter: DepthPainter(
+          padding: 16.0,
           linePaint: Paint()..color = Colors.grey),
         sliver: SliverList(
           key: UniqueKey(),
