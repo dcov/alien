@@ -4,6 +4,8 @@ version: 0.2.0+2
 author: Diego Covarrubias <dcov@pm.me>
 homepage: https://github.com/dcov/alien
 
+publish_to: none
+
 environment:
   sdk: '>=2.12.0-0 <3.0.0'
 
@@ -38,7 +40,7 @@ dependencies:
       url: git://github.com/dcov/flutter_markdown.git
       ref: alien
 
-  hive: ^1.4.4
+  hive: 1.6.0-nullsafety.2
 
   markdown: ^3.0.0
 
@@ -46,13 +48,17 @@ dependencies:
 
   path_provider: ^1.6.27
 
+  quiver: 3.0.0
+
   reddit:
     path: ../reddit
   
   scraper:
     path: ../scraper
 
-  stash_hive: 1.0.1
+  stash_hive: 2.0.0-nullsafety.1
+
+  uuid: 3.0.1
 
   webview_flutter: ^2.0.0-nullsafety.4
 

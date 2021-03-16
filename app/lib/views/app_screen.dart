@@ -37,8 +37,10 @@ class AppScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theming = Theming.of(context);
+    print('building app screen connector');
     return Connector(
       builder: (BuildContext context) {
+        print('building app screen actual');
         final children = <Widget>[];
         final defaults = app.defaults;
         final subscriptions = app.subscriptions;

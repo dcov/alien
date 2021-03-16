@@ -63,7 +63,7 @@ class PostCommentsTreeSliver extends StatefulWidget {
 }
 
 @visibleForTesting
-class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with ConnectionStateMixin {
+class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with ConnectionCaptureStateMixin {
 
   @visibleForTesting
   List<Thing> get visible => _visible!;
@@ -221,8 +221,7 @@ class PostCommentsTreeSliverState extends State<PostCommentsTreeSliver> with Con
   }
 
   @override
-  Widget build(BuildContext context) {
-    buildCheck();
+  Widget performBuild(BuildContext context) {
     return SliverPadding(
       padding: EdgeInsets.only(
         bottom: context.mediaPadding.bottom + 24.0),

@@ -175,6 +175,7 @@ class _ShellState extends State<Shell> {
       },
       onUpdateRoute: onUpdateRoute);
 
+    print('notifying nodes');
     _nodes.notify();
     switch (transition) {
       case PathRouterGoToTransition.push:
