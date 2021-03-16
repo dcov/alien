@@ -19,7 +19,7 @@ BoxDecoration _createSheetDecoration(ThemingData theming) {
     border: Border.all(
       color: theming.borderColor,
       width: 0.5),
-    borderRadius: const BorderRadius.vertical(top: Radius.circular(12.0)));
+    borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)));
 }
 
 mixin _ShellChild {
@@ -778,6 +778,75 @@ class _RootLayer extends StatelessWidget {
   }
 }
 
+class _TitleLayerBackground extends AnimatedWidget {
+
+  _TitleLayerBackground({
+    Key? key,
+    this.begin,
+    this.end,
+    required Animation<double> animation,
+    this.child
+  }) : super(key: key, listenable: animation);
+
+  final BoxDecoration? begin;
+
+  final BoxDecoration? end;
+
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = (listenable as Animation<double>).value;
+
+    Color? backgroundColor = Color.lerp(begin?.color, end?.color, t);
+
+    Widget? beginImage;
+    if (begin?.image != null) {
+      beginImage = DecoratedBox(
+        decoration: BoxDecoration(image: begin!.image!));
+    }
+
+    Widget? endImage;
+    if (end?.image != null) {
+      endImage = DecoratedBox(
+        decoration: BoxDecoration(image: end!.image!));
+    }
+
+    Color? barrierColor;
+    if (beginImage != null) {
+      if (endImage != null) {
+        barrierColor = Colors.black54;
+      } else {
+        barrierColor = Colors.black54.withOpacity(0.5 * (1.0 - t));
+      }
+    } else if (endImage != null) {
+      barrierColor = Colors.black54.withOpacity(0.5 * t);
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        if (backgroundColor != null)
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: backgroundColor)),
+        if (beginImage != null)
+          Opacity(
+            opacity: 1.0 - t,
+            child: beginImage),
+        if (endImage != null)
+          Opacity(
+            opacity: t,
+            child: endImage),
+        if (barrierColor != null)
+          DecoratedBox(
+            decoration: BoxDecoration(color: barrierColor)),
+        if (child != null)
+          child!,
+      ]);
+  }
+}
+
 class _TitleLayer extends StatelessWidget {
 
   _TitleLayer({
@@ -789,11 +858,7 @@ class _TitleLayer extends StatelessWidget {
     this.replacedEntriesLength,
     required this.entriesLength,
     this.onPop
-  }) : super(key: key) {
-    _decorationTween = DecorationTween(
-      begin: hiddenComponents?.titleDecoration ?? const BoxDecoration(),
-      end: visibleComponents?.titleDecoration ?? const BoxDecoration());
-  }
+  }) : super(key: key);
 
   final RouteComponents? hiddenComponents;
 
@@ -822,12 +887,12 @@ class _TitleLayer extends StatelessWidget {
       case _LayersMode.pushAtRoute:
       case _LayersMode.popAtRoute:
       case _LayersMode.replaceAtRoute:
+      case _LayersMode.dragToPop:
       case _LayersMode.dragToExpandOrCollapseOptions:
       case _LayersMode.expandOrCollapseOptions:
         return kAlwaysCompleteAnimation;
       case _LayersMode.pushFromOrPopToEmpty:
       case _LayersMode.replaceFromRoot:
-      case _LayersMode.dragToPop:
       case _LayersMode.dragToPopToEmpty:
       case _LayersMode.dragToExpandOrCollapseRoute:
       case _LayersMode.expandOrCollapseRoute:
@@ -835,22 +900,16 @@ class _TitleLayer extends StatelessWidget {
     }
   }
 
-  late final DecorationTween _decorationTween;
-
-  Animation<Decoration> get _decoration {
-    Animation<double> parent;
+  Animation<double> get _decoration {
     switch (mode) {
       case _LayersMode.pushAtRoute:
       case _LayersMode.popAtRoute:
       case _LayersMode.replaceAtRoute:
       case _LayersMode.dragToPop:
-        parent = animation;
-        break;
+        return animation;
       default:
-        parent = kAlwaysCompleteAnimation;
+        return kAlwaysCompleteAnimation;
     }
-
-    return parent.drive(_decorationTween);
   }
 
   static final _kRotationTween = Tween<double>(
@@ -911,40 +970,44 @@ class _TitleLayer extends StatelessWidget {
     final theming = Theming.of(context);
     return FadeTransition(
       opacity: _layerOpacity,
-      child: DecoratedBoxTransition(
-        decoration: _decoration,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: Toolbar(
-            leading: Pressable(
-              onPress: onPop,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 12.0,
-                  horizontal: 16.0),
-                child: RotationTransition(
-                  turns: _rotation,
-                  child: Icon(
-                    Icons.arrow_back_ios_rounded,
-                    color: theming.iconColor)))),
-            middle: Stack(
-              children: <Widget>[
-                FadeTransition(
-                  opacity: ReverseAnimation(_itemOpacity),
-                  child: hiddenComponents?.titleMiddle),
-                FadeTransition(
-                  opacity: _itemOpacity,
-                  child: visibleComponents?.titleMiddle)
-              ]),
-            trailing: Stack(
-              children: <Widget>[
-                FadeTransition(
-                  opacity: ReverseAnimation(_itemOpacity),
-                  child: hiddenComponents?.titleTrailing),
-                FadeTransition(
-                  opacity: _itemOpacity,
-                  child: visibleComponents?.titleTrailing)
-              ])))));
+      child: SizedBox(
+        height: Toolbar.kHeight + context.mediaPadding.top + 16.0,
+        child: _TitleLayerBackground(
+          begin: hiddenComponents?.titleDecoration,
+          end: visibleComponents?.titleDecoration,
+          animation: _decoration,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Toolbar(
+              leading: Pressable(
+                onPress: onPop,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 12.0,
+                    horizontal: 16.0),
+                  child: RotationTransition(
+                    turns: _rotation,
+                    child: Icon(
+                      Icons.arrow_back_ios_rounded,
+                      color: theming.iconColor)))),
+              middle: Stack(
+                children: <Widget>[
+                  FadeTransition(
+                    opacity: ReverseAnimation(_itemOpacity),
+                    child: hiddenComponents?.titleMiddle),
+                  FadeTransition(
+                    opacity: _itemOpacity,
+                    child: visibleComponents?.titleMiddle)
+                ]),
+              trailing: Stack(
+                children: <Widget>[
+                  FadeTransition(
+                    opacity: ReverseAnimation(_itemOpacity),
+                    child: hiddenComponents?.titleTrailing),
+                  FadeTransition(
+                    opacity: _itemOpacity,
+                    child: visibleComponents?.titleTrailing)
+                ]))))));
   }
 }
 
