@@ -117,7 +117,7 @@ class _RouteTreeTile extends StatelessWidget {
           child: CustomPaint(
             painter: DepthPainter(
               padding: 16.0,
-              linePaint: Paint()..color = theming.dividerColor),
+              linePaint: Paint()..color = theming.altBorderColor),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: children)))));
@@ -148,13 +148,13 @@ class _RouteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theming = Theming.of(context);
-    return Pressable(
-      onPress: () => onGoTo(context),
-      child: Padding(
-        padding: depth != null ? EdgeInsets.only(left: 16.0 * depth! + 1.0) : EdgeInsets.zero,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: depth != null ? theming.altCanvasColor : theming.canvasColor),
+    return Padding(
+      padding: depth != null ? EdgeInsets.only(left: 16.0 * depth! + 1.0) : EdgeInsets.zero,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: depth != null ? theming.altCanvasColor : theming.canvasColor),
+        child: Pressable(
+          onPress: () => onGoTo(context),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
             child: Row(

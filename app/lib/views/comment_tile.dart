@@ -111,7 +111,7 @@ class CommentTile extends StatelessWidget {
                     '[+]',
                     style: theming.detailText)
                 ]))));
-          }
+        }
 
         Widget child = Column(
           mainAxisAlignment: MainAxisAlignment.start,

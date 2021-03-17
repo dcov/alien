@@ -181,7 +181,7 @@ class _ShellState extends State<Shell> {
         _stack.notify();
         break;
       case PathRouterGoToTransition.pop:
-        _layersKey.currentState!.pop();
+        _layersKey.currentState!.replace(_router.stack, animate: true);
         _stack.notify();
         break;
       case PathRouterGoToTransition.replace:
@@ -466,9 +466,11 @@ class _LayersState extends State<_Layers> with SingleTickerProviderStateMixin {
           case _LayersMode.idleAtRoute:
             _mode = _LayersMode.replaceAtRoute;
             _controller.forward(from: 0.0).then((_) {
-              _mode = _LayersMode.idleAtRoute;
-              _hiddenRoute = null;
-              _replacedEntriesLength = null;
+              setState(() {
+                _mode = _LayersMode.idleAtRoute;
+                _hiddenRoute = null;
+                _replacedEntriesLength = null;
+              });
             });
             break;
           default:
@@ -1365,7 +1367,7 @@ class _OptionsLayer extends StatelessWidget {
   static Animation<double> _hideOrPeekAnimation(Animation<double> parent) {
     return CurvedAnimation(
       parent: parent,
-      curve: const Interval(0.66, 1.0));
+      curve: const Interval(0.33, 1.0));
   }
 
   @override
