@@ -4,8 +4,8 @@ import 'package:muex_flutter/muex_flutter.dart';
 import '../logic/post_comments.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
-import '../widgets/pressable.dart';
-import '../widgets/theming.dart';
+import '../ui/pressable.dart';
+import '../ui/theming.dart';
 
 class MoreTile extends StatelessWidget {
 

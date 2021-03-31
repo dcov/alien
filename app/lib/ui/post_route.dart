@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
-import 'package:reddit/reddit.dart' show CommentsSort, VoteDir;
+import 'package:reddit/reddit.dart' show CommentsSort;
 
 import '../logic/post.dart';
 import '../logic/post_comments.dart';
@@ -8,14 +8,14 @@ import '../logic/thing.dart';
 import '../models/post.dart';
 import '../models/post_comments.dart';
 import '../utils/formatting.dart';
-import '../views/media_thumbnail.dart';
-import '../views/post_comments_slivers.dart';
-import '../views/snudown_body.dart';
-import '../views/votable_utils.dart';
-import '../widgets/circle_divider.dart';
-import '../widgets/content_handle.dart';
-import '../widgets/shell.dart';
-import '../widgets/theming.dart';
+import '../ui/media_thumbnail.dart';
+import '../ui/post_comments_slivers.dart';
+import '../ui/snudown_body.dart';
+import '../ui/votable_utils.dart';
+import '../ui/circle_divider.dart';
+import '../ui/content_handle.dart';
+import '../ui/shell.dart';
+import '../ui/theming.dart';
 
 IconData _determineSortIcon(CommentsSort sortBy) {
   switch (sortBy) {

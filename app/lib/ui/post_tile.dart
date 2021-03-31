@@ -6,16 +6,16 @@ import '../models/post.dart';
 import '../logic/saveable.dart';
 import '../logic/voting.dart';
 import '../utils/formatting.dart';
-import '../views/media_thumbnail.dart';
-import '../views/post_route.dart';
-import '../views/view_extensions.dart';
-import '../views/votable_utils.dart';
-import '../widgets/circle_divider.dart';
-import '../widgets/custom_render_object.dart';
-import '../widgets/options_bottom_sheet.dart';
-import '../widgets/pressable.dart';
-import '../widgets/slidable.dart';
-import '../widgets/theming.dart';
+import '../ui/media_thumbnail.dart';
+import '../ui/post_route.dart';
+import '../ui/view_extensions.dart';
+import '../ui/votable_utils.dart';
+import '../ui/circle_divider.dart';
+import '../ui/custom_render_object.dart';
+import '../ui/options_bottom_sheet.dart';
+import '../ui/pressable.dart';
+import '../ui/slidable.dart';
+import '../ui/theming.dart';
 
 void _showPostOptionsBottomSheet({
     required BuildContext context,

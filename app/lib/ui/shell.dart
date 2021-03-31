@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../utils/manual_value_notifier.dart';
 import '../utils/path_router.dart';
-import '../widgets/ltr_drag_detector.dart';
-import '../widgets/pressable.dart';
-import '../widgets/sheet_with_handle.dart';
-import '../widgets/theming.dart';
-import '../widgets/toolbar.dart';
-import '../widgets/widget_extensions.dart';
+import '../ui/ltr_drag_detector.dart';
+import '../ui/pressable.dart';
+import '../ui/sheet_with_handle.dart';
+import '../ui/theming.dart';
+import '../ui/toolbar.dart';
+import '../ui/widget_extensions.dart';
 
 const kExpandedHandleHeight = 40.0;
 const kCollapsedHandleHeight = 48.0;

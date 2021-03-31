@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/theming.dart';
+import '../ui/theming.dart';
 
 class SublistHeader extends StatelessWidget {
 

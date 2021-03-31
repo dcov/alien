@@ -10,9 +10,9 @@ import '../models/comment.dart';
 import '../models/more.dart';
 import '../models/post_comments.dart';
 import '../models/thing.dart';
-import '../widgets/depth_painter.dart';
-import '../widgets/sliver_custom_paint.dart';
-import '../widgets/widget_extensions.dart';
+import '../ui/depth_painter.dart';
+import '../ui/sliver_custom_paint.dart';
+import '../ui/widget_extensions.dart';
 
 import 'comment_tile.dart';
 import 'more_tile.dart';

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../logic/feeds.dart';
 import '../models/feed.dart';
-import '../views/feed_route.dart';
-import '../widgets/tile.dart';
+import '../ui/feed_route.dart';
+import '../ui/tile.dart';
 
 class FeedTile extends StatelessWidget {
 

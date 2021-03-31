@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/app.dart';
-import '../views/app_layer.dart';
-import '../views/themer.dart';
-import '../widgets/scroll_configuration.dart';
-import '../widgets/shell.dart';
-import '../widgets/splash_screen.dart';
-import '../widgets/theming.dart';
+import '../ui/app_layer.dart';
+import '../ui/themer.dart';
+import '../ui/scroll_configuration.dart';
+import '../ui/shell.dart';
+import '../ui/splash_screen.dart';
+import '../ui/theming.dart';
 
 /// The root view in the tree.
 ///

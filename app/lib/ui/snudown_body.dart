@@ -4,7 +4,7 @@ import 'package:muex_flutter/muex_flutter.dart';
 
 import '../models/media.dart';
 import '../models/snudown.dart';
-import '../widgets/theming.dart';
+import '../ui/theming.dart';
 
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {
   final theming = Theming.of(context);

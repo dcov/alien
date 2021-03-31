@@ -6,15 +6,15 @@ import '../models/app.dart';
 import '../models/post.dart';
 import '../models/subreddit.dart';
 import '../utils/path_router.dart';
-import '../views/post_route.dart';
-import '../views/subreddit_route.dart';
-import '../widgets/depth_painter.dart';
-import '../widgets/icons.dart';
-import '../widgets/pressable.dart';
-import '../widgets/shell.dart';
-import '../widgets/sublist_header.dart';
-import '../widgets/theming.dart';
-import '../widgets/toolbar.dart';
+import '../ui/depth_painter.dart';
+import '../ui/icons.dart';
+import '../ui/post_route.dart';
+import '../ui/pressable.dart';
+import '../ui/shell.dart';
+import '../ui/sublist_header.dart';
+import '../ui/subreddit_route.dart';
+import '../ui/theming.dart';
+import '../ui/toolbar.dart';
 
 class AppScreen extends StatelessWidget {
 

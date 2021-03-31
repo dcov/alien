@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:package_info/package_info.dart';
 
-import '../widgets/pressable.dart';
-import '../widgets/widget_extensions.dart';
+import '../ui/pressable.dart';
+import '../ui/widget_extensions.dart';
 
 class _OptionTile extends StatelessWidget {
 

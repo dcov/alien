@@ -4,7 +4,7 @@ import 'package:muex_flutter/muex_flutter.dart';
 import '../logic/init.dart';
 import '../models/accounts.dart';
 import '../models/user.dart';
-import '../widgets/pressable.dart';
+import '../ui/pressable.dart';
 
 import 'login_screen.dart';
 

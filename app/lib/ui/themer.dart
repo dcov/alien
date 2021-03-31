@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/app.dart';
-import '../widgets/theming.dart';
+import '../ui/theming.dart';
 
 ThemingData _createThemingData(AppTheme theme) {
   switch (theme) {

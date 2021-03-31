@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:reddit/reddit.dart';
 
-import '../widgets/pressable.dart';
-import '../widgets/tile.dart';
+import '../ui/pressable.dart';
+import '../ui/tile.dart';
 
 class _SortArgTile extends StatelessWidget {
 

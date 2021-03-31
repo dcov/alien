@@ -6,11 +6,11 @@ import '../logic/saveable.dart';
 import '../logic/voting.dart';
 import '../models/comment.dart';
 import '../utils/formatting.dart';
-import '../widgets/circle_divider.dart';
-import '../widgets/options_bottom_sheet.dart';
-import '../widgets/pressable.dart';
-import '../widgets/slidable.dart';
-import '../widgets/theming.dart';
+import '../ui/circle_divider.dart';
+import '../ui/options_bottom_sheet.dart';
+import '../ui/pressable.dart';
+import '../ui/slidable.dart';
+import '../ui/theming.dart';
 
 import 'snudown_body.dart';
 import 'view_extensions.dart';

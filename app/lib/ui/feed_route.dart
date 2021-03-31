@@ -6,11 +6,11 @@ import '../logic/feeds.dart';
 import '../models/feed.dart';
 import '../models/listing.dart';
 import '../models/post.dart';
-import '../views/listing_scroll_view.dart';
-import '../views/post_tile.dart';
-import '../views/sort_bottom_sheet.dart';
-import '../widgets/pressable.dart';
-import '../widgets/shell.dart';
+import '../ui/listing_scroll_view.dart';
+import '../ui/post_tile.dart';
+import '../ui/pressable.dart';
+import '../ui/shell.dart';
+import '../ui/sort_bottom_sheet.dart';
 
 class FeedRoute extends ShellRoute {
 

@@ -8,10 +8,10 @@ import '../logic/thing.dart';
 import '../models/listing.dart' show ListingStatus;
 import '../models/post.dart';
 import '../models/subreddit.dart';
-import '../widgets/content_handle.dart';
-import '../widgets/pressable.dart';
-import '../widgets/shell.dart';
-import '../widgets/theming.dart';
+import '../ui/content_handle.dart';
+import '../ui/pressable.dart';
+import '../ui/shell.dart';
+import '../ui/theming.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_tile.dart';

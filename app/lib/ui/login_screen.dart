@@ -4,9 +4,9 @@ import 'package:muex_flutter/muex_flutter.dart';
 
 import '../logic/login.dart';
 import '../models/login.dart';
-import '../widgets/pressable.dart';
-import '../widgets/web_view_control.dart';
-import '../widgets/widget_extensions.dart';
+import '../ui/pressable.dart';
+import '../ui/web_view_control.dart';
+import '../ui/widget_extensions.dart';
 
 class _Indicator extends StatelessWidget {
 

@@ -5,15 +5,13 @@ import 'package:flutter/material.dart';
 
 import '../models/app.dart';
 import '../utils/path_router.dart';
-import '../views/app_screen.dart';
-import '../widgets/shell.dart';
-import '../widgets/theming.dart';
+import '../ui/app_screen.dart';
+import '../ui/shell.dart';
+import '../ui/theming.dart';
 
 class AppLayer extends ShellRoot {
 
-  AppLayer({
-    required this.app
-  });
+  AppLayer({ required this.app });
 
   final App app;
 

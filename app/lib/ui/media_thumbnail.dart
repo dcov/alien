@@ -5,7 +5,7 @@ import 'package:muex_flutter/muex_flutter.dart';
 
 import '../logic/media.dart';
 import '../models/media.dart';
-import '../widgets/pressable.dart';
+import '../ui/pressable.dart';
 
 class MediaThumbnail extends StatelessWidget {
 
