@@ -4,7 +4,7 @@ import 'package:reddit/reddit.dart';
 
 import '../logic/saveable.dart';
 import '../logic/voting.dart';
-import '../models/comment.dart';
+import '../model/comment.dart';
 import '../ui/circle_divider.dart';
 import '../ui/formatting.dart';
 import '../ui/options_bottom_sheet.dart';

@@ -1,6 +1,6 @@
 import 'package:muex/muex.dart';
 
-import '../models/user.dart';
+import '../model/user.dart';
 
 part 'accounts.g.dart';
 

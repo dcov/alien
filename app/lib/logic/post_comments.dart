@@ -2,16 +2,15 @@ import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/accounts.dart';
-import '../models/more.dart';
-import '../models/post.dart';
-import '../models/post_comments.dart';
-import '../models/thing.dart';
-import '../models/user.dart';
-
-import 'comment.dart';
-import 'thing.dart';
-import 'user.dart';
+import '../logic/comment.dart';
+import '../logic/thing.dart';
+import '../logic/user.dart';
+import '../model/accounts.dart';
+import '../model/more.dart';
+import '../model/post.dart';
+import '../model/post_comments.dart';
+import '../model/thing.dart';
+import '../model/user.dart';
 
 PostComments commentsFromPost(Post post) {
   return PostComments(

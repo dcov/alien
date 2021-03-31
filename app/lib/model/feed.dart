@@ -1,8 +1,8 @@
 import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
-import 'listing.dart';
-import 'post.dart';
+import '../model/listing.dart';
+import '../model/post.dart';
 
 part 'feed.g.dart';
 

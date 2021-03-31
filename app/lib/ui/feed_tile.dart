@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../logic/feeds.dart';
-import '../models/feed.dart';
+import '../model/feed.dart';
 import '../ui/feed_route.dart';
 import '../ui/tile.dart';
 

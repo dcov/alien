@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
-import '../models/media.dart';
-import '../models/snudown.dart';
+import '../model/media.dart';
+import '../model/snudown.dart';
 import '../ui/theming.dart';
 
 MarkdownStyleSheet _createStyleSheet(BuildContext context) {

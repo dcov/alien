@@ -1,9 +1,9 @@
 import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart' show VoteDir;
 
-import 'saveable.dart';
-import 'snudown.dart';
-import 'votable.dart';
+import '../model/saveable.dart';
+import '../model/snudown.dart';
+import '../model/votable.dart';
 
 part 'comment.g.dart';
 

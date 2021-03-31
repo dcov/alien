@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
-import '../models/accounts.dart';
+import '../model/accounts.dart';
 
 extension ViewExtensions on BuildContext {
 

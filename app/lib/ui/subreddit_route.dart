@@ -5,9 +5,9 @@ import 'package:reddit/reddit.dart' show SubredditSort;
 
 import '../logic/subreddit_posts.dart';
 import '../logic/thing.dart';
-import '../models/listing.dart' show ListingStatus;
-import '../models/post.dart';
-import '../models/subreddit.dart';
+import '../model/listing.dart' show ListingStatus;
+import '../model/post.dart';
+import '../model/subreddit.dart';
 import '../ui/content_handle.dart';
 import '../ui/pressable.dart';
 import '../ui/theming.dart';

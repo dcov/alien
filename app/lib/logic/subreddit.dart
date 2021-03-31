@@ -1,6 +1,6 @@
 import 'package:reddit/reddit.dart' show SubredditData;
 
-import '../models/subreddit.dart';
+import '../model/subreddit.dart';
 
 Subreddit subredditFromData(SubredditData data) {
   return Subreddit(

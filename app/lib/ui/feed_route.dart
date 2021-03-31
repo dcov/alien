@@ -3,9 +3,9 @@ import 'package:muex_flutter/muex_flutter.dart';
 import 'package:reddit/reddit.dart' show RedditArg, HomeSort,SubredditSort, TimeSort;
 
 import '../logic/feeds.dart';
-import '../models/feed.dart';
-import '../models/listing.dart';
-import '../models/post.dart';
+import '../model/feed.dart';
+import '../model/listing.dart';
+import '../model/post.dart';
 import '../ui/listing_scroll_view.dart';
 import '../ui/post_tile.dart';
 import '../ui/pressable.dart';

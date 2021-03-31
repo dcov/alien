@@ -2,11 +2,10 @@ import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/media.dart';
-import '../models/post.dart';
-import '../models/snudown.dart';
-
-import 'snudown.dart';
+import '../logic/snudown.dart';
+import '../model/media.dart';
+import '../model/post.dart';
+import '../model/snudown.dart';
 
 Post postFromData(PostData data, { bool hasBeenViewed = false }) {
   Media? media;

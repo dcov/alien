@@ -5,16 +5,15 @@ import 'package:stash/stash_api.dart';
 import 'package:stash_hive/stash_hive.dart' as cacheProvider;
 
 import '../effects.dart';
-import '../models/accounts.dart';
-import '../models/app.dart';
-import '../models/auth.dart';
-import '../models/feed.dart';
-import '../models/refreshable.dart';
-import '../models/user.dart';
-
-import 'accounts.dart';
-import 'defaults.dart';
-import 'subscriptions.dart';
+import '../logic/accounts.dart';
+import '../logic/defaults.dart';
+import '../logic/subscriptions.dart';
+import '../model/accounts.dart';
+import '../model/app.dart';
+import '../model/auth.dart';
+import '../model/feed.dart';
+import '../model/refreshable.dart';
+import '../model/user.dart';
 
 class InitApp implements Initial {
   

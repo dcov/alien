@@ -4,11 +4,10 @@ import 'package:muex/muex.dart';
 import 'package:meta/meta.dart';
 import 'package:reddit/reddit.dart';
 
+import '../logic/utils.dart';
 import '../effects.dart';
-import '../models/accounts.dart';
-import '../models/user.dart';
-
-import 'utils.dart';
+import '../model/accounts.dart';
+import '../model/user.dart';
 
 // Hive storage keys
 const _kAccountsBoxKey = 'accounts';

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../logic/post_comments.dart';
-import '../models/more.dart';
-import '../models/post_comments.dart';
+import '../model/more.dart';
+import '../model/post_comments.dart';
 import '../ui/pressable.dart';
 import '../ui/theming.dart';
 

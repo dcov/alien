@@ -1,8 +1,8 @@
 import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
-import 'post.dart';
-import 'thing.dart';
+import '../model/post.dart';
+import '../model/thing.dart';
 
 part 'post_comments.g.dart';
 

@@ -2,12 +2,11 @@ import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/accounts.dart';
-import '../models/saveable.dart';
-import '../models/user.dart';
-
-import 'thing.dart';
-import 'user.dart';
+import '../logic/thing.dart';
+import '../logic/user.dart';
+import '../model/accounts.dart';
+import '../model/saveable.dart';
+import '../model/user.dart';
 
 class ToggleSaved implements Update {
 

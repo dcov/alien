@@ -1,8 +1,8 @@
 import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
-import '../models/listing.dart';
-import '../models/thing.dart';
+import '../model/listing.dart';
+import '../model/thing.dart';
 
 typedef _ListingTransitionEffectFactory = Then Function(Page page, Object marker);
 

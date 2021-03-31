@@ -2,14 +2,13 @@ import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/accounts.dart';
-import '../models/feed.dart';
-import '../models/listing.dart';
-import '../models/user.dart';
-
-import 'listing.dart';
-import 'post.dart';
-import 'user.dart';
+import '../logic/listing.dart';
+import '../logic/post.dart';
+import '../logic/user.dart';
+import '../model/accounts.dart';
+import '../model/feed.dart';
+import '../model/listing.dart';
+import '../model/user.dart';
 
 FeedPosts postsFromFeed(Feed feed) {
   RedditArg sortBy;

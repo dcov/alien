@@ -2,14 +2,13 @@ import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/accounts.dart';
-import '../models/refreshable.dart';
-import '../models/subreddit.dart';
-import '../models/user.dart';
-
-import 'subreddit.dart';
-import 'thing.dart';
-import 'user.dart';
+import '../logic/subreddit.dart';
+import '../logic/thing.dart';
+import '../logic/user.dart';
+import '../model/accounts.dart';
+import '../model/refreshable.dart';
+import '../model/subreddit.dart';
+import '../model/user.dart';
 
 class RefreshSubscriptions implements Update {
 

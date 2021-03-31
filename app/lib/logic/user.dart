@@ -1,7 +1,7 @@
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/user.dart';
+import '../model/user.dart';
 
 extension UserEffectContextExtensions on EffectContext {
 

@@ -1,4 +1,4 @@
-import '../models/thing.dart';
+import '../model/thing.dart';
 
 extension ThingExtensions on Thing {
 

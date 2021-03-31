@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 import 'package:reddit/reddit.dart';
 
-import '../models/post.dart';
+import '../model/post.dart';
 import '../logic/saveable.dart';
 import '../logic/voting.dart';
 import '../ui/circle_divider.dart';

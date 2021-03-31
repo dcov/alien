@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
-import '../models/listing.dart';
-import '../models/thing.dart';
+import '../model/listing.dart';
+import '../model/thing.dart';
 
 typedef TransitionListingCallback = void Function(ListingStatus to);
 

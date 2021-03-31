@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../logic/init.dart';
-import '../models/accounts.dart';
-import '../models/user.dart';
+import '../model/accounts.dart';
+import '../model/user.dart';
 import '../ui/pressable.dart';
 
 import 'login_screen.dart';

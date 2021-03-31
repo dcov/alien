@@ -2,13 +2,12 @@ import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
 import '../effects.dart';
-import '../models/accounts.dart';
-import '../models/auth.dart';
-import '../models/login.dart';
-import '../models/user.dart';
-
-import 'accounts.dart';
-import 'init.dart';
+import '../logic/accounts.dart';
+import '../logic/init.dart';
+import '../model/accounts.dart';
+import '../model/auth.dart';
+import '../model/login.dart';
+import '../model/user.dart';
 
 class StartLogin implements Update {
 

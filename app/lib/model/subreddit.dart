@@ -1,9 +1,9 @@
 import 'package:muex/muex.dart';
 import 'package:reddit/reddit.dart';
 
-import 'listing.dart';
-import 'post.dart';
-import 'thing.dart';
+import '../model/listing.dart';
+import '../model/post.dart';
+import '../model/thing.dart';
 
 part 'subreddit.g.dart';
 

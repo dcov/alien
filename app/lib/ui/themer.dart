@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/app.dart';
+import '../model/app.dart';
 import '../ui/theming.dart';
 
 ThemingData _createThemingData(AppTheme theme) {

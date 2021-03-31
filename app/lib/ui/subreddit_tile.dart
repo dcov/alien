@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
-import '../models/subreddit.dart';
+import '../model/subreddit.dart';
 import '../ui/subreddit_route.dart';
 import '../ui/icons.dart';
 import '../ui/tile.dart';

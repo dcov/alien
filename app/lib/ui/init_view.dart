@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
-import '../models/app.dart';
-import '../ui/app_layer.dart';
+import '../model/app.dart';
 import '../ui/themer.dart';
 import '../ui/scroll_configuration.dart';
 import '../ui/routing.dart';
@@ -26,8 +25,6 @@ class InitView extends StatefulWidget {
 }
 
 class _InitViewState extends State<InitView> {
-
-  late final _appLayer = AppLayer(app: context.state as App);
 
   @override
   Widget build(_) {

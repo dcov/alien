@@ -1,8 +1,7 @@
 import 'package:reddit/reddit.dart';
 
-import '../models/comment.dart';
-
-import 'snudown.dart';
+import '../logic/snudown.dart';
+import '../model/comment.dart';
 
 Comment commentFromData(CommentData data) {
   return Comment(

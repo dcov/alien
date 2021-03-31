@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../logic/login.dart';
-import '../models/login.dart';
+import '../model/login.dart';
 import '../ui/pressable.dart';
 import '../ui/web_view_control.dart';
 import '../ui/widget_extensions.dart';

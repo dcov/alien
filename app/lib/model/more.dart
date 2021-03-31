@@ -1,6 +1,6 @@
 import 'package:muex/muex.dart';
 
-import 'thing.dart';
+import '../model/thing.dart';
 
 part 'more.g.dart';
 

@@ -6,10 +6,10 @@ import 'package:muex_flutter/muex_flutter.dart';
 import 'package:reddit/reddit.dart';
 
 import '../logic/post_comments.dart';
-import '../models/comment.dart';
-import '../models/more.dart';
-import '../models/post_comments.dart';
-import '../models/thing.dart';
+import '../model/comment.dart';
+import '../model/more.dart';
+import '../model/post_comments.dart';
+import '../model/thing.dart';
 import '../ui/depth_painter.dart';
 import '../ui/sliver_custom_paint.dart';
 import '../ui/widget_extensions.dart';

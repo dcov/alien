@@ -2,9 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
-import '../models/app.dart';
-import '../models/post.dart';
-import '../models/subreddit.dart';
+import '../model/app.dart';
+import '../model/post.dart';
+import '../model/subreddit.dart';
 import '../ui/depth_painter.dart';
 import '../ui/icons.dart';
 import '../ui/post_route.dart';

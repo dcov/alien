@@ -1,7 +1,7 @@
 import 'package:muex/muex.dart';
 
 import '../effects.dart';
-import '../models/media.dart';
+import '../model/media.dart';
 
 class LoadThumbnail implements Update {
 

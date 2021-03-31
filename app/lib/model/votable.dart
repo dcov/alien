@@ -1,6 +1,6 @@
 import 'package:reddit/reddit.dart' show VoteDir;
 
-import 'thing.dart';
+import '../model/thing.dart';
 
 abstract class Votable implements Thing {
 

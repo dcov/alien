@@ -1,10 +1,10 @@
 import 'package:muex/muex.dart';
 
-import '../models/accounts.dart';
-import '../models/auth.dart';
-import '../models/feed.dart';
-import '../models/refreshable.dart';
-import '../models/subreddit.dart';
+import '../model/accounts.dart';
+import '../model/auth.dart';
+import '../model/feed.dart';
+import '../model/refreshable.dart';
+import '../model/subreddit.dart';
 
 part 'app.g.dart';
 

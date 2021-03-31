@@ -1,8 +1,8 @@
 import 'package:markdown/markdown.dart';
 import 'package:reddit/reddit.dart';
 
-import '../models/media.dart';
-import '../models/snudown.dart';
+import '../model/media.dart';
+import '../model/snudown.dart';
 
 typedef _OnLinkMatched<L extends Link> = void Function(String href, L link);
 
