@@ -5,17 +5,17 @@ import 'package:reddit/reddit.dart';
 import '../models/post.dart';
 import '../logic/saveable.dart';
 import '../logic/voting.dart';
-import '../utils/formatting.dart';
-import '../ui/media_thumbnail.dart';
-import '../ui/post_route.dart';
-import '../ui/view_extensions.dart';
-import '../ui/votable_utils.dart';
 import '../ui/circle_divider.dart';
 import '../ui/custom_render_object.dart';
+import '../ui/formatting.dart';
+import '../ui/media_thumbnail.dart';
 import '../ui/options_bottom_sheet.dart';
+import '../ui/post_route.dart';
 import '../ui/pressable.dart';
 import '../ui/slidable.dart';
 import '../ui/theming.dart';
+import '../ui/view_extensions.dart';
+import '../ui/votable_utils.dart';
 
 void _showPostOptionsBottomSheet({
     required BuildContext context,

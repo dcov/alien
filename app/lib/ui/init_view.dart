@@ -6,7 +6,7 @@ import '../models/app.dart';
 import '../ui/app_layer.dart';
 import '../ui/themer.dart';
 import '../ui/scroll_configuration.dart';
-import '../ui/shell.dart';
+import '../ui/routing.dart';
 import '../ui/splash_screen.dart';
 import '../ui/theming.dart';
 
@@ -62,8 +62,7 @@ class _InitViewState extends State<InitView> {
               builder: (BuildContext context) {
                 return Material(
                   color: Theming.of(context).canvasColor,
-                  child: Shell(
-                    root: _appLayer));
+                  child: Routing();
               })));
       });
   }

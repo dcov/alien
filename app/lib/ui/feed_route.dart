@@ -9,7 +9,6 @@ import '../models/post.dart';
 import '../ui/listing_scroll_view.dart';
 import '../ui/post_tile.dart';
 import '../ui/pressable.dart';
-import '../ui/shell.dart';
 import '../ui/sort_bottom_sheet.dart';
 
 class FeedRoute extends ShellRoute {

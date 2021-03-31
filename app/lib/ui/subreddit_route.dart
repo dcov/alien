@@ -10,7 +10,6 @@ import '../models/post.dart';
 import '../models/subreddit.dart';
 import '../ui/content_handle.dart';
 import '../ui/pressable.dart';
-import '../ui/shell.dart';
 import '../ui/theming.dart';
 
 import 'listing_scroll_view.dart';

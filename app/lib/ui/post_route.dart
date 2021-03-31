@@ -7,15 +7,14 @@ import '../logic/post_comments.dart';
 import '../logic/thing.dart';
 import '../models/post.dart';
 import '../models/post_comments.dart';
-import '../utils/formatting.dart';
+import '../ui/circle_divider.dart';
+import '../ui/content_handle.dart';
+import '../ui/formatting.dart';
 import '../ui/media_thumbnail.dart';
 import '../ui/post_comments_slivers.dart';
 import '../ui/snudown_body.dart';
-import '../ui/votable_utils.dart';
-import '../ui/circle_divider.dart';
-import '../ui/content_handle.dart';
-import '../ui/shell.dart';
 import '../ui/theming.dart';
+import '../ui/votable_utils.dart';
 
 IconData _determineSortIcon(CommentsSort sortBy) {
   switch (sortBy) {
