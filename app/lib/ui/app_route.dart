@@ -7,85 +7,14 @@ import '../model/post.dart';
 import '../model/subreddit.dart';
 import '../ui/depth_painter.dart';
 import '../ui/icons.dart';
+import '../ui/path_router.dart';
 import '../ui/post_route.dart';
 import '../ui/pressable.dart';
+import '../ui/routing.dart';
 import '../ui/sublist_header.dart';
 import '../ui/subreddit_route.dart';
 import '../ui/theming.dart';
 import '../ui/toolbar.dart';
-
-class AppScreen extends StatelessWidget {
-
-  AppScreen({
-    Key? key,
-    required this.app,
-    required this.nodes
-  }) : super(key: key);
-
-  final App app;
-
-  final Map<String, PathNode<ShellRoute>> nodes;
-
-  Widget _maybeBuildRouteTree(String rootPath, Widget nonTreeTileBuilder()) {
-    if (nodes.containsKey(rootPath)) {
-      return _RouteTreeTile(children: _buildNode(nodes[rootPath]!, 0));
-    }
-    return nonTreeTileBuilder();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theming = Theming.of(context);
-    return Connector(
-      builder: (BuildContext context) {
-        final children = <Widget>[];
-        final defaults = app.defaults;
-        final subscriptions = app.subscriptions;
-        if (defaults != null) {
-          children.add(SublistHeader(name: 'DEFAULTS'));
-          children.addAll(
-            defaults.items.map((Subreddit subreddit) {
-              final path = SubredditRoute.pathFrom(subreddit, 'defaults:');
-              return _maybeBuildRouteTree(
-                  path,
-                  () => _SubredditRouteTile(subreddit: subreddit, path: path));
-            }));
-        } else {
-          assert(subscriptions != null);
-          children.add(SublistHeader(name: 'SUBSCRIPTIONS'));
-          children.addAll(
-            subscriptions!.items.map((Subreddit subreddit) {
-              final path = SubredditRoute.pathFrom(subreddit, 'subscriptions:');
-              return _maybeBuildRouteTree(
-                  path,
-                  () => _SubredditRouteTile(subreddit: subreddit, path: path));
-            }));
-        }
-        return Column(
-          children: <Widget>[
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: theming.canvasColor,
-                border: Border(
-                  bottom: BorderSide(
-                    width: 0.5,
-                    color: theming.borderColor))),
-              child: Toolbar(
-                leading: PressableIcon(
-                  onPress: () {},
-                  icon: Icons.settings,
-                  iconColor: theming.iconColor,
-                  padding: EdgeInsets.symmetric(
-                    vertical: 12.0,
-                    horizontal: 16.0)))),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: children))
-          ]);
-      });
-  }
-}
 
 class _RouteTreeTile extends StatelessWidget {
 
@@ -238,18 +167,7 @@ class _PostRouteTile extends StatelessWidget {
   }
 }
 
-List<Widget> _buildNode(PathNode<ShellRoute> node, int depth, [List<Widget>? result]) {
-  result ??= <Widget>[];
-  result.add(_buildRoute(node.route, depth));
-  if (node.children.isNotEmpty) {
-    for (final child in node.children.values) {
-      _buildNode(child, depth + 1, result);
-    }
-  }
-  return result;
-}
-
-Widget _buildRoute(ShellRoute route, int depth) {
+Widget _buildRoute(RouteEntry route, int depth) {
   if (route is SubredditRoute) {
     return _SubredditRouteTile(
       depth: depth,
@@ -262,5 +180,88 @@ Widget _buildRoute(ShellRoute route, int depth) {
       path: route.path);
   } else {
     throw UnimplementedError('_RouteTile for $route has not been implemented');
+  }
+}
+
+List<Widget> _buildNode(PathNode<RouteEntry> node, int depth, [List<Widget>? result]) {
+  result ??= <Widget>[];
+  result.add(_buildRoute(node.route, depth));
+  if (node.children.isNotEmpty) {
+    for (final child in node.children.values) {
+      _buildNode(child, depth + 1, result);
+    }
+  }
+  return result;
+}
+
+Widget _maybeBuildRouteTree(Map<String, PathNode<RouteEntry>> nodes, String rootPath, Widget nonTreeTileBuilder()) {
+  if (nodes.containsKey(rootPath)) {
+    return _RouteTreeTile(children: _buildNode(nodes[rootPath]!, 0));
+  }
+  return nonTreeTileBuilder();
+}
+
+class AppRoute extends RootEntry {
+
+  AppRoute({
+    required this.app
+  });
+
+  final App app;
+
+  @override
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
+    final nodes = RoutingExtension(context).nodes;
+    return Connector(
+      builder: (BuildContext context) {
+        final children = <Widget>[];
+        final defaults = app.defaults;
+        final subscriptions = app.subscriptions;
+        if (defaults != null) {
+          children.add(SublistHeader(name: 'DEFAULTS'));
+          children.addAll(
+            defaults.items.map((Subreddit subreddit) {
+              final path = SubredditRoute.pathFrom(subreddit, 'defaults:');
+              return _maybeBuildRouteTree(
+                  nodes,
+                  path,
+                  () => _SubredditRouteTile(subreddit: subreddit, path: path));
+            }));
+        } else {
+          assert(subscriptions != null);
+          children.add(SublistHeader(name: 'SUBSCRIPTIONS'));
+          children.addAll(
+            subscriptions!.items.map((Subreddit subreddit) {
+              final path = SubredditRoute.pathFrom(subreddit, 'subscriptions:');
+              return _maybeBuildRouteTree(
+                  nodes,
+                  path,
+                  () => _SubredditRouteTile(subreddit: subreddit, path: path));
+            }));
+        }
+        return Column(
+          children: <Widget>[
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: theming.canvasColor,
+                border: Border(
+                  bottom: BorderSide(
+                    width: 0.5,
+                    color: theming.borderColor))),
+              child: Toolbar(
+                leading: PressableIcon(
+                  onPress: () {},
+                  icon: Icons.settings,
+                  iconColor: theming.iconColor,
+                  padding: EdgeInsets.symmetric(
+                    vertical: 12.0,
+                    horizontal: 16.0)))),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: children))
+          ]);
+      });
   }
 }

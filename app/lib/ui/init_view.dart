@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import '../model/app.dart';
+import '../ui/app_route.dart';
 import '../ui/themer.dart';
 import '../ui/scroll_configuration.dart';
 import '../ui/routing.dart';
@@ -25,6 +26,8 @@ class InitView extends StatefulWidget {
 }
 
 class _InitViewState extends State<InitView> {
+
+  late final appRoute = AppRoute(app: context.state as App);
 
   @override
   Widget build(_) {
@@ -59,7 +62,7 @@ class _InitViewState extends State<InitView> {
               builder: (BuildContext context) {
                 return Material(
                   color: Theming.of(context).canvasColor,
-                  child: Routing();
+                  child: Routing(root: appRoute));
               })));
       });
   }

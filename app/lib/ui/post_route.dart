@@ -12,6 +12,7 @@ import '../ui/content_handle.dart';
 import '../ui/formatting.dart';
 import '../ui/media_thumbnail.dart';
 import '../ui/post_comments_slivers.dart';
+import '../ui/routing.dart';
 import '../ui/snudown_body.dart';
 import '../ui/theming.dart';
 import '../ui/votable_utils.dart';
@@ -30,63 +31,6 @@ IconData _determineSortIcon(CommentsSort sortBy) {
       return Icons.face;
   }
   return Icons.sort;
-}
-
-class PostRoute extends ShellRoute {
-
-  PostRoute({ required this.post });
-
-  final Post post;
-  late PostComments _comments;
-
-  static String pathFrom(Post post, String pathPrefix) {
-    return '$pathPrefix${post.fullId}';
-  }
-
-  static void goTo(BuildContext context, Post post, String path) {
-    context.goTo(
-      path,
-      onCreateRoute: () {
-        return PostRoute(post: post);
-      },
-      onUpdateRoute: (ShellRoute route) {
-        assert(route is PostRoute);
-        // TODO
-      });
-  }
-
-  @override
-  void initState(BuildContext context) {
-    _comments = commentsFromPost(post);
-    context.then(Then.all({
-        MarkPostAsViewed(post: post),
-        RefreshPostComments(
-          comments: _comments,
-          sortBy: CommentsSort.best),
-      }));
-  }
-
-  @override
-  RouteComponents build(BuildContext context) {
-    final theming = Theming.of(context);
-    return RouteComponents(
-      titleMiddle: Text(
-        'Comments',
-        style: theming.headerText),
-      contentHandle: ContentHandle(
-        items: <ContentHandleItem>[
-          ContentHandleItem(
-            icon: _determineSortIcon(_comments.sortBy),
-            text: _comments.sortBy.name.toUpperCase()),
-          ContentHandleItem(
-            icon: Icons.comment,
-            text: '${post.commentCount}')
-        ]),
-      contentBody: _PostContentBody(
-        key: ValueKey(path),
-        post: post,
-        comments: _comments));
-  }
 }
 
 class _PostContentBody extends StatelessWidget {
@@ -182,5 +126,46 @@ class _PostSliver extends StatelessWidget {
                     snudown: post.selfText!,
                     scrollable: false))
             ]))));
+  }
+}
+
+class PostRoute extends RouteEntry {
+
+  PostRoute({ required this.post });
+
+  final Post post;
+  late PostComments _comments;
+
+  static String pathFrom(Post post, String pathPrefix) {
+    return '$pathPrefix${post.fullId}';
+  }
+
+  static void goTo(BuildContext context, Post post, String path) {
+    context.goTo(
+      path,
+      onCreateEntry: () {
+        return PostRoute(post: post);
+      },
+      onUpdateEntry: (RouteEntry entry) {
+        assert(entry is PostRoute);
+        // TODO
+      });
+  }
+
+  @override
+  void initState(BuildContext context) {
+    _comments = commentsFromPost(post);
+    context.then(Then.all({
+        MarkPostAsViewed(post: post),
+        RefreshPostComments(
+          comments: _comments,
+          sortBy: CommentsSort.best),
+      }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
+    return SizedBox();
   }
 }

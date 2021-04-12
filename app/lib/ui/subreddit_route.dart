@@ -10,7 +10,9 @@ import '../model/post.dart';
 import '../model/subreddit.dart';
 import '../ui/content_handle.dart';
 import '../ui/pressable.dart';
+import '../ui/routing.dart';
 import '../ui/theming.dart';
+import '../ui/toolbar.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_tile.dart';
@@ -35,76 +37,6 @@ Color _determinePrimaryColor(ThemingData theming, Subreddit subreddit) {
   if (subreddit.primaryColor != null)
     return Color(subreddit.primaryColor!);
   return theming.altCanvasColor;
-}
-
-class SubredditRoute extends ShellRoute {
-
-  SubredditRoute({
-    required this.subreddit
-  });
-
-  final Subreddit subreddit;
-
-  late final SubredditPosts _posts;
-
-  static String pathFrom(Subreddit subreddit, String pathPrefix) {
-    return '$pathPrefix${subreddit.fullId}';
-  }
-
-  static void goTo(BuildContext context, Subreddit subreddit, String path) {
-    context.goTo(
-      path,
-      onCreateRoute: () {
-        return SubredditRoute(subreddit: subreddit);
-      },
-      onUpdateRoute: (ShellRoute route) {
-        assert(route is SubredditRoute);
-        // TODO
-      });
-  }
-
-  @override
-  void initState(BuildContext context) {
-    _posts = postsFromSubreddit(subreddit);
-    context.then(
-      Then(TransitionSubredditPosts(
-        posts: _posts,
-        to: ListingStatus.refreshing,
-        sortBy: SubredditSort.hot)));
-  }
-
-  @override
-  RouteComponents build(BuildContext context) {
-    final theming = Theming.of(context);
-    final primaryColor = _determinePrimaryColor(theming, subreddit);
-    return RouteComponents(
-      titleDecoration: _buildTitleDecoration(theming, subreddit),
-      titleMiddle: Text(
-        subreddit.name,
-        style: theming.headerText),
-      contentHandle: ContentHandle(
-        iconColor: primaryColor,
-        items: <ContentHandleItem>[
-          ContentHandleItem(
-            icon: _determineSortIcon(_posts.sortBy),
-            text: _posts.sortBy.name.toUpperCase(),
-            onTap: () {
-            })
-        ]),
-      contentBody: _ContentBody(
-        key: ValueKey(path),
-        posts: _posts,
-        postPathPrefix: childPathPrefix),
-      optionsHandle: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            PressableIcon(
-              icon: Icons.sort,
-              iconColor: theming.iconColor)
-          ])),
-      optionsBody: const SizedBox());
-  }
 }
 
 BoxDecoration _buildTitleDecoration(
@@ -158,5 +90,56 @@ class _ContentBody extends StatelessWidget {
           pathPrefix: postPathPrefix,
           includeSubredditName: false);
       });
+  }
+}
+
+class SubredditRoute extends RouteEntry {
+
+  SubredditRoute({
+    required this.subreddit
+  });
+
+  final Subreddit subreddit;
+
+  late final SubredditPosts _posts;
+
+  static String pathFrom(Subreddit subreddit, String pathPrefix) {
+    return '$pathPrefix${subreddit.fullId}';
+  }
+
+  static void goTo(BuildContext context, Subreddit subreddit, String path) {
+    context.goTo(
+      path,
+      onCreateEntry: () {
+        return SubredditRoute(subreddit: subreddit);
+      },
+      onUpdateEntry: (RouteEntry entry) {
+        assert(entry is SubredditRoute);
+        // TODO
+      });
+  }
+
+  @override
+  void initState(BuildContext context) {
+    _posts = postsFromSubreddit(subreddit);
+    context.then(
+      Then(TransitionSubredditPosts(
+        posts: _posts,
+        to: ListingStatus.refreshing,
+        sortBy: SubredditSort.hot)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      child: Column(
+        children: <Widget>[
+          Toolbar(
+            leading: CloseButton()),
+          Expanded(
+            child: _ContentBody(
+              posts: _posts,
+              postPathPrefix: childPathPrefix)),
+        ]));
   }
 }

@@ -1,5 +1,5 @@
 import 'logic/init.dart';
-import 'views/init_view.dart';
+import 'ui/init_view.dart';
 
 import 'effects.dart';
 import 'reddit_credentials.dart';

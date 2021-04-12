@@ -9,46 +9,8 @@ import '../model/post.dart';
 import '../ui/listing_scroll_view.dart';
 import '../ui/post_tile.dart';
 import '../ui/pressable.dart';
+import '../ui/routing.dart';
 import '../ui/sort_bottom_sheet.dart';
-
-class FeedRoute extends ShellRoute {
-
-  FeedRoute({
-    required this.feed,
-  });
-
-  final Feed feed;
-
-  late final FeedPosts _posts;
-
-  static void goTo(BuildContext context, Feed feed, String pathPrefix) {
-    context.goTo(
-      '$pathPrefix${feed.name}',
-      onCreateRoute: () {
-        return FeedRoute(feed: feed);
-      },
-      onUpdateRoute: (_) {
-        // We don't have anything to update
-      });
-  }
-
-  @override
-  void initState(BuildContext context) {
-    _posts = postsFromFeed(feed);
-    context.then(Then(
-        TransitionFeedPosts(
-          posts: _posts,
-          to: ListingStatus.refreshing,)));
-  }
-
-  @override
-  RouteComponents build(BuildContext context) {
-    return RouteComponents(
-      contentBody: _FeedContentBody(
-        posts: _posts,
-        postPathPrefix: childPathPrefix));
-  }
-}
 
 class _FeedContentBody extends StatelessWidget {
 
@@ -147,5 +109,41 @@ class _FeedContentBody extends StatelessWidget {
             listSliver
           ]);
       });
+  }
+}
+
+class FeedRoute extends RouteEntry {
+
+  FeedRoute({
+    required this.feed,
+  });
+
+  final Feed feed;
+
+  late final FeedPosts _posts;
+
+  static void goTo(BuildContext context, Feed feed, String pathPrefix) {
+    context.goTo(
+      '$pathPrefix${feed.name}',
+      onCreateEntry: () {
+        return FeedRoute(feed: feed);
+      },
+      onUpdateEntry: (_) {
+        // We don't have anything to update
+      });
+  }
+
+  @override
+  void initState(BuildContext context) {
+    _posts = postsFromFeed(feed);
+    context.then(Then(
+        TransitionFeedPosts(
+          posts: _posts,
+          to: ListingStatus.refreshing,)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox();
   }
 }
