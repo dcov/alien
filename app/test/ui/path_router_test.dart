@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:alien/utils/path_router.dart';
+import 'package:alien/ui/path_router.dart';
 
 class _TestRoute extends PathRoute {
 

@@ -1,338 +1,9 @@
-import 'dart:collection';
-
 import 'package:flutter/cupertino.dart';
-import 'package:meta/meta.dart';
 
-typedef PathRouteFactory<R extends PathRoute> = R Function();
+import '../ui/draggable_page_route.dart';
+import '../ui/path_router.dart';
 
-typedef PathRouteVisitor<R extends PathRoute> = void Function(R route);
-
-abstract class PathRoute {
-
-  String get fragment => _fragment!;
-  String? _fragment;
-
-  String get path => _path!;
-  String? _path;
-
-  @protected
-  String get childPathPrefix => '$path/';
-}
-
-class PathNode<R extends PathRoute> {
-
-  PathNode(this.route);
-
-  final R route;
-
-  String get path => route.path;
-
-  late final Map<String, PathNode<R>> children = UnmodifiableMapView<String, PathNode<R>>(_children);
-  final _children = <String, PathNode<R>>{};
-}
-
-enum PathRouterGoToTransition {
-  push,
-  pop,
-  replace,
-  none,
-}
-
-enum PathRouterRemoveTransition {
-  pop,
-  replace,
-  none,
-}
-
-enum PathRouterDetachTransition {
-  replace,
-  none
-}
-
-class PathRouter<R extends PathRoute> {
-
-  late final Map<String, PathNode<R>> nodes = UnmodifiableMapView<String, PathNode<R>>(_nodes);
-  final _nodes = <String, PathNode<R>>{};
-
-  late final List<R> stack = UnmodifiableListView<R>(_routeStack);
-  final _routeStack = <R>[];
-
-  var _pathStack = <String>[];
-
-  void _rebuildRouteStack() {
-    _routeStack.clear();
-    PathNode<R>? parentNode;
-    for (var i = 0; i < _pathStack.length; i++) {
-      final node = parentNode != null ? parentNode._children[_pathStack[i]]! : _nodes[_pathStack[i]]!;
-      _routeStack.add(node.route);
-      parentNode = node;
-    }
-  }
-
-  List<String> _splitAndNormalize(String path) {
-    final stack = path.split('/');
-    if (stack.first.isEmpty) {
-      assert(stack.length == 1);
-      stack.clear();
-    }
-    return stack;
-  }
-
-  PathRouterGoToTransition goTo(
-      String path, {
-      PathRouteFactory<R>? onCreateRoute,
-      PathRouteVisitor<R>? onUpdateRoute,
-    }) {
-    final oldStack = _pathStack;
-    final newStack = _splitAndNormalize(path);
-    _pathStack = newStack;
-
-    late PathRouterGoToTransition transition;
-
-    if (newStack.isEmpty) {
-      if (oldStack.isEmpty) {
-        transition = PathRouterGoToTransition.none;
-      } else if (oldStack.length == 1) {
-        transition = PathRouterGoToTransition.pop;
-      } else {
-        transition = PathRouterGoToTransition.replace;
-      }
-    } else {
-      PathNode<R>? parentNode;
-      bool parentsAreInOldStack = true;
-      for (var i = 0; i < newStack.length; i++) {
-        final fragment = newStack[i];
-        assert(fragment.isNotEmpty);
-
-        PathNode<R>? node;
-        if (parentNode == null) {
-          node = _nodes[fragment];
-        } else {
-          node = parentNode._children[fragment];
-        }
-
-        final isLastFragment = (i == (newStack.length - 1));
-        final isInOldStack = (i < oldStack.length && oldStack[i] == fragment && parentsAreInOldStack);
-
-        if (node == null) {
-          // This should be the last fragment in the path
-          assert(isLastFragment,
-              '$fragment is a parent in $path but it does not exist.');
-          assert(onCreateRoute != null,
-              'Had to create route for $path but onCreateRoute was not provided.');
-
-          final newRoute = onCreateRoute!();
-          newRoute.._fragment = fragment
-                  .._path = path;
-
-          final newNode = PathNode(newRoute);
-          if (parentNode == null) {
-            _nodes[fragment] = newNode;
-          } else {
-            parentNode._children[fragment] = newNode;
-          }
-
-          if (oldStack.isEmpty) {
-            if (newStack.length == 1) {
-              transition = PathRouterGoToTransition.push;
-            } else {
-              transition = PathRouterGoToTransition.replace;
-            }
-          } else if (parentsAreInOldStack) {
-            if (oldStack.length == newStack.length - 1) {
-              transition = PathRouterGoToTransition.push;
-            } else {
-              transition = PathRouterGoToTransition.replace;
-            }
-          } else {
-            transition = PathRouterGoToTransition.replace;
-          }
-        } else if (isLastFragment) {
-          assert(node.route.fragment == fragment);
-          assert(node.route.path == path);
-          if (onUpdateRoute != null) {
-            onUpdateRoute(node.route);
-          }
-          // Check if the new stack matches the new stack up to this point, in which case it might be
-          // the exact same stack, a popped route (that isn't removed from the tree), or just a replace.
-          if (parentsAreInOldStack && isInOldStack) {
-            if (oldStack.length == newStack.length) {
-              // The Stack did not change
-              transition = PathRouterGoToTransition.none;
-            } else if (newStack.length == oldStack.length - 1) {
-              // The stack was popped, but since this was a call to goTo and not remove, the route
-              // is not removed and instead we just 'go back' to the parent.
-              transition = PathRouterGoToTransition.pop;
-            } else {
-              // The stack was popped more than one route so we'll treat it as a replace
-              transition = PathRouterGoToTransition.replace;
-            }
-          } else {
-            // The parents aren't the same, or this route isn't the same so it's a replace.
-            transition = PathRouterGoToTransition.replace;
-          }
-        } else {
-          parentNode = node;
-          parentsAreInOldStack = (parentsAreInOldStack && isInOldStack);
-        }
-      }
-    }
-
-    if (transition != PathRouterGoToTransition.none) {
-      _rebuildRouteStack();
-    }
-
-    return transition;
-  }
-
-  PathRouterRemoveTransition remove(String path, { PathRouteVisitor<R>? onRemovedRoute }) {
-    final fragments = _splitAndNormalize(path);
-
-    late PathRouterRemoveTransition transition;
-
-    PathNode<R>? parentNode;
-    bool parentsAreInStack = true;
-    for (var i = 0; i < fragments.length; i++) {
-      final fragment = fragments[i];
-
-      final PathNode<R> node;
-      if (parentNode == null) {
-        node = _nodes[fragment]!;
-      } else {
-        node = parentNode._children[fragment]!;
-      }
-
-      final isLastFragment = (i == fragments.length - 1);
-      final isInStack = (i < _pathStack.length && _pathStack[i] == fragment && parentsAreInStack);
-
-      if (isLastFragment) {
-        assert(node.route.fragment == fragment);
-        assert(node.route.path == path);
-
-        PathNode<R> removedNode;
-        if (i == 0) {
-          removedNode = _nodes.remove(fragment)!;
-          if (isInStack) {
-            _pathStack.clear();
-            transition = PathRouterRemoveTransition.pop;
-          } else {
-            transition = PathRouterRemoveTransition.none;
-          }
-        } else {
-          removedNode = parentNode!._children.remove(fragment)!;
-          if (parentsAreInStack && isInStack) {
-            if (isInStack && _pathStack.length == fragments.length) {
-              _pathStack.removeLast();
-              transition = PathRouterRemoveTransition.pop;
-            } else {
-              _pathStack.removeRange(i, _pathStack.length);
-              transition = PathRouterRemoveTransition.replace;
-            }
-          } else {
-            // We removed a subtree that was not in the stack
-            transition = PathRouterRemoveTransition.none;
-          }
-        }
-
-        if (onRemovedRoute != null)
-          _visitNodes(removedNode, onRemovedRoute);
-      } else {
-        parentNode = node;
-        parentsAreInStack = (parentsAreInStack && isInStack);
-      }
-    }
-
-    if (transition != PathRouterRemoveTransition.none)
-      _rebuildRouteStack();
-
-    return transition;
-  }
-
-  void _visitNodes(PathNode<R> node, PathRouteVisitor<R> visitor) {
-    visitor(node.route);
-    node.children.values.forEach((node) => _visitNodes(node, visitor));
-  }
-
-  PathRouterDetachTransition detach(String path, String newFragment) {
-    final fragments = _splitAndNormalize(path);
-
-    late PathRouterDetachTransition transition;
-
-    PathNode<R>? parentNode;
-    bool parentsAreInStack = true;
-    for (var i = 0; i < fragments.length; i++) {
-      final fragment = fragments[i];
-
-      final PathNode<R> node;
-      if (parentNode == null) {
-        node = _nodes[fragment]!;
-      } else {
-        node = parentNode._children[fragment]!;
-      }
-
-      final isLastFragment = (i == fragments.length - 1);
-      final isInStack = (i < _pathStack.length && _pathStack[i] == fragment && parentsAreInStack);
-
-      if (isLastFragment) {
-        assert(node.route.fragment == fragment);
-        assert(node.route.path == path);
-
-        node.route.._fragment = newFragment;
-        node.route.._path = newFragment;
-
-        if (node.children.isNotEmpty) {
-          _updateChildrenPaths(node.children, (String oldPath) {
-            final fragments = oldPath.split('/');
-            final newFragments = fragments.sublist(i);
-            newFragments[0] = newFragment;
-            return newFragments.join('/');
-          });
-        }
-
-        if (parentNode == null) {
-          assert(_nodes[fragment] == node);
-          _nodes.remove(fragment);
-          _nodes[newFragment] = node;
-          if (isInStack) {
-            _pathStack[0] = newFragment;
-            transition = PathRouterDetachTransition.replace;
-          } else {
-            transition = PathRouterDetachTransition.none;
-          }
-        } else {
-          assert(parentNode._children[fragment] == node);
-          parentNode._children.remove(fragment);
-          _nodes[newFragment] = node;
-          if (isInStack) {
-            _pathStack = _pathStack.sublist(i);
-            _pathStack[0] = newFragment;
-            transition = PathRouterDetachTransition.replace;
-          } else {
-            transition = PathRouterDetachTransition.none;
-          }
-        }
-      } else {
-        parentNode = node;
-        parentsAreInStack = (parentsAreInStack && isInStack);
-      }
-    }
-
-    if (transition != PathRouterDetachTransition.none)
-      _rebuildRouteStack();
-
-    return transition;
-  }
-
-  void _updateChildrenPaths(Map<String, PathNode> children, String updatePath(String oldPath)) {
-    for (final child in children.values) {
-      child.route._path = updatePath(child.route.path);
-      if (child.children.isNotEmpty)
-        _updateChildrenPaths(child.children, updatePath);
-    }
-  }
-}
-
-mixin _Route {
+mixin _RoutingEntry {
 
   void initState(BuildContext context) { }
 
@@ -343,37 +14,27 @@ mixin _Route {
   Widget build(BuildContext context);
 }
 
-abstract class RootRoute with _Route { }
+class _EntryPage extends Page {
 
-abstract class ChildRoute extends PathRoute with _Route { }
+  _EntryPage({
+    LocalKey? key,
+    String? name,
+    required this.entry,
+  }) : super(key: key, name: name);
 
-final _kPrimaryTween = Tween<Offset>(begin: Offset(1.0, 0.0), end: Offset.zero);
-
-final _kSecondaryTween = Tween<Offset>(begin: Offset.zero, end: Offset(-(1.0/3.0), 0.0));
-
-class _RoutePage extends Page {
-
-  _RoutePage({
-    required this.route
-  });
-
-  final _Route route;
-
-  Widget _buildPage(BuildContext context, Animation<double> primaryAnimation, Animation<double> secondaryAnimation) {
-    return SlideTransition(
-      position: primaryAnimation.drive(_kPrimaryTween),
-      child: SlideTransition(
-        position: secondaryAnimation.drive(_kSecondaryTween),
-        child: route.build(context)));
-  }
+  final _RoutingEntry entry;
 
   @override
   Route createRoute(BuildContext context) {
-    return PageRouteBuilder(
+    return DraggablePageRoute(
       settings: this,
-      pageBuilder: _buildPage);
+      builder: entry.build);
   }
 }
+
+abstract class RootEntry with _RoutingEntry { }
+
+abstract class RouteEntry extends PathRoute with _RoutingEntry { }
 
 class Routing extends StatefulWidget {
 
@@ -382,18 +43,195 @@ class Routing extends StatefulWidget {
     required this.root
   }) : super(key: key);
 
-  final RootRoute root;
+  final RootEntry root;
 
   @override
   _RoutingState createState() => _RoutingState();
 }
 
+class _RoutingScope extends InheritedWidget {
+
+  _RoutingScope({
+    Key? key,
+    required this.routing,
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  final _RoutingState routing;
+
+  @override
+  bool updateShouldNotify(_RoutingScope oldWidget) {
+    return this.routing != oldWidget.routing;
+  }
+}
+
 class _RoutingState extends State<Routing> {
+
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  final _router = PathRouter<RouteEntry>();
+  var _stack = <Page>[];
+
+  Map<String, PathNode<RouteEntry>> get nodes => _router.nodes;
+
+  static Page _createPage(_RoutingEntry entry) {
+    final name = entry is RouteEntry ? entry.path : 'root';
+    return _EntryPage(
+      key: ValueKey(name),
+      name: name,
+      entry: entry);
+  }
+
+  void goTo(
+      String path, {
+      PathRouteFactory<RouteEntry>? onCreateEntry,
+      PathRouteVisitor<RouteEntry>? onUpdateEntry
+    }) {
+    final transition = _router.goTo(
+      path,
+      onCreateRoute: () {
+        final entry = onCreateEntry!();
+        entry.initState(context);
+        entry.didChangeDependencies(context);
+        return entry;
+      },
+      onUpdateRoute: onUpdateEntry);
+
+    switch (transition) {
+      case PathRouterGoToTransition.push:
+        setState(() {
+          _stack.add(_createPage(_router.stack.last));
+        });
+        break;
+      case PathRouterGoToTransition.pop:
+        setState(() {
+          _stack.removeLast();
+        });
+        break;
+      case PathRouterGoToTransition.replace:
+        setState(() {
+          _stack.replaceRange(1, _stack.length,
+              _router.stack.map((RouteEntry entry) => _createPage(entry)));
+        });
+        break;
+      case PathRouterGoToTransition.none:
+        break;
+    }
+  }
+
+  void remove(String path, { bool canRebuild = true }) {
+    final transition = _router.remove(
+        path,
+        onRemovedRoute: (RouteEntry entry) {
+          entry.dispose(context);
+        });
+
+    late bool rebuild;
+    switch (transition) {
+      case PathRouterRemoveTransition.pop:
+        _stack.removeLast();
+        rebuild = true;
+        break;
+      case PathRouterRemoveTransition.replace:
+        _stack.replaceRange(1, _stack.length,
+            _router.stack.map((RouteEntry entry) => _createPage(entry)));
+        rebuild = true;
+        break;
+      case PathRouterRemoveTransition.none:
+        rebuild = false;
+        break;
+    }
+
+    if (rebuild && canRebuild) {
+      setState(() { });
+    }
+  }
+
+  void detach(String path, String newFragment) {
+    final transition = _router.detach(path, newFragment);
+
+    switch (transition) {
+      case PathRouterDetachTransition.replace:
+        setState(() {
+          _stack.replaceRange(1, _stack.length,
+              _router.stack.map((RouteEntry entry) => _createPage(entry)));
+        });
+        break;
+      case PathRouterDetachTransition.none:
+        break;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _stack.add(_createPage(widget.root));
+  }
+
+  @override
+  void didUpdateWidget(Routing oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.root != oldWidget.root) {
+      setState(() {
+        _stack.replaceRange(0, 1, <Page>[_createPage(widget.root)]); 
+      });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateNodeDependencies(_router.nodes.values);
+  }
+
+  void _updateNodeDependencies(Iterable<PathNode<RouteEntry>> nodes) {
+    for (final node in nodes) {
+      node.route.didChangeDependencies(context);
+      _updateNodeDependencies(node.children.values);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
-      pages: <Page>[
-      ]);
+    return _RoutingScope(
+      routing: this,
+      child: Navigator(
+        key: _navigatorKey,
+        onPopPage: (Route<dynamic> route, dynamic result) {
+          final page = route.settings as _EntryPage;
+          if (page.entry is RootEntry) {
+            // TODO: Do something here to handle quitting the app
+            return false;
+          } else {
+            assert(page.entry is RouteEntry);
+            remove((page.entry as RouteEntry).path, canRebuild: false);
+            return true;
+          }
+        },
+        pages: _stack.toList()));
+  }
+}
+
+extension RoutingExtension on BuildContext {
+
+  _RoutingState get _routing {
+    return this.dependOnInheritedWidgetOfExactType<_RoutingScope>()!.routing;
+  }
+
+  Map<String, PathNode<RouteEntry>> get nodes => _routing.nodes;
+
+  void goTo(
+      String path, {
+      PathRouteFactory<RouteEntry>? onCreateEntry,
+      PathRouteVisitor<RouteEntry>? onUpdateEntry 
+    }) {
+    _routing.goTo(path, onCreateEntry: onCreateEntry, onUpdateEntry: onUpdateEntry);
+  }
+
+  void remove(String path) {
+    _routing.remove(path);
+  }
+
+  void detach(String path, String newFragment) {
+    _routing.detach(path, newFragment);
   }
 }
