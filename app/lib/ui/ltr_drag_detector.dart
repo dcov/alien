@@ -2,70 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
-class LTRDragDetector extends StatefulWidget {
-
-  LTRDragDetector({
-    Key? key,
-    required this.onDragStart,
-    required this.onDragUpdate,
-    required this.onDragEnd,
-    required this.onDragCancel,
-    this.child
-  }) : super(key: key);
-
-  final GestureDragStartCallback onDragStart;
-
-  final GestureDragUpdateCallback onDragUpdate;
-
-  final GestureDragEndCallback onDragEnd;
-
-  final GestureDragCancelCallback onDragCancel;
-
-  final Widget? child;
-
-  @override
-  _LTRDragDetectorState createState() => _LTRDragDetectorState();
-}
-
-class _LTRDragDetectorState extends State<LTRDragDetector> {
-
-  late _LTRDragRecognizer _recognizer;
-
-  @override
-  void initState() {
-    super.initState();
-    _recognizer = _LTRDragRecognizer(debugOwner: this)
-        ..onStart = widget.onDragStart
-        ..onUpdate = widget.onDragUpdate
-        ..onEnd = widget.onDragEnd
-        ..onCancel = widget.onDragCancel;
-  }
-
-  @override
-  void didUpdateWidget(LTRDragDetector oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _recognizer
-        ..onStart = widget.onDragStart
-        ..onUpdate = widget.onDragUpdate
-        ..onEnd = widget.onDragEnd
-        ..onCancel = widget.onDragCancel;
-  }
-
-  @override
-  void dispose() {
-    _recognizer.dispose();
-    super.dispose();
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: _recognizer.addPointer,
-      child: widget.child);
-  }
-}
-
 enum _DragState {
   ready,
   possible,
@@ -347,4 +283,68 @@ class _LTRDragRecognizer extends OneSequenceGestureRecognizer {
 
   @override
   String get debugDescription => 'ltr drag detector';
+}
+
+class LTRDragDetector extends StatefulWidget {
+
+  LTRDragDetector({
+    Key? key,
+    required this.onDragStart,
+    required this.onDragUpdate,
+    required this.onDragEnd,
+    required this.onDragCancel,
+    this.child
+  }) : super(key: key);
+
+  final GestureDragStartCallback onDragStart;
+
+  final GestureDragUpdateCallback onDragUpdate;
+
+  final GestureDragEndCallback onDragEnd;
+
+  final GestureDragCancelCallback onDragCancel;
+
+  final Widget? child;
+
+  @override
+  _LTRDragDetectorState createState() => _LTRDragDetectorState();
+}
+
+class _LTRDragDetectorState extends State<LTRDragDetector> {
+
+  late _LTRDragRecognizer _recognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _recognizer = _LTRDragRecognizer(debugOwner: this)
+        ..onStart = widget.onDragStart
+        ..onUpdate = widget.onDragUpdate
+        ..onEnd = widget.onDragEnd
+        ..onCancel = widget.onDragCancel;
+  }
+
+  @override
+  void didUpdateWidget(LTRDragDetector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _recognizer
+        ..onStart = widget.onDragStart
+        ..onUpdate = widget.onDragUpdate
+        ..onEnd = widget.onDragEnd
+        ..onCancel = widget.onDragCancel;
+  }
+
+  @override
+  void dispose() {
+    _recognizer.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: _recognizer.addPointer,
+      child: widget.child);
+  }
 }

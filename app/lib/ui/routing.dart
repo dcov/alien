@@ -86,79 +86,69 @@ class _RoutingState extends State<Routing> {
       PathRouteFactory<RouteEntry>? onCreateEntry,
       PathRouteVisitor<RouteEntry>? onUpdateEntry
     }) {
-    final transition = _router.goTo(
-      path,
-      onCreateRoute: () {
-        final entry = onCreateEntry!();
-        entry.initState(context);
-        entry.didChangeDependencies(context);
-        return entry;
-      },
-      onUpdateRoute: onUpdateEntry);
+    setState(() {
+      final transition = _router.goTo(
+        path,
+        onCreateRoute: () {
+          final entry = onCreateEntry!();
+          entry.initState(context);
+          entry.didChangeDependencies(context);
+          return entry;
+        },
+        onUpdateRoute: onUpdateEntry);
 
-    switch (transition) {
-      case PathRouterGoToTransition.push:
-        setState(() {
+      switch (transition) {
+        case PathRouterGoToTransition.push:
           _stack.add(_createPage(_router.stack.last));
-        });
-        break;
-      case PathRouterGoToTransition.pop:
-        setState(() {
+          break;
+        case PathRouterGoToTransition.pop:
           _stack.removeLast();
-        });
-        break;
-      case PathRouterGoToTransition.replace:
-        setState(() {
+          break;
+        case PathRouterGoToTransition.replace:
           _stack.replaceRange(1, _stack.length,
               _router.stack.map((RouteEntry entry) => _createPage(entry)));
-        });
-        break;
-      case PathRouterGoToTransition.none:
-        break;
-    }
+          break;
+        case PathRouterGoToTransition.none:
+          break;
+      }
+    });
   }
 
   void remove(String path, { bool canRebuild = true }) {
-    final transition = _router.remove(
-        path,
-        onRemovedRoute: (RouteEntry entry) {
-          entry.dispose(context);
-        });
+    setState(() {
+      final transition = _router.remove(
+          path,
+          onRemovedRoute: (RouteEntry entry) {
+            entry.dispose(context);
+          });
 
-    late bool rebuild;
-    switch (transition) {
-      case PathRouterRemoveTransition.pop:
-        _stack.removeLast();
-        rebuild = true;
-        break;
-      case PathRouterRemoveTransition.replace:
-        _stack.replaceRange(1, _stack.length,
-            _router.stack.map((RouteEntry entry) => _createPage(entry)));
-        rebuild = true;
-        break;
-      case PathRouterRemoveTransition.none:
-        rebuild = false;
-        break;
-    }
-
-    if (rebuild && canRebuild) {
-      setState(() { });
-    }
+      switch (transition) {
+        case PathRouterRemoveTransition.pop:
+          _stack.removeLast();
+          break;
+        case PathRouterRemoveTransition.replace:
+          _stack.replaceRange(1, _stack.length,
+              _router.stack.map((RouteEntry entry) => _createPage(entry)));
+          break;
+        case PathRouterRemoveTransition.none:
+          break;
+      }
+    });
   }
 
   void detach(String path, String newFragment) {
+    setState(() {
     final transition = _router.detach(path, newFragment);
 
     switch (transition) {
       case PathRouterDetachTransition.replace:
-        setState(() {
-          _stack.replaceRange(1, _stack.length,
-              _router.stack.map((RouteEntry entry) => _createPage(entry)));
-        });
+        _stack.replaceRange(1, _stack.length,
+            _router.stack.map((RouteEntry entry) => _createPage(entry)));
         break;
       case PathRouterDetachTransition.none:
         break;
     }
+    });
   }
 
   @override
@@ -201,11 +191,13 @@ class _RoutingState extends State<Routing> {
           if (page.entry is RootEntry) {
             // TODO: Do something here to handle quitting the app
             return false;
-          } else {
+          } else if (route.didPop(result)) {
             assert(page.entry is RouteEntry);
-            remove((page.entry as RouteEntry).path, canRebuild: false);
+            remove((page.entry as RouteEntry).path);
             return true;
           }
+
+          return false;
         },
         pages: _stack.toList()));
   }
