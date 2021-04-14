@@ -13,6 +13,7 @@ import '../ui/path_router.dart';
 import '../ui/post_route.dart';
 import '../ui/pressable.dart';
 import '../ui/routing.dart';
+import '../ui/settings_page.dart';
 import '../ui/sublist_header.dart';
 import '../ui/subreddit_route.dart';
 import '../ui/theming.dart';
@@ -290,7 +291,7 @@ class AppRoute extends RootEntry {
               child: Toolbar(
                 middle: _AccountsHeader(accounts: app.accounts),
                 trailing: PressableIcon(
-                  onPress: () {},
+                  onPress: () => showSettingsPage(context: context),
                   icon: Icons.settings,
                   iconColor: theming.iconColor,
                   padding: EdgeInsets.symmetric(

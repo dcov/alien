@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:package_info/package_info.dart';
 
+import '../ui/draggable_page_route.dart';
 import '../ui/pressable.dart';
+import '../ui/theming.dart';
 import '../ui/widget_extensions.dart';
 
 class _OptionTile extends StatelessWidget {
@@ -24,6 +26,7 @@ class _OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theming = Theming.of(context);
     return Pressable(
       onPress: onPress,
       child: Padding(
@@ -32,27 +35,29 @@ class _OptionTile extends StatelessWidget {
           children: <Widget>[
             Padding(
               padding: EdgeInsets.only(right: 8.0),
-              child: Icon(icon)),
+              child: Icon(
+                icon,
+                color: theming.iconColor)),
             Column(
               children: <Widget>[
                 Text(
                   title,
-                  style: TextStyle(
-                   fontSize: 14.0,
-                   fontWeight: FontWeight.w500)),
+                  style: theming.titleText),
                 if (subtext != null)
-                  Text(subtext!)
+                  Text(
+                    subtext!,
+                    style: theming.detailText)
               ])
           ])));
   }
 }
 
 void _showLicensePage({ required BuildContext context }) {
-  /*context.rootNavigator.push(
+  context.rootNavigator.push(
     DraggablePageRoute(
       builder: (_) {
         return LicensePage();
-      }));*/
+      }));
 }
 
 class _AboutPageView extends StatelessWidget {
@@ -66,74 +71,72 @@ class _AboutPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(child: CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(
-          toolbarHeight: 48.0,
-          backgroundColor: Theme.of(context).canvasColor,
-          elevation: 1.0,
-          pinned: true,
-          centerTitle: true,
-          leading: PressableIcon(
-            onPress: () => context.rootNavigator.pop(),
-            icon: Icons.arrow_back_ios_rounded,
-            iconColor: Colors.black),
-          title: Text(
-            'About',
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 16.0,
-              color: Colors.black))),
-        SliverToBoxAdapter(
-          child: FutureBuilder<PackageInfo>(
-            future: packageInfo,
-            builder: (BuildContext context, AsyncSnapshot<PackageInfo> snapshot) {
-              String version;
-              String buildNumber;
-              switch (snapshot.connectionState) {
-                case ConnectionState.done:
-                  final data = snapshot.requireData;
-                  version = data.version;
-                  buildNumber = data.buildNumber;
-                  break;
-                default:
-                  version = buildNumber = 'N/A';
-                  break;
-              }
-              return Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      'Alien for Reddit',
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w500)),
-                    Text('Version: $version'),
-                    Text('Build: $buildNumber'),
-                  ]));
-            })),
-        SliverList(
-          delegate: SliverChildListDelegate(<Widget>[
-            Divider(),
-            _OptionTile(
-              onPress: () => _showLicensePage(context: context),
-              title: 'Licenses',
-              icon: Icons.list)
-          ]))
-      ]));
+    final theming = Theming.of(context);
+    return Material(
+      color: theming.canvasColor,
+      child: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            toolbarHeight: 48.0,
+            backgroundColor: theming.canvasColor,
+            elevation: 1.0,
+            pinned: true,
+            centerTitle: true,
+            leading: PressableIcon(
+              onPress: () => context.rootNavigator.pop(),
+              icon: Icons.arrow_back_ios_rounded,
+              iconColor: theming.iconColor),
+            title: Text(
+              'About',
+              style: theming.headerText)),
+          SliverToBoxAdapter(
+            child: FutureBuilder<PackageInfo>(
+              future: packageInfo,
+              builder: (BuildContext context, AsyncSnapshot<PackageInfo> snapshot) {
+                String version;
+                String buildNumber;
+                switch (snapshot.connectionState) {
+                  case ConnectionState.done:
+                    final data = snapshot.requireData;
+                    version = data.version;
+                    buildNumber = data.buildNumber;
+                    break;
+                  default:
+                    version = buildNumber = 'N/A';
+                    break;
+                }
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        'Alien for Reddit',
+                        style: theming.titleText),
+                      Text('Version: $version'),
+                      Text('Build: $buildNumber'),
+                    ]));
+              })),
+          SliverList(
+            delegate: SliverChildListDelegate(<Widget>[
+              Divider(),
+              _OptionTile(
+                onPress: () => _showLicensePage(context: context),
+                title: 'Licenses',
+                icon: Icons.list)
+            ]))
+        ]));
   }
 }
 
 void _showAboutPage({ required BuildContext context }) {
-  /*final packageInfoFuture = PackageInfo.fromPlatform();
+  final packageInfoFuture = PackageInfo.fromPlatform();
   context.rootNavigator.push(
     DraggablePageRoute(
       builder: (_) {
         return _AboutPageView(
           packageInfo: packageInfoFuture);
-      }));*/
+      }));
 }
 
 class _SettingsPageView extends StatelessWidget {
@@ -144,37 +147,37 @@ class _SettingsPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(child: CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(
-          toolbarHeight: 48.0,
-          backgroundColor: Theme.of(context).canvasColor,
-          elevation: 1.0,
-          pinned: true,
-          centerTitle: true,
-          leading: PressableIcon(
-            onPress: () => context.rootNavigator.pop(),
-            icon: Icons.arrow_back_ios_rounded,
-            iconColor: Colors.black),
-          title: Text(
-            'Settings',
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-              fontSize: 16.0))),
-        SliverList(
-          delegate: SliverChildListDelegate(<Widget>[
-            _OptionTile(
-              onPress: () => _showAboutPage(context: context),
-              title: 'About',
-              icon: Icons.contact_support_rounded)
-          ])),
-      ]));
+    final theming = Theming.of(context);
+    return Material(
+      color: theming.canvasColor,
+      child: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            toolbarHeight: 48.0,
+            backgroundColor: theming.canvasColor,
+            elevation: 1.0,
+            pinned: true,
+            centerTitle: true,
+            leading: PressableIcon(
+              onPress: () => context.rootNavigator.pop(),
+              icon: Icons.arrow_back_ios_rounded,
+              iconColor: theming.iconColor),
+            title: Text(
+              'Settings',
+              style: theming.headerText)),
+          SliverList(
+            delegate: SliverChildListDelegate(<Widget>[
+              _OptionTile(
+                onPress: () => _showAboutPage(context: context),
+                title: 'About',
+                icon: Icons.contact_support_rounded)
+            ])),
+        ]));
   }
 }
 
 void showSettingsPage({ required BuildContext context }) {
-  /*context.rootNavigator.push(
+  context.rootNavigator.push(
     DraggablePageRoute(
-      builder: (_) => _SettingsPageView()));*/
+      builder: (_) => _SettingsPageView()));
 }
