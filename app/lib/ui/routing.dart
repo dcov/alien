@@ -14,6 +14,10 @@ mixin _RoutingEntry {
   Widget build(BuildContext context);
 }
 
+abstract class RootEntry with _RoutingEntry { }
+
+abstract class RouteEntry extends PathRoute with _RoutingEntry { }
+
 class _EntryPage extends Page {
 
   _EntryPage({
@@ -26,15 +30,20 @@ class _EntryPage extends Page {
 
   @override
   Route createRoute(BuildContext context) {
+    if (entry is RootEntry) {
+      return PageRouteBuilder(
+        settings: this,
+        pageBuilder: (BuildContext context, _, __) {
+          return entry.build(context);
+        });
+    }
+
+    assert(entry is RouteEntry);
     return DraggablePageRoute(
       settings: this,
       builder: entry.build);
   }
 }
-
-abstract class RootEntry with _RoutingEntry { }
-
-abstract class RouteEntry extends PathRoute with _RoutingEntry { }
 
 class Routing extends StatefulWidget {
 
