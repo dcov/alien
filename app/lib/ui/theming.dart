@@ -10,6 +10,7 @@ class ThemingData {
     required this.dividerColor,
     required this.iconColor,
     required this.headerText,
+    required this.altHeaderText,
     required this.titleText,
     required this.disabledTitleText,
     required this.bodyText,
@@ -30,6 +31,8 @@ class ThemingData {
   final Color iconColor;
 
   final TextStyle headerText;
+
+  final TextStyle altHeaderText;
 
   final TextStyle titleText;
 

@@ -17,6 +17,10 @@ ThemingData _createThemingData(AppTheme theme) {
           color: Colors.grey[50]!,
           fontSize: 16.0,
           fontWeight: FontWeight.w500),
+        altHeaderText: TextStyle(
+          color: Colors.grey[50]!,
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500),
         titleText: TextStyle(
           color: Colors.grey[50]!,
           fontSize: 14.0,

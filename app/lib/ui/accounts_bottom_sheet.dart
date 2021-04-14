@@ -4,9 +4,9 @@ import 'package:muex_flutter/muex_flutter.dart';
 import '../logic/init.dart';
 import '../model/accounts.dart';
 import '../model/user.dart';
+import '../ui/login_screen.dart';
 import '../ui/pressable.dart';
-
-import 'login_screen.dart';
+import '../ui/theming.dart';
 
 Future<bool?> _showRemoveConfirmationDialog({
     required BuildContext context,
@@ -103,7 +103,7 @@ void showAccountsBottomSheet({
     required BuildContext context,
     required Accounts accounts,
   }) {
-  final dividerColor = Colors.grey.shade700;
+  final theming = Theming.of(context);
   showModalBottomSheet(
     context: context,
     useRootNavigator: true,
@@ -113,55 +113,51 @@ void showAccountsBottomSheet({
         expand: false,
         maxChildSize: 0.5,
         builder: (BuildContext context, ScrollController controller) {
-          return Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'ACCOUNTS',
-                    style: TextStyle(
-                      fontSize: 10.0,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.0,
-                      color: dividerColor)))),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Divider(
-                  height: 2.0,
-                  color: dividerColor)),
-              Expanded(
-                child: ListView(
-                  controller: controller,
-                  children: <Widget>[
-                    ...accounts.users.map((User user) {
-                         return _AccountTile(
-                           user: user,
-                           isCurrentAccount: accounts.currentUser == user,
-                           onSelect: () {
-                             if (user != accounts.currentUser)
-                               _switchUser(context, user);
-                           },
-                           onRemove: () => _removeUser(context, user));
-                       }),
-                    _AccountTile(
-                      isCurrentAccount: accounts.currentUser == null,
-                      onSelect: () {
-                        if (accounts.currentUser != null)
-                          _switchUser(context, null);
-                      }),
-                    Pressable(
-                      onPress: () => showLoginScreen(context: context),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                        child: Text(
-                          'Add account',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w500)))),
-                  ]))
-            ]);
+          return Material(
+            color: theming.canvasColor,
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'ACCOUNTS',
+                      style: theming.captionText))),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Divider(
+                    height: 2.0,
+                    color: theming.dividerColor)),
+                Expanded(
+                  child: ListView(
+                    controller: controller,
+                    children: <Widget>[
+                      ...accounts.users.map((User user) {
+                           return _AccountTile(
+                             user: user,
+                             isCurrentAccount: accounts.currentUser == user,
+                             onSelect: () {
+                               if (user != accounts.currentUser)
+                                 _switchUser(context, user);
+                             },
+                             onRemove: () => _removeUser(context, user));
+                         }),
+                      _AccountTile(
+                        isCurrentAccount: accounts.currentUser == null,
+                        onSelect: () {
+                          if (accounts.currentUser != null)
+                            _switchUser(context, null);
+                        }),
+                      Pressable(
+                        onPress: () => showLoginScreen(context: context),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                          child: Text(
+                            'Add account',
+                            style: theming.titleText))),
+                    ]))
+              ]));
         });
     });
 }

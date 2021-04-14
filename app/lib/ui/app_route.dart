@@ -2,9 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
+import '../model/accounts.dart';
 import '../model/app.dart';
 import '../model/post.dart';
 import '../model/subreddit.dart';
+import '../ui/accounts_bottom_sheet.dart';
 import '../ui/depth_painter.dart';
 import '../ui/icons.dart';
 import '../ui/path_router.dart';
@@ -201,6 +203,42 @@ Widget _maybeBuildRouteTree(Map<String, PathNode<RouteEntry>> nodes, String root
   return nonTreeTileBuilder();
 }
 
+class _AccountsHeader extends StatelessWidget {
+
+  _AccountsHeader({
+    Key? key,
+    required this.accounts
+  }) : super(key: key);
+
+  final Accounts accounts;
+
+  @override
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
+    return Connector(
+      builder: (BuildContext context) {
+        return Pressable(
+          onPress: () {
+            showAccountsBottomSheet(
+              context: context,
+              accounts: accounts);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  accounts.currentUser?.name ?? 'Sign in',
+                  style: theming.altHeaderText),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: theming.iconColor)
+              ])));
+      });
+  }
+}
+
 class AppRoute extends RootEntry {
 
   AppRoute({
@@ -250,7 +288,8 @@ class AppRoute extends RootEntry {
                     width: 0.5,
                     color: theming.borderColor))),
               child: Toolbar(
-                leading: PressableIcon(
+                middle: _AccountsHeader(accounts: app.accounts),
+                trailing: PressableIcon(
                   onPress: () {},
                   icon: Icons.settings,
                   iconColor: theming.iconColor,
@@ -259,7 +298,7 @@ class AppRoute extends RootEntry {
                     horizontal: 16.0)))),
             Expanded(
               child: ListView(
-                padding: EdgeInsets.zero,
+                padding: EdgeInsets.only(bottom: 16.0),
                 children: children))
           ]);
       });
