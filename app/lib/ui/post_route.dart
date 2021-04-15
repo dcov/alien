@@ -33,34 +33,6 @@ IconData _determineSortIcon(CommentsSort sortBy) {
   return Icons.sort;
 }
 
-class _PostContentBody extends StatelessWidget {
-
-  _PostContentBody({
-    Key? key,
-    required this.post,
-    required this.comments,
-  }) : super(key: key);
-
-  final Post post;
-  final PostComments comments;
-
-  @override
-  Widget build(BuildContext context) {
-    final theming = Theming.of(context);
-    return Material(
-      color: theming.canvasColor,
-      child: CustomScrollView(
-        slivers: <Widget>[
-          PostCommentsRefreshSliver(
-            comments: comments),
-          _PostSliver(
-            post: comments.post),
-          PostCommentsTreeSliver(
-            comments: comments)
-        ]));
-  }
-}
-
 class _PostSliver extends StatelessWidget {
 
   _PostSliver({
@@ -129,6 +101,34 @@ class _PostSliver extends StatelessWidget {
   }
 }
 
+class _PostContentBody extends StatelessWidget {
+
+  _PostContentBody({
+    Key? key,
+    required this.post,
+    required this.comments,
+  }) : super(key: key);
+
+  final Post post;
+  final PostComments comments;
+
+  @override
+  Widget build(BuildContext context) {
+    final theming = Theming.of(context);
+    return Material(
+      color: theming.canvasColor,
+      child: CustomScrollView(
+        slivers: <Widget>[
+          PostCommentsRefreshSliver(
+            comments: comments),
+          _PostSliver(
+            post: comments.post),
+          PostCommentsTreeSliver(
+            comments: comments)
+        ]));
+  }
+}
+
 class PostRoute extends RouteEntry {
 
   PostRoute({ required this.post });
@@ -165,7 +165,8 @@ class PostRoute extends RouteEntry {
 
   @override
   Widget build(BuildContext context) {
-    final theming = Theming.of(context);
-    return SizedBox();
+    return _PostContentBody(
+      post: post,
+      comments: _comments);
   }
 }

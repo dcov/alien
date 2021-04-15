@@ -222,7 +222,7 @@ mixin CustomRenderBoxDefaultsMixin implements RenderBox, CustomRenderObjectMixin
   List<dynamic>? get hitTestOrdering => null;
 
   @protected
-  List<dynamic>? get paintOrdering => hitTestOrdering?.reversed?.toList();
+  List<dynamic>? get paintOrdering => hitTestOrdering?.reversed.toList();
 
   @override
   bool hitTestChildren(BoxHitTestResult result, { required Offset position }) {

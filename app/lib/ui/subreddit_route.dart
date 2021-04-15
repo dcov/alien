@@ -8,6 +8,7 @@ import '../logic/thing.dart';
 import '../model/listing.dart' show ListingStatus;
 import '../model/post.dart';
 import '../model/subreddit.dart';
+import '../ui/basic.dart';
 import '../ui/content_handle.dart';
 import '../ui/pressable.dart';
 import '../ui/routing.dart';
@@ -62,34 +63,62 @@ BoxDecoration _buildTitleDecoration(
     image: image);
 }
 
-class _ContentBody extends StatelessWidget {
+class _SubredditRouteView extends StatelessWidget {
 
-  _ContentBody({
+  _SubredditRouteView({
     Key? key,
+    required this.subreddit,
     required this.posts,
-    required this.postPathPrefix,
+    required this.postRoutePathPrefix
   }) : super(key: key);
+
+  final Subreddit subreddit;
 
   final SubredditPosts posts;
 
-  final String postPathPrefix;
+  final String postRoutePathPrefix;
 
   @override
   Widget build(BuildContext context) {
-    return ListingScrollView(
-      listing: posts.listing,
-      onTransitionListing: (ListingStatus to) {
-        context.then(
-          Then(TransitionSubredditPosts(
-            posts: posts,
-            to: to)));
-      },
-      thingBuilder: (BuildContext context, Post post) {
-        return PostTile(
-          post: post,
-          pathPrefix: postPathPrefix,
-          includeSubredditName: false);
-      });
+    final theming = Theming.of(context);
+    return Material(
+      color: theming.canvasColor,
+      child: Stack(
+        children: <Widget>[
+          Column(
+            children: <Widget>[
+              Toolbar(
+                leading: BackArrow(),
+                middle: Text(
+                  subreddit.name,
+                  style: theming.headerText)),
+              Expanded(
+                child: ListingScrollView(
+                  listing: posts.listing,
+                  onTransitionListing: (ListingStatus to) {
+                    context.then(Then(TransitionSubredditPosts(posts: posts, to: to)));
+                  },
+                  thingBuilder: (BuildContext context, Post post) {
+                    return PostTile(
+                      post: post,
+                      pathPrefix: postRoutePathPrefix,
+                      includeSubredditName: false);
+                  })),
+            ]),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Material(
+              color: Colors.black54.withOpacity(0.8),
+              child: SizedBox(
+                height: 48.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    PressableIcon(
+                      icon: Icons.sort,
+                      iconColor: theming.iconColor)
+                  ])))),
+        ]));
   }
 }
 
@@ -131,15 +160,9 @@ class SubredditRoute extends RouteEntry {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Column(
-        children: <Widget>[
-          Toolbar(
-            leading: CloseButton()),
-          Expanded(
-            child: _ContentBody(
-              posts: _posts,
-              postPathPrefix: childPathPrefix)),
-        ]));
+    return _SubredditRouteView(
+      subreddit: subreddit,
+      posts: _posts,
+      postRoutePathPrefix: this.childPathPrefix);
   }
 }
