@@ -5,24 +5,25 @@ import 'core/feed.dart';
 import 'core/listing.dart';
 import 'core/post.dart';
 import 'reddit/types.dart';
+import 'widgets/page_router.dart';
 import 'widgets/pressable.dart';
-import 'widgets/routing.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_tile.dart';
 import 'sort_bottom_sheet.dart';
 
-class _FeedContentBody extends StatelessWidget {
+class FeedPage extends PageEntry {
 
-  _FeedContentBody({
-    Key? key,
-    required this.feed,
-    required this.postPathPrefix,
-  }) : super(key: key);
+  factory FeedPage({
+    required FeedKind kind,
+  }) {
+    final feed = feedFromKind(kind);
+    return FeedPage._(feed);
+  }
+
+  FeedPage._(this.feed) : super(key: ValueKey(feed));
 
   final Feed feed;
-
-  final String postPathPrefix;
 
   List<RedditArg> get _sortArgs {
     switch (feed.kind) {
@@ -48,6 +49,14 @@ class _FeedContentBody extends StatelessWidget {
   }
 
   @override
+  void initState(BuildContext context) {
+    context.then(Then(TransitionFeed(
+      feed: feed,
+      to: ListingStatus.refreshing,
+    )));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListingScrollView(
       listing: feed.listing,
@@ -55,13 +64,15 @@ class _FeedContentBody extends StatelessWidget {
         context.then(
           Then(TransitionFeed(
             feed: feed,
-            to: to)));
+            to: to,
+          )));
       },
       thingBuilder: (BuildContext context, Post post) {
         return PostTile(
           post: post,
-          pathPrefix: postPathPrefix,
-          includeSubredditName: true);
+          pathPrefix: "",
+          includeSubredditName: true,
+        );
       },
       scrollViewBuilder: (BuildContext context, ScrollController controller, Widget refreshSliver, Widget listSliver) {
         return CustomScrollView(
@@ -76,20 +87,25 @@ class _FeedContentBody extends StatelessWidget {
               leading: PressableIcon(
                 onPress: () => Navigator.pop(context),
                 icon: Icons.arrow_back_ios,
-                iconColor: Colors.black),
+                iconColor: Colors.black,
+              ),
               title: Text(
                 feed.kind.displayName,
                 style: TextStyle(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black)),
+                  color: Colors.black,
+                ),
+              ),
               actions: <Widget>[
                 PressableIcon(
                   onPress: () { },
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
                   icon: Icons.more_vert,
-                  iconColor: Colors.black)
-              ]),
+                  iconColor: Colors.black,
+                )
+              ],
+            ),
             refreshSliver,
             Connector(
               builder: (BuildContext context) {
@@ -103,44 +119,17 @@ class _FeedContentBody extends StatelessWidget {
                         feed: feed,
                         to: ListingStatus.refreshing,
                         sortBy: sortBy,
-                        sortFrom: sortFrom)));
-                  });
-              }),
+                        sortFrom: sortFrom,
+                      )),
+                    );
+                  },
+                );
+              },
+            ),
             listSliver
-          ]);
-      });
-  }
-}
-
-class FeedRoute extends RouteEntry {
-
-  FeedRoute({
-    required this.feed,
-  });
-
-  final Feed feed;
-
-  static void goTo(BuildContext context, FeedKind kind, String pathPrefix) {
-    context.goTo(
-      '$pathPrefix${kind.name}',
-      onCreateEntry: () {
-        return FeedRoute(feed: feedFromKind(kind));
+          ],
+        );
       },
-      onUpdateEntry: (_) {
-        // We don't have anything to update
-      });
-  }
-
-  @override
-  void initState(BuildContext context) {
-    context.then(Then(
-        TransitionFeed(
-          feed: feed,
-          to: ListingStatus.refreshing,)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox();
+    );
   }
 }

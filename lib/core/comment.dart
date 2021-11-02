@@ -11,7 +11,7 @@ part 'comment.g.dart';
 abstract class Comment implements Model, Saveable, Votable {
 
   factory Comment({
-    String authorFlairText,
+    String? authorFlairText,
     required String authorName,
     required Snudown body,
     required int createdAtUtc,

@@ -9,19 +9,20 @@ import 'widgets/circle_divider.dart';
 import 'widgets/custom_render_object.dart';
 import 'widgets/formatting.dart';
 import 'widgets/options_bottom_sheet.dart';
+import 'widgets/page_router.dart';
 import 'widgets/pressable.dart';
 import 'widgets/slidable.dart';
 import 'widgets/theming.dart';
 
 import 'media_thumbnail.dart';
-import 'post_route.dart';
+import 'post_page.dart';
 import 'view_extensions.dart';
 import 'votable_utils.dart';
 
 void _showPostOptionsBottomSheet({
-    required BuildContext context,
-    required Post post
-  }) {
+  required BuildContext context,
+  required Post post,
+}) {
   showOptionsBottomSheet(
     context: context,
     options: <Option>[
@@ -31,14 +32,16 @@ void _showPostOptionsBottomSheet({
             context.then(Then(ToggleSaved(saveable: post)));
           },
           title: post.isSaved ? 'Unsave' : 'Save',
-          icon: post.isSaved ? Icons.save : Icons.save_outlined)
-    ]);
+          icon: post.isSaved ? Icons.save : Icons.save_outlined,
+        ),
+    ],
+  );
 }
 
 enum _PostTileLayoutSlot {
   title,
   details,
-  thumbnail
+  thumbnail,
 }
 
 class _PostTileLayout extends CustomRenderObjectWidget {
@@ -47,15 +50,16 @@ class _PostTileLayout extends CustomRenderObjectWidget {
     Key? key,
     required Widget title,
     required Widget details,
-    Widget? thumbnail
+    Widget? thumbnail,
   }) : super(
-         key: key,
-         children: <dynamic, Widget>{
-           _PostTileLayoutSlot.title : title,
-           _PostTileLayoutSlot.details : details,
-           if (thumbnail != null)
-            _PostTileLayoutSlot.thumbnail : thumbnail
-         });
+    key: key,
+    children: <dynamic, Widget>{
+      _PostTileLayoutSlot.title : title,
+      _PostTileLayoutSlot.details : details,
+      if (thumbnail != null)
+        _PostTileLayoutSlot.thumbnail : thumbnail,
+    },
+  );
 
   @override
   _RenderPostTileLayout createRenderObject(BuildContext context) => _RenderPostTileLayout();
@@ -69,7 +73,7 @@ class _RenderPostTileLayout extends RenderBox
   List<dynamic> get hitTestOrdering => const <dynamic>[
     _PostTileLayoutSlot.thumbnail,
     _PostTileLayoutSlot.title,
-    _PostTileLayoutSlot.details
+    _PostTileLayoutSlot.details,
   ];
 
   @override
@@ -84,24 +88,28 @@ class _RenderPostTileLayout extends RenderBox
     var thumbnailSize = Size.zero;
     if (hasChild(_PostTileLayoutSlot.thumbnail)) {
       thumbnailSize = layoutChild(
-          _PostTileLayoutSlot.thumbnail,
-          BoxConstraints.tightFor(width: maxSize.width * 0.25),
-          parentUsesSize: true)!;
+        _PostTileLayoutSlot.thumbnail,
+        BoxConstraints.tightFor(width: maxSize.width * 0.25),
+        parentUsesSize: true,
+      )!;
 
       positionChild(
-          _PostTileLayoutSlot.thumbnail,
-          Offset(maxSize.width - thumbnailSize.width, 0.0));
+        _PostTileLayoutSlot.thumbnail,
+        Offset(maxSize.width - thumbnailSize.width, 0.0),
+      );
     }
 
     /// Layout and position the title
     final titleSize = layoutChild(
-        _PostTileLayoutSlot.title,
-        BoxConstraints.loose(Size(maxSize.width - thumbnailSize.width, maxSize.height)),
-        parentUsesSize: true);
+      _PostTileLayoutSlot.title,
+      BoxConstraints.loose(Size(maxSize.width - thumbnailSize.width, maxSize.height)),
+      parentUsesSize: true,
+    );
 
     positionChild(
-        _PostTileLayoutSlot.title,
-        Offset.zero);
+      _PostTileLayoutSlot.title,
+      Offset.zero,
+    );
 
     /// Determine the max width of the details section, and the starting height of the layout
     double maxDetailsWidth;
@@ -117,23 +125,28 @@ class _RenderPostTileLayout extends RenderBox
 
     /// Layout and position the details section.
     final detailsSize = layoutChild(
-        _PostTileLayoutSlot.details,
-        BoxConstraints.loose(Size(maxDetailsWidth, maxSize.height)),
-        parentUsesSize: true);
+      _PostTileLayoutSlot.details,
+      BoxConstraints.loose(Size(maxDetailsWidth, maxSize.height)),
+      parentUsesSize: true,
+    );
 
     if ((detailsSize!.height + titleSize.height) < thumbnailSize.height) {
       positionChild(
         _PostTileLayoutSlot.details,
-        Offset(0.0, titleSize.height + (thumbnailSize.height - titleSize.height - detailsSize.height)));
+        Offset(0.0, titleSize.height + (thumbnailSize.height - titleSize.height - detailsSize.height)),
+      );
 
       size = Size(maxSize.width, thumbnailSize.height);
     } else {
       positionChild(
-          _PostTileLayoutSlot.details,
-          Offset(0.0, titleSize.height));
+        _PostTileLayoutSlot.details,
+        Offset(0.0, titleSize.height),
+      );
+
       size = Size(
-          maxSize.width,
-          titleSize.height + detailsSize.height);
+        maxSize.width,
+        titleSize.height + detailsSize.height,
+      );
     }
   }
 }
@@ -163,7 +176,10 @@ class PostTile extends StatelessWidget {
             border: Border(
               bottom: BorderSide(
                 width: 0.5,
-                color: theming.dividerColor))),
+                color: theming.dividerColor,
+              ),
+            ),
+          ),
           child: Slidable(
             actions: <SlidableAction>[
               if (context.userIsSignedIn)
@@ -175,44 +191,45 @@ class PostTile extends StatelessWidget {
                     icon: Icons.arrow_upward,
                     iconColor: Colors.white,
                     backgroundColor: getVoteDirColor(VoteDir.up),
-                    preBackgroundColor: theming.dividerColor),
+                    preBackgroundColor: theming.dividerColor,
+                  ),
                   SlidableAction(
                     onTriggered: () {
                       context.then(Then(Downvote(votable: post)));
                     },
                     icon: Icons.arrow_downward,
                     iconColor: Colors.white,
-                    backgroundColor: getVoteDirColor(VoteDir.down)),
+                    backgroundColor: getVoteDirColor(VoteDir.down),
+                  ),
                 ],
               SlidableAction(
                 onTriggered: () {
                   _showPostOptionsBottomSheet(
                     context: context,
-                    post: post);
+                    post: post,
+                  );
                 },
                 icon: Icons.more_horiz,
                 iconColor: Colors.white,
                 backgroundColor: Colors.black54,
-                preBackgroundColor: theming.dividerColor)
+                preBackgroundColor: theming.dividerColor,
+              ),
             ],
             child: Pressable(
               behavior: HitTestBehavior.opaque,
               onPress: () {
-                PostRoute.goTo(
-                  context,
-                  post,
-                  PostRoute.pathFrom(post, pathPrefix));
+                context.push(PostPage(post: post));
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: 12.0,
-                  horizontal: 16.0),
+                  horizontal: 16.0,
+                ),
                 child: _PostTileLayout(
                   title: Text(
                     post.title,
-                    style: (post.hasBeenViewed)
-                        ? theming.disabledTitleText
-                        : theming.titleText),
+                    style: post.hasBeenViewed ? theming.disabledTitleText : theming.titleText,
+                  ),
                   details: Padding(
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Wrap(
@@ -222,20 +239,27 @@ class PostTile extends StatelessWidget {
                         if (includeSubredditName)
                           Text(
                             'r/${post.subredditName}',
-                            style: theming.detailText),
+                            style: theming.detailText,
+                          ),
                         Text(
                           'u/${post.authorName}',
-                          style: theming.detailText),
+                          style: theming.detailText,
+                        ),
                         Text(
                           formatElapsedUtc(post.createdAtUtc),
-                          style: theming.detailText),
+                          style: theming.detailText,
+                        ),
                         Text(
                           '${formatCount(post.score)} points',
-                          style: applyVoteDirColorToText(theming.detailText, post.voteDir)),
+                          style: applyVoteDirColorToText(theming.detailText, post.voteDir),
+                        ),
                         Text(
                           '${formatCount(post.commentCount)} comments',
-                          style: theming.detailText)
-                      ]))),
+                          style: theming.detailText,
+                        )
+                      ]),
+                    ),
+                  ),
                   thumbnail: post.media != null
                       ? Padding(
                           padding: const EdgeInsets.only(left: 8.0),
@@ -244,12 +268,26 @@ class PostTile extends StatelessWidget {
                               child: ClipPath(
                                 clipper: ShapeBorderClipper(
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4.0))),
+                                    borderRadius: BorderRadius.circular(4.0),
+                                  ),
+                                ),
                                 child: AspectRatio(
                                   aspectRatio: 15/12,
                                   child: MediaThumbnail(
-                                    media: post.media!))))))
-                      : null)))));
-      });
+                                    media: post.media!,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

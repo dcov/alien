@@ -27,6 +27,8 @@ dependencies:
       ref: master
       path: muex_flutter
 
+  bitsdojo_window: 0.1.1+1
+
   cached_network_image: 3.1.0
 
   flutter_markdown: 0.6.8

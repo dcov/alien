@@ -147,16 +147,16 @@ class _RoutingState extends State<Routing> {
 
   void detach(String path, String newFragment) {
     setState(() {
-    final transition = _router.detach(path, newFragment);
+      final transition = _router.detach(path, newFragment);
 
-    switch (transition) {
-      case PathRouterDetachTransition.replace:
-        _stack.replaceRange(1, _stack.length,
-            _router.stack.map((RouteEntry entry) => _createPage(entry)));
-        break;
-      case PathRouterDetachTransition.none:
-        break;
-    }
+      switch (transition) {
+        case PathRouterDetachTransition.replace:
+          _stack.replaceRange(1, _stack.length,
+              _router.stack.map((RouteEntry entry) => _createPage(entry)));
+          break;
+        case PathRouterDetachTransition.none:
+          break;
+      }
     });
   }
 

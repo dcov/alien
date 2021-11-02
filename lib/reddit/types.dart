@@ -456,7 +456,7 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   String get authorFlairRichText => _data['author_flair_rich_text'];
 
-  String get authorFlairText => _data['author_flair_text'];
+  String? get authorFlairText => _data['author_flair_text'];
 
   String get authorFlairTextColor => _data['author_flair_text_color'];
 
@@ -480,7 +480,7 @@ class CommentData with ThingData, CreatedData, GildableData,
 
   int get depth => _parseNum(_data['depth'])!;
 
-  String get distinguishment => _data['distinguished'];
+  String? get distinguishment => _data['distinguished'];
 
   int? get editedAtUtc => _parseNum(_data['edited']);
 
