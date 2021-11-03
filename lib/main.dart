@@ -1,3 +1,4 @@
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
@@ -28,12 +29,6 @@ void main() {
     ),
     view: Builder(
       builder: (BuildContext _) {
-        /// Only allow portrait-up orientation. Certain [Widget]s will change this
-        /// as needed, but the default is portrait-up.
-        SystemChrome.setPreferredOrientations(const <DeviceOrientation>[
-          DeviceOrientation.portraitUp,
-        ]);
-
         return Connector(
           builder: (BuildContext context) {
             final app = context.state as App;
@@ -67,4 +62,9 @@ void main() {
       }
     ),
   );
+
+  doWhenWindowReady(() {
+    appWindow.minSize = Size(800, 800);
+    appWindow.show();
+  });
 }

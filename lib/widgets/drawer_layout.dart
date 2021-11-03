@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class DrawerLayout extends StatefulWidget {
 
@@ -23,7 +23,7 @@ class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderSta
   void toggleDrawer() {
     if (_controller.status == AnimationStatus.completed) {
       _controller.reverse();
-    } else if (_controller.status != AnimationStatus.dismissed) {
+    } else if (_controller.status == AnimationStatus.dismissed) {
       _controller.forward();
     }
   }
@@ -33,7 +33,7 @@ class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderSta
     super.initState();
     _controller = AnimationController(
       duration: Duration(milliseconds: 250),
-      value: 1.0,
+      value: 0.0,
       vsync: this,
     );
   }
@@ -53,11 +53,33 @@ class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderSta
       children: <Widget>[
         LayoutId(
           id: _LayoutSlot.drawer,
-          child: widget.drawer,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (BuildContext _, Widget? child) {
+              return IgnorePointer(
+                ignoring: _controller.status != AnimationStatus.completed,
+                child: child,
+              );
+            },
+            child: widget.drawer,
+          ),
         ),
         LayoutId(
           id: _LayoutSlot.body,
-          child: widget.body,
+          child: ValueListenableBuilder(
+            valueListenable: _controller,
+            child: widget.body,
+            builder: (BuildContext _, double value, Widget? child) {
+              return IgnorePointer(
+                ignoring: _controller.status != AnimationStatus.dismissed,
+                child: DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(color: Colors.black.withOpacity(value / 2)),
+                  child: child,
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -84,30 +106,23 @@ class _LayoutDelegate extends MultiChildLayoutDelegate {
 
     final drawerWidth = layoutChild(
       _LayoutSlot.drawer,
-      BoxConstraints(
-        minWidth: 0.0,
-        maxWidth: size.width,
-        minHeight: size.height,
-        maxHeight: size.height,
+      BoxConstraints.tightFor(
+        width: 300,
+        height: size.height,
       ),
     ).width;
 
     positionChild(
       _LayoutSlot.drawer,
       Offset(
-        -drawerWidth * (1.0 - position.value),
+        -36.0 * (1.0 - position.value),
         0.0,
       ),
     );
 
     layoutChild(
       _LayoutSlot.body,
-      BoxConstraints.tightFor(
-        width: drawerWidth > size.width / 3
-          ? size.width
-          : size.width - (drawerWidth * position.value),
-        height: size.height,
-      ),
+      BoxConstraints.tight(size),
     );
 
     positionChild(

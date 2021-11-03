@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'change_notifier_controller.dart';
 
@@ -33,7 +33,10 @@ abstract class PageEntry extends Page {
           opacity: animation,
           child: FadeTransition(
             opacity: ReverseAnimation(secondaryAnimation),
-            child: build(context),
+            child: Material(
+              color: Theme.of(context).canvasColor,
+              child: build(context),
+            ),
           ),
         );
       },

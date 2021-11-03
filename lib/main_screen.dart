@@ -1,3 +1,5 @@
+import 'package:alien/widgets/hover_highlight.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -26,6 +28,8 @@ class _MainScreenState extends State<MainScreen> {
   late List<PageEntry> _currentStack;
   final _stackNotifier = ChangeNotifierController();
 
+  final _drawerLayoutKey = GlobalKey<DrawerLayoutState>();
+
   @override
   void initState() {
     super.initState();
@@ -39,19 +43,69 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DrawerLayout(
-      drawer: SizedBox(
-        width: 250,
-        child: _StacksDrawer(
+    return Column(children: <Widget>[
+      WindowTitleBarBox(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                HoverHighlight(
+                  opaque: false,
+                  child: GestureDetector(
+                    onTap: () { },
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: 16.0,
+                      ),
+                    ),
+                  ),
+                ),
+                HoverHighlight(
+                  opaque: false,
+                  child: GestureDetector(
+                    onTap: () => _drawerLayoutKey.currentState!.toggleDrawer(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
+                      child: Icon(
+                        Icons.menu,
+                        size: 16.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: MoveWindow(),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                MinimizeWindowButton(),
+                MaximizeWindowButton(),
+                CloseWindowButton(),
+              ],
+            ),
+          ],
+        ),
+      ),
+      Expanded(child: DrawerLayout(
+        key: _drawerLayoutKey,
+        drawer: _StacksDrawer(
           stacks: _stacks,
           stackChangedNotifier: _stackNotifier,
-        )
-      ),
-      body: PageRouter(
-        stack: _currentStack,
-        stackNotifier: _stackNotifier,
-      ),
-    );
+        ),
+        body: PageRouter(
+          stack: _currentStack,
+          stackNotifier: _stackNotifier,
+        ),
+      )),
+    ]);
   }
 }
 
@@ -106,7 +160,7 @@ class _StackTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: stack.map((entry) => _PageEntryTile(entry: entry)).toList(),
+      children: stack.map((page) => _PageEntryTile(page: page)).toList(),
     );
   }
 }
@@ -115,37 +169,18 @@ class _PageEntryTile extends StatelessWidget {
 
   _PageEntryTile({
     Key? key,
-    required this.entry,
-  }) : super(key: key);
+    required PageEntry page,
+  }) : this.details = _PageDetails.from(page),
+       super(key: key);
 
-  final PageEntry entry;
+  final _PageDetails details;
 
   @override
   Widget build(BuildContext context) {
-    if (entry is FeedPage) {
-      final feed = (entry as FeedPage).feed;
-      return _DrawerTile(
-        icon: () {
-          switch (feed.kind) {
-            case FeedKind.home:
-              return Icons.home;
-            case FeedKind.popular:
-              return Icons.trending_up;
-            case FeedKind.all:
-              return Icons.all_inclusive;
-          }
-        }(),
-        title: feed.kind.displayName,
-      );
-    } else if (entry is PostPage) {
-      final post = (entry as PostPage).post;
-      return _DrawerTile(
-        icon: Icons.comment,
-        title: post.title,
-      );
-    }
-
-    throw StateError('$entry is an invalid or unimplemented type.');
+    return _DrawerTile(
+      icon: details.icon,
+      title: details.title,
+    );
   }
 }
 
@@ -183,4 +218,43 @@ class _DrawerTile extends StatelessWidget {
       title: Text(title, maxLines: 1),
     );
   }
+}
+
+class _PageDetails {
+
+  factory _PageDetails.from(PageEntry page) {
+    if (page is FeedPage) {
+      final feed = page.feed;
+      return _PageDetails._(
+        title: feed.kind.displayName,
+        icon: () {
+          switch (feed.kind) {
+            case FeedKind.home:
+              return Icons.home;
+            case FeedKind.popular:
+              return Icons.trending_up;
+            case FeedKind.all:
+              return Icons.all_inclusive;
+          }
+        }(),
+      );
+    } else if (page is PostPage) {
+      final post = page.post;
+      return _PageDetails._(
+        title: post.title,
+        icon: Icons.comment,
+      );
+    }
+
+    throw UnimplementedError();
+  }
+
+  _PageDetails._({
+    required this.title,
+    required this.icon,
+  });
+
+  final String title;
+
+  final IconData icon;
 }
