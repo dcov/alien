@@ -110,12 +110,24 @@ class TransitionFeed implements Update {
         'Tried to load the home feed without a signed in user');
 
     bool changedSort = false;
-    if (sortBy != null && (sortBy != feed.sortBy || sortFrom != feed.sortFrom)) {
+    if (sortBy != null && sortBy != feed.sortBy)  {
       // Since we're changing the sort value, we should be refreshing
       assert(to == ListingStatus.refreshing);
-      feed..sortBy = sortBy!
-           ..sortFrom = sortFrom;
+      feed.sortBy = sortBy!;
+
       changedSort = true;
+    }
+
+    if (sortFrom != null && sortFrom != feed.sortFrom) {
+      assert(to == ListingStatus.refreshing);
+      feed.sortFrom = sortFrom!;
+      changedSort = true;
+    }
+
+    if (feed.sortBy is TimedParameter &&
+        (feed.sortBy as TimedParameter).isTimed &&
+        feed.sortFrom == null) {
+      feed.sortFrom = TimeSort.day;
     }
 
     return Then(TransitionListing(
@@ -127,8 +139,10 @@ class TransitionFeed implements Update {
           feed: feed,
           page: page,
           transitionMarker: transitionMarker,
-          user: owner.accounts.currentUser));
-      }));
+          user: owner.accounts.currentUser,
+        ));
+      },
+    ));
   }
 }
 

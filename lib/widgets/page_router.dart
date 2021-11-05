@@ -4,6 +4,7 @@ import 'change_notifier_controller.dart';
 
 class _PageEntryState {
   bool initialized = false;
+  bool isFirstPage = true;
 }
 
 abstract class PageEntry extends Page {
@@ -14,6 +15,8 @@ abstract class PageEntry extends Page {
   }) : super(key: key, name: name);
 
   final _PageEntryState _state = _PageEntryState();
+
+  bool get isFirstPage => _state.isFirstPage;
 
   @protected
   void initState(BuildContext context) { }
@@ -65,16 +68,17 @@ class _PageRouterState extends State<PageRouter> {
 
   final _navigatorKey = GlobalKey<NavigatorState>();
 
-  void _initEntry(PageEntry entry) {
-    assert(!entry._state.initialized);
-    entry.initState(context);
-    entry._state.initialized = true;
+  void _initPage(PageEntry page) {
+    assert(!page._state.initialized);
+    page.initState(context);
+    page._state.initialized = true;
   }
 
-  void _push(PageEntry entry) {
-    _initEntry(entry);
+  void _push(PageEntry page) {
+    _initPage(page);
+    page._state.isFirstPage = false;
     setState(() {
-      widget.stack.add(entry);
+      widget.stack.add(page);
     });
     widget.stackNotifier.notify();
   }
@@ -93,9 +97,19 @@ class _PageRouterState extends State<PageRouter> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (widget.stack.length == 1 && !widget.stack.first._state.initialized) {
-      _initEntry(widget.stack.first);
+    if (widget.stack.length == 1) {
+      final page = widget.stack.first;
+      if (!page._state.initialized) {
+        _initPage(page);
+      }
     }
+  }
+
+  @override
+  void didUpdateWidget(PageRouter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final firstPage = widget.stack.first;
+    firstPage._state.isFirstPage = true;
   }
 
   @override

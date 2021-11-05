@@ -43,6 +43,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final windowButtonColors = WindowButtonColors(iconNormal: theme.iconTheme.color);
     return Column(children: <Widget>[
       WindowTitleBarBox(
         child: Row(
@@ -55,6 +57,7 @@ class _MainScreenState extends State<MainScreen> {
                 HoverHighlight(
                   opaque: false,
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () { },
                     child: ConstrainedBox(
                       constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
@@ -68,6 +71,7 @@ class _MainScreenState extends State<MainScreen> {
                 HoverHighlight(
                   opaque: false,
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () => _drawerLayoutKey.currentState!.toggleDrawer(),
                     child: ConstrainedBox(
                       constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
@@ -86,9 +90,14 @@ class _MainScreenState extends State<MainScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                MinimizeWindowButton(),
-                MaximizeWindowButton(),
-                CloseWindowButton(),
+                MinimizeWindowButton(colors: windowButtonColors),
+                MaximizeWindowButton(colors: windowButtonColors),
+                CloseWindowButton(
+                  colors: WindowButtonColors(
+                    mouseOver: const Color(0xFFD32F2F),
+                    iconNormal: windowButtonColors.iconNormal,
+                  ),
+                ),
               ],
             ),
           ],

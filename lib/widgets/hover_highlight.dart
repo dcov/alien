@@ -41,7 +41,7 @@ class _HoverHighlightState extends State<HoverHighlight> {
       opaque: widget.opaque,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(_hovering ? 0.5 : 0.0),
+          color: Colors.white.withOpacity(_hovering ? 0.1 : 0.0),
         ),
         position: DecorationPosition.foreground,
         child: widget.child,
