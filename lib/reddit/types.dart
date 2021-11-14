@@ -43,12 +43,34 @@ class Scope extends RedditArg {
 
   const Scope._(String name) : super._(name);
 
-  static const Iterable<Scope> values = const <Scope>{
-    account, creddits, edit, flair, history, identity, liveManage, modConfig,
-    modContributors, modFlair, modLog, modMail, modOthers, modPosts, modSelf,
-    modWiki, mySubreddits, privateMessages, read, report, save, submit,
-    subscribe, vote, wikiEdit, wikiRead
-  };
+  static const List<Scope> values = const <Scope>[
+    account,
+    creddits,
+    edit,
+    flair,
+    history,
+    identity,
+    liveManage,
+    modConfig,
+    modContributors,
+    modFlair,
+    modLog,
+    modMail,
+    modOthers,
+    modPosts,
+    modSelf,
+    modWiki,
+    mySubreddits,
+    privateMessages,
+    read,
+    report,
+    save,
+    submit,
+    subscribe,
+    vote,
+    wikiEdit,
+    wikiRead,
+  ];
 
   static Scope from(String value) {
     final String name = value.toLowerCase();
@@ -66,6 +88,12 @@ class VoteDir extends RedditArg {
   static const VoteDir down = VoteDir._('down', '-1');
   static const VoteDir none = VoteDir._('none', '0');
 
+  static const List<VoteDir> values = const <VoteDir>[
+    up,
+    down,
+    none,
+  ];
+
   const VoteDir._(String name, String value) : super._(name, value);
 }
 
@@ -76,6 +104,15 @@ class TimeSort extends RedditArg {
   static const TimeSort month = TimeSort._('month');
   static const TimeSort year = TimeSort._('year');
   static const TimeSort all = TimeSort._('all');
+
+  static const List<TimeSort> values = const <TimeSort>[
+    hour,
+    day,
+    week,
+    month,
+    year,
+    all,
+  ];
 
   const TimeSort._(String name) : super._(name);
 }
@@ -95,6 +132,15 @@ class HomeSort extends TimedParameter {
   static const HomeSort top = HomeSort._(true, 'top');
   static const HomeSort rising = HomeSort._(false, 'rising');
 
+  static const List<HomeSort> values = const <HomeSort>[
+    best,
+    hot,
+    newest,
+    controversial,
+    top,
+    rising,
+  ];
+
   const HomeSort._(bool isTimed, String name) : super._(isTimed, name);
 }
 
@@ -103,6 +149,13 @@ class OriginalSort extends TimedParameter {
   static const OriginalSort newest = OriginalSort._(false, 'new');
   static const OriginalSort controversial = OriginalSort._(true, 'controversial');
   static const OriginalSort top = OriginalSort._(true, 'top');
+
+  static const List<OriginalSort> values = const <OriginalSort>[
+    hot,
+    newest,
+    controversial,
+    top,
+  ];
 
   const OriginalSort._(bool isTimed, String name) : super._(isTimed, name);
 }
@@ -113,6 +166,14 @@ class SubredditSort extends TimedParameter {
   static const SubredditSort controversial = SubredditSort._(true, 'controversial');
   static const SubredditSort top = SubredditSort._(true, 'top');
   static const SubredditSort rising = SubredditSort._(false, 'rising');
+
+  static const List<SubredditSort> values = const <SubredditSort>[
+    hot,
+    newest,
+    controversial,
+    top,
+    rising,
+  ];
 
   const SubredditSort._(bool isTimed, String name) : super._(isTimed, name);
 }
@@ -125,6 +186,15 @@ class CommentsSort extends RedditArg {
   static const CommentsSort old = CommentsSort._('old');
   static const CommentsSort qa = CommentsSort._('qa');
 
+  static const List<CommentsSort> values = const <CommentsSort>[
+    best,
+    top,
+    newest,
+    controversial,
+    old,
+    qa,
+  ];
+
   const CommentsSort._(String name, [String? value]) : super._(name, value);
 }
 
@@ -133,6 +203,13 @@ class HistorySort extends RedditArg {
   static const HistorySort newest = HistorySort._('new');
   static const HistorySort top = HistorySort._('top');
   static const HistorySort controversial = HistorySort._('controversial');
+
+  static const List<HistorySort> values = const <HistorySort>[
+    hot,
+    newest,
+    top,
+    controversial,
+  ];
 
   const HistorySort._(String name) : super._(name);
 }
