@@ -57,73 +57,75 @@ class FeedPage extends PageEntry {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: <Widget>[
-      Material(
-        elevation: 2.0,
-        child: SizedBox(
-          height: 56.0,
-          child: NavigationToolbar(
-            centerMiddle: false,
-            leading: !isFirstPage ? CloseButton() : null,
-            middle: Text(
-              feed.kind.displayName,
-              style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.w600,
+    return Column(
+      verticalDirection: VerticalDirection.up,
+      children: <Widget>[
+        Expanded(child: ListingScrollView(
+          listing: feed.listing,
+          onTransitionListing: (ListingStatus to) {
+            context.then(
+              Then(TransitionFeed(
+                feed: feed,
+                to: to,
+              )));
+          },
+          thingBuilder: (BuildContext context, Post post) {
+            return PostTile(
+              post: post,
+              includeSubredditName: true,
+            );
+          },
+        )),
+        Material(
+          elevation: 2.0,
+          child: SizedBox(
+            height: 56.0,
+            child: NavigationToolbar(
+              centerMiddle: false,
+              leading: !isFirstPage ? CloseButton() : null,
+              middle: Text(
+                feed.kind.displayName,
+                style: TextStyle(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            trailing: Connector(
-              builder: (BuildContext context) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    SortButton(
-                      onSortChanged: (RedditArg newSortBy) {
-                        context.then(Then(TransitionFeed(
-                          feed: feed,
-                          to: ListingStatus.refreshing,
-                          sortBy: newSortBy,
-                        )));
-                      },
-                      sortArgs: _sortArgs,
-                      currentSort: feed.sortBy,
-                    ),
-                    if (feed.sortFrom != null)
-                      TimeSortButton(
-                        onSortChanged: (TimeSort newSortFrom) {
+              trailing: Connector(
+                builder: (BuildContext context) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      SortButton(
+                        onSortChanged: (RedditArg newSortBy) {
                           context.then(Then(TransitionFeed(
                             feed: feed,
                             to: ListingStatus.refreshing,
-                            sortFrom: newSortFrom,
+                            sortBy: newSortBy,
                           )));
                         },
-                        currentSort: feed.sortFrom!,
+                        sortArgs: _sortArgs,
+                        currentSort: feed.sortBy,
                       ),
-                  ],
-                );
-              }
+                      if (feed.sortFrom != null)
+                        TimeSortButton(
+                          onSortChanged: (TimeSort newSortFrom) {
+                            context.then(Then(TransitionFeed(
+                              feed: feed,
+                              to: ListingStatus.refreshing,
+                              sortFrom: newSortFrom,
+                            )));
+                          },
+                          currentSort: feed.sortFrom!,
+                        ),
+                    ],
+                  );
+                }
+              ),
             ),
           ),
         ),
-      ),
-      Expanded(child: ListingScrollView(
-        listing: feed.listing,
-        onTransitionListing: (ListingStatus to) {
-          context.then(
-            Then(TransitionFeed(
-              feed: feed,
-              to: to,
-            )));
-        },
-        thingBuilder: (BuildContext context, Post post) {
-          return PostTile(
-            post: post,
-            pathPrefix: "",
-            includeSubredditName: true,
-          );
-        },
-      )),
-    ]);
+      ],
+    );
   }
 }

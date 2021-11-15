@@ -128,15 +128,16 @@ class _ScrapeThumbnail implements Effect {
 
         /// Cache the result
         await context.cache.put(thumbnailCacheKey, thumbnail);
-
       }
 
       return Then(_UpdateThumbnail(
         media: media,
-        thumbnail: thumbnail));
+        thumbnail: thumbnail,
+      ));
     } catch (_) {
       return Then(_ScrapeThumbnailFailed(
-        media: media));
+        media: media,
+      ));
     }
   }
 }

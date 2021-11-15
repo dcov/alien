@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'change_notifier_controller.dart';
+import 'clickable.dart';
 
 class _PageEntryState {
   bool initialized = false;
@@ -149,5 +150,27 @@ extension PageRouterExtensions on BuildContext {
 
   void push(PageEntry entry) {
     _state._push(entry);
+  }
+}
+
+class PopPageButton extends StatelessWidget {
+
+  PopPageButton({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Clickable(
+      onClick: () => Navigator.pop(context),
+      child: SizedBox(
+        width: 56.0,
+        height: 56.0,
+        child: Center(child: Icon(
+          Icons.arrow_back_rounded,
+          size: 24.0,
+        )),
+      ),
+    );
   }
 }

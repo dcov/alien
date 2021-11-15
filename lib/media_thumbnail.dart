@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import 'core/media.dart';
-import 'widgets/pressable.dart';
+import 'widgets/clickable.dart';
 
 class MediaThumbnail extends StatelessWidget {
 
@@ -16,37 +16,38 @@ class MediaThumbnail extends StatelessWidget {
   final Media media;
 
   @override
-  Widget build(_) => Connector(
-    builder: (BuildContext context) {
-      Widget result;
-      switch (media.thumbnailStatus) {
-        case ThumbnailStatus.notLoaded:
-          SchedulerBinding.instance!.addPostFrameCallback((_) {
-            context.then(Then(LoadThumbnail(media: this.media)));
-          });
-          continue renderStatic;
-        renderStatic:
-        case ThumbnailStatus.loading:
-        case ThumbnailStatus.notFound:
-          result = Icon(
-            Icons.link,
-            color: Colors.white);
-          break;
-        case ThumbnailStatus.loaded:
-          result = CachedNetworkImage(
-            imageUrl: media.thumbnail!,
-            fit: BoxFit.contain);
-          break;
-      }
+  Widget build(_) => Connector(builder: (BuildContext context) {
+    Widget result;
+    switch (media.thumbnailStatus) {
+      case ThumbnailStatus.notLoaded:
+        SchedulerBinding.instance!.addPostFrameCallback((_) {
+          context.then(Then(LoadThumbnail(media: this.media)));
+        });
+        continue renderStatic;
+      renderStatic:
+      case ThumbnailStatus.loading:
+      case ThumbnailStatus.notFound:
+        result = Icon(
+          Icons.link,
+          color: Colors.white,
+        );
+        break;
+      case ThumbnailStatus.loaded:
+        result = CachedNetworkImage(
+          imageUrl: media.thumbnail!,
+          fit: BoxFit.contain,
+        );
+        break;
+    }
 
-      return Pressable(
-        behavior: HitTestBehavior.opaque,
-        onPress: () { },
+    return GestureDetector(
+      child: Clickable(
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           child: KeyedSubtree(
             key: ValueKey(media.thumbnailStatus),
-            child: result),
+            child: result,
+          ),
           layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
             return Material(
               color: Colors.black,
@@ -72,22 +73,37 @@ class MediaThumbnail extends StatelessWidget {
                             Expanded(
                               child: Align(
                                 heightFactor: 1.0,
-                                alignment: Alignment.centerRight,
+                                alignment: Alignment.centerLeft,
                                 child: Text(
                                   Uri.parse(media.source).host,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 10.0,
-                                    color: Colors.white)))),
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
                             Padding(
                               padding: EdgeInsets.only(left: 4.0),
                               child: Icon(
                                 Icons.launch,
                                 size: 10.0,
-                                color: Colors.white))
-                          ])))),
-                ]));
-          }));
-    });
+                                color: Colors.white,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  });
 }

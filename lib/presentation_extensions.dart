@@ -3,7 +3,7 @@ import 'package:muex_flutter/muex_flutter.dart';
 
 import 'core/accounts.dart';
 
-extension ViewExtensions on BuildContext {
+extension PresentationExtensions on BuildContext {
 
   bool get userIsSignedIn {
     final accounts = (this.state as AccountsOwner).accounts;

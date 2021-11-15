@@ -103,7 +103,6 @@ class _SubredditRouteView extends StatelessWidget {
                   thingBuilder: (BuildContext context, Post post) {
                     return PostTile(
                       post: post,
-                      pathPrefix: postRoutePathPrefix,
                       includeSubredditName: false);
                   })),
             ]),

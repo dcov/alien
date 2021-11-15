@@ -1,10 +1,10 @@
-import 'package:alien/widgets/hover_highlight.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'core/feed.dart';
 import 'widgets/change_notifier_controller.dart';
+import 'widgets/clickable.dart';
 import 'widgets/tile.dart';
 import 'widgets/drawer_layout.dart';
 import 'widgets/page_router.dart';
@@ -54,31 +54,25 @@ class _MainScreenState extends State<MainScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                HoverHighlight(
+                Clickable(
                   opaque: false,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () { },
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 16.0,
-                      ),
+                  onClick: () { },
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
+                    child: Icon(
+                      Icons.person_rounded,
+                      size: 16.0,
                     ),
                   ),
                 ),
-                HoverHighlight(
-                  opaque: false,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _drawerLayoutKey.currentState!.toggleDrawer(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
-                      child: Icon(
-                        Icons.menu,
-                        size: 16.0,
-                      ),
+                Clickable(
+                  opaque: true,
+                  onClick: () => _drawerLayoutKey.currentState!.toggleDrawer(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
+                    child: Icon(
+                      Icons.menu,
+                      size: 16.0,
                     ),
                   ),
                 ),
@@ -133,7 +127,6 @@ class _StacksDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.grey.shade800,
       child: SizedBox(
         width: 200,
         child: AnimatedBuilder(

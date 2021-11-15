@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'reddit/types.dart';
-import 'widgets/hover_highlight.dart';
+import 'widgets/clickable.dart';
 import 'widgets/popup_menu_anchor.dart';
 
 class SortButton<T extends RedditArg> extends StatelessWidget {
@@ -21,7 +21,8 @@ class SortButton<T extends RedditArg> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HoverHighlight(
+    return Clickable(
+      opaque: false,
       child: PopupMenuAnchor(
         onItemSelected: onSortChanged,
         itemsBuilder: (BuildContext _) {
@@ -39,7 +40,13 @@ class SortButton<T extends RedditArg> extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(currentSort.name.toUpperCase()),
+              Text(
+                currentSort.name.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               Icon(Icons.arrow_drop_down),
             ],
           ),

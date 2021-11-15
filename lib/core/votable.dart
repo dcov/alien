@@ -17,67 +17,65 @@ abstract class Votable implements Thing {
   set voteDir(VoteDir value);
 }
 
-class Upvote implements Update {
+class Vote implements Update {
 
-  Upvote({
+  Vote({
     required this.votable,
-    this.user
-  });
+    required this.voteDir,
+    this.user,
+  }) : assert(voteDir != VoteDir.none);
 
   final Votable votable;
+
+  final VoteDir voteDir;
 
   final User? user;
 
   @override
   Then update(AccountsOwner owner) {
     assert(user != null || owner.accounts.currentUser != null,
-        'Tried to upvote without providing a User or one being signed in.');
+        'Tried to up/down vote without a User being signed in or manually selecting a User.');
 
-    final VoteDir oldVoteDir = votable.voteDir;
-    if (votable.voteDir == VoteDir.up) {
-      votable..score -= 1
-             ..voteDir = VoteDir.none;
-    } else {
-      votable..score += votable.voteDir == VoteDir.down ? 2 : 1
-             ..voteDir = VoteDir.up;
+    final oldVoteDir = votable.voteDir;
+    switch (voteDir) {
+      case VoteDir.up:
+        switch (oldVoteDir) {
+          case VoteDir.up:
+            votable..score -= 1
+                   ..voteDir = VoteDir.none;
+            break;
+          case VoteDir.down:
+            votable..score += 2
+                   ..voteDir = VoteDir.up;
+            break;
+          case VoteDir.none:
+            votable..score += 1
+                   ..voteDir = VoteDir.up;
+            break;
+        }
+        break;
+      case VoteDir.down:
+        switch (oldVoteDir) {
+          case VoteDir.up:
+            votable..score -= 2
+                   ..voteDir = VoteDir.down;
+            break;
+          case VoteDir.down:
+            votable..score += 1
+                   ..voteDir = VoteDir.none;
+            break;
+          case VoteDir.none:
+            votable..score -= 1
+                   ..voteDir = VoteDir.down;
+        }
+        break;
     }
 
     return Then(_PostVote(
       votable: votable,
       oldVoteDir: oldVoteDir,
-      user: user ?? owner.accounts.currentUser!));
-  }
-}
-
-class Downvote implements Update {
-
-  Downvote({
-    required this.votable,
-    this.user
-  });
-
-  final Votable votable;
-
-  final User? user;
-
-  @override
-  Then update(AccountsOwner owner) {
-    assert(user != null || owner.accounts.currentUser != null,
-        'Tried to downvote without providing a User or one being signed in.');
-    final VoteDir oldVoteDir = votable.voteDir;
-
-    if (votable.voteDir == VoteDir.down) {
-      votable..score += 1
-             ..voteDir = VoteDir.none;
-    } else {
-      votable..score -= votable.voteDir == VoteDir.up ? 2 : 1
-             ..voteDir = VoteDir.down;
-    }
-
-    return Then(_PostVote(
-        votable: votable,
-        oldVoteDir: oldVoteDir,
-        user: user ?? owner.accounts.currentUser!));
+      user: user ?? owner.accounts.currentUser!,
+    ));
   }
 }
 

@@ -61,7 +61,6 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
         final Listing<T> listing = widget.listing;
         _checkShouldHandlePositionChange(listing);
         return ListView.builder(
-          key: ValueKey(listing.latestTransitionMarker),
           controller: _controller,
           itemCount: listing.things.length,
           itemBuilder: (BuildContext context, int index) {
