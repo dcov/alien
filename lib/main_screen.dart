@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'core/feed.dart';
 import 'widgets/change_notifier_controller.dart';
 import 'widgets/clickable.dart';
-import 'widgets/tile.dart';
+import 'widgets/column_tile.dart';
 import 'widgets/drawer_layout.dart';
 import 'widgets/page_router.dart';
 
@@ -131,15 +131,29 @@ class _StacksDrawer extends StatelessWidget {
         width: 200,
         child: AnimatedBuilder(
           animation: stackChangedNotifier,
-          builder: (BuildContext _, Widget? __) {
+          builder: (_, __) {
             return ListView.builder(
               itemCount: stacks.length + 1,
               itemBuilder: (_, int i) {
                 if (i == stacks.length) {
-                  return _NewTabTile();
+                  return Clickable(
+                    child: _IconTextTile(
+                      icon: Icons.add,
+                      title: 'New tab',
+                    ),
+                  );
                 }
                 
-                return _StackTile(stack: stacks[i]);
+                final stack = stacks[i];
+                return Clickable(
+                  onClick: () { },
+                  child: ColumnTile(
+                    child: _PageTile(page: stack.first),
+                    children: stack.getRange(1, stack.length).map((PageEntry page) {
+                      return _PageTile(page: page);
+                    }).toList(),
+                  ),
+                );
               },
             );
           },
@@ -149,88 +163,17 @@ class _StacksDrawer extends StatelessWidget {
   }
 }
 
-class _StackTile extends StatelessWidget {
+class _PageTile extends StatelessWidget {
 
-  _StackTile({
-    Key? key,
-    required this.stack,
-  }) : super(key: key);
-
-  final List<PageEntry> stack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: stack.map((page) => _PageEntryTile(page: page)).toList(),
-    );
-  }
-}
-
-class _PageEntryTile extends StatelessWidget {
-
-  _PageEntryTile({
+  factory _PageTile({
     Key? key,
     required PageEntry page,
-  }) : this.details = _PageDetails.from(page),
-       super(key: key);
-
-  final _PageDetails details;
-
-  @override
-  Widget build(BuildContext context) {
-    return _DrawerTile(
-      icon: details.icon,
-      title: details.title,
-    );
-  }
-}
-
-class _NewTabTile extends StatelessWidget {
-
-  _NewTabTile({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return _DrawerTile(
-      icon: Icons.add,
-      title: "New Tab",
-    );
-  }
-}
-
-class _DrawerTile extends StatelessWidget {
-
-  _DrawerTile({
-    Key? key,
-    required this.icon,
-    required this.title,
-  }) : super(key: key);
-
-  final IconData icon;
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomTile(
-      icon: Icon(icon),
-      title: Text(title, maxLines: 1),
-    );
-  }
-}
-
-class _PageDetails {
-
-  factory _PageDetails.from(PageEntry page) {
+  }) {
     if (page is FeedPage) {
-      final feed = page.feed;
-      return _PageDetails._(
-        title: feed.kind.displayName,
-        icon: () {
-          switch (feed.kind) {
+      return _PageTile._(
+        key,
+        () {
+          switch (page.feed.kind) {
             case FeedKind.home:
               return Icons.home;
             case FeedKind.popular:
@@ -239,24 +182,68 @@ class _PageDetails {
               return Icons.all_inclusive;
           }
         }(),
-      );
-    } else if (page is PostPage) {
-      final post = page.post;
-      return _PageDetails._(
-        title: post.title,
-        icon: Icons.comment,
+        page.feed.kind.displayName,
       );
     }
 
-    throw UnimplementedError();
+    if (page is PostPage) {
+      return _PageTile._(
+        key,
+        Icons.comment,
+        page.post.title,
+      );
+    }
+
+    throw UnimplementedError('_PageTile for ${page.runtimeType} has not been implemented yet.');
   }
 
-  _PageDetails._({
-    required this.title,
-    required this.icon,
-  });
+  _PageTile._(Key? key, this.icon, this.title) : super(key: key);
+  
+  final IconData icon;
 
   final String title;
 
+  @override
+  Widget build(BuildContext context) {
+    return _IconTextTile(
+      icon: icon,
+      title: title,
+    );
+  }
+}
+
+class _IconTextTile extends StatelessWidget {
+
+  _IconTextTile({
+    Key? key,
+    required this.icon,
+    required this.title,
+  }) : super(key: key);
+
   final IconData icon;
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: 12.0,
+        horizontal: 16.0,
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(icon),
+          Expanded(child: Padding(
+            padding: EdgeInsets.only(left: 16.0),
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          )),
+        ]
+      ),
+    );
+  }
 }
