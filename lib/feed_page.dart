@@ -20,7 +20,7 @@ class FeedPage extends PageEntry {
     return FeedPage._(feed);
   }
 
-  FeedPage._(this.feed) : super(key: ValueKey(feed));
+  FeedPage._(this.feed) : super(key: ValueKey(feed), name: feed.kind.name);
 
   final Feed feed;
 

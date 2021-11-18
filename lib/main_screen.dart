@@ -1,7 +1,6 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import 'core/app.dart';
@@ -67,6 +66,16 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
     }
   }
 
+  void _handleTabPopped(int index) {
+    assert(index >= 0 && index < _tabs.length);
+    assert(_tabs.length > 1);
+    setState(() {
+      if (identical(_currentTab, _tabs.removeAt(index))) {
+        _currentTab = (index < (_tabs.length - 1)) ? _tabs[index] : _tabs.last;
+      }
+    });
+  }
+
   void _handleNewTab(PageEntry rootPage) {
     setState(() {
       _tabs.add(<PageEntry>[rootPage]);
@@ -125,9 +134,7 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
                 ),
               ],
             ),
-            Expanded(
-              child: MoveWindow(),
-            ),
+            Expanded(child: MoveWindow()),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -148,13 +155,14 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
         key: _drawerLayoutKey,
         drawer: _TabsDrawer(
           onTabSelected: _handleTabSelected,
+          onTabPopped: _handleTabPopped,
           newTabDialog: _newTabDialog,
           tabs: _tabs,
         ),
         body: PageRouter(
           onPushPage: _handlePushPage,
           onPopPage: _handlePopPage,
-          pages: _currentTab,
+          pages: _currentTab.toList(),
         ),
       )),
     ]);
@@ -166,11 +174,14 @@ class _TabsDrawer extends StatelessWidget {
   _TabsDrawer({
     Key? key,
     required this.onTabSelected,
+    required this.onTabPopped,
     required this.newTabDialog,
     required this.tabs,
   }) : super(key: key);
 
   final ValueChanged<int> onTabSelected;
+
+  final ValueChanged<int> onTabPopped;
 
   final NewTabDialog newTabDialog;
 
@@ -178,6 +189,7 @@ class _TabsDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = tabs.length > 1;
     return Material(
       child: SizedBox(
         width: 200,
@@ -198,15 +210,21 @@ class _TabsDrawer extends StatelessWidget {
             
             final tab = tabs[i];
             return Clickable(
+              opaque: true,
               onClick: () {
                 onTabSelected(i);
               },
-              child: ColumnTile(
-                child: _PageTile(page: tab.first),
-                children: tab.getRange(1, tab.length).map((PageEntry page) {
-                  return _PageTile(page: page);
-                }).toList(),
-              ),
+              builder: (BuildContext _, bool hovering, Widget? __) {
+                return ColumnTile(
+                  child: _PageTile(
+                    onPop: hovering && canPop ? () => onTabPopped(i) : null,
+                    page: tab.first,
+                  ),
+                  children: tab.getRange(1, tab.length).map((PageEntry page) {
+                    return _PageTile(page: page);
+                  }).toList(),
+                );
+              },
             );
           },
         ),
@@ -220,22 +238,26 @@ class _PageTile extends StatelessWidget {
   factory _PageTile({
     Key? key,
     required PageEntry page,
+    VoidCallback? onPop,
   }) {
     if (page is FeedPage) {
       return _PageTile._(
         key,
+        onPop,
         page.feed.kind.icon,
         page.feed.kind.displayName,
       );
     } else if (page is PostPage) {
       return _PageTile._(
         key,
+        onPop,
         Icons.comment,
         page.post.title,
       );
     } else if (page is SubredditPage) {
       return _PageTile._(
         key,
+        onPop,
         CustomIcons.subreddit,
         page.subreddit.name,
       );
@@ -244,8 +266,10 @@ class _PageTile extends StatelessWidget {
     throw UnimplementedError('_PageTile for ${page.runtimeType} has not been implemented yet.');
   }
 
-  _PageTile._(Key? key, this.icon, this.title) : super(key: key);
-  
+  _PageTile._(Key? key, this.onPop, this.icon, this.title) : super(key: key);
+ 
+  final VoidCallback? onPop;
+
   final IconData icon;
 
   final String title;
@@ -253,7 +277,8 @@ class _PageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _IconTextTile(
-      icon: icon,
+      onIconClick: onPop,
+      icon: onPop != null ? Icons.close : icon,
       title: title,
     );
   }
@@ -263,35 +288,51 @@ class _IconTextTile extends StatelessWidget {
 
   _IconTextTile({
     Key? key,
+    this.onIconClick,
     required this.icon,
     required this.title,
   }) : super(key: key);
+
+  final VoidCallback? onIconClick;
 
   final IconData icon;
 
   final String title;
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
+  Widget _buildIcon() {
+    Widget result = Padding(
+      padding: const EdgeInsets.symmetric(
         vertical: 12.0,
         horizontal: 16.0,
       ),
+      child: Icon(
+        icon,
+        color: Colors.grey,
+      )
+    );
+
+    if (onIconClick != null) {
+      result = Clickable(
+        onClick: onIconClick,
+        child: result,
+      );
+    }
+
+    return result;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(right: 16.0),
       child: Row(
         children: <Widget>[
-          Icon(
-            icon,
-            color: Colors.grey,
+          _buildIcon(),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          Expanded(child: Padding(
-            padding: EdgeInsets.only(left: 16.0),
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          )),
         ]
       ),
     );

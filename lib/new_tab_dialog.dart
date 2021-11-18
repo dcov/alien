@@ -104,6 +104,7 @@ class NewTabDialog {
                     childCount: _defaults!.things.length,
                   )),
                 ],
+                SliverToBoxAdapter(child: SizedBox(height: 24.0)),
               ])),
               DecoratedBox(
                 decoration: BoxDecoration(border: Border(

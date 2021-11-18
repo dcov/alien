@@ -119,7 +119,7 @@ class _PageRouterState extends State<PageRouter> {
       child: Navigator(
         key: _navigatorKey,
         onPopPage: _handlePop,
-        pages: widget.pages.toList(),
+        pages: widget.pages,
       ),
     );
   }

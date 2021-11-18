@@ -1,8 +1,8 @@
-import 'dart:ffi';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
+typedef ClickableChildBuilder = Widget Function(BuildContext context, bool hovering, Widget? child);
 
 class Clickable extends StatefulWidget {
 
@@ -10,14 +10,17 @@ class Clickable extends StatefulWidget {
     Key? key,
     this.opaque = true,
     this.onClick,
-    required this.child,
+    this.builder,
+    this.child,
   }) : super(key: key);
 
   final bool opaque;
 
   final VoidCallback? onClick;
 
-  final Widget child;
+  final ClickableChildBuilder? builder;
+
+  final Widget? child;
 
   @override
   _ClickableState createState() => _ClickableState();
@@ -53,7 +56,9 @@ class _ClickableState extends State<Clickable> {
             color: Colors.white.withOpacity(_hovering ? 0.1 : 0.0),
           ),
           position: DecorationPosition.foreground,
-          child: widget.child,
+          child: widget.builder != null
+            ? widget.builder!(context, _hovering, widget.child)
+            : widget.child,
         ),
       ),
     );

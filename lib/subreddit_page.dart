@@ -14,7 +14,7 @@ import 'post_tile.dart';
 class SubredditPage extends PageEntry {
 
   SubredditPage({ required this.subreddit })
-    : super(key: ValueKey(subreddit));
+    : super(key: ValueKey(subreddit), name: subreddit.name);
 
   final Subreddit subreddit;
   late final SubredditPosts _posts;
