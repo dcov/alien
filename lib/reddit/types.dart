@@ -896,7 +896,7 @@ class SubredditData with ThingData, CreatedData {
 
   bool get userIsModerator => _data['user_is_moderator'];
 
-  bool get userIsSubscriber => _data['user_is_subscriber'];
+  bool? get userIsSubscriber => _data['user_is_subscriber'];
 }
 
 class ListingData<T extends ThingData> {

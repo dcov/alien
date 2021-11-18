@@ -12,10 +12,12 @@ part 'defaults.g.dart';
 
 abstract class Defaults implements Model {
 
-  factory Defaults({
-    required bool refreshing,
-    List<Subreddit> things
-  }) = _$Defaults;
+  factory Defaults() {
+    return _$Defaults(
+      refreshing: false,
+      things: const <Subreddit>[],
+    );
+  }
 
   bool get refreshing;
   set refreshing(bool value);

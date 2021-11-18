@@ -1,5 +1,4 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
@@ -32,9 +31,8 @@ void main() {
         return Connector(
           builder: (BuildContext context) {
             final app = context.state as App;
-            final initialized = app.initialized;
 
-            if (!initialized) {
+            if (!app.initialized) {
               // TODO: use the native platform splash screen functionality instead
               return SplashScreen();
             }
@@ -52,7 +50,7 @@ void main() {
                 builder: (BuildContext context) {
                   return Material(
                     color: Theming.of(context).canvasColor,
-                    child: MainScreen()
+                    child: MainScreen(app: app),
                   );
                 },
               ),

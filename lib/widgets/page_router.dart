@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'change_notifier_controller.dart';
 import 'clickable.dart';
 
 class _PageEntryState {
@@ -52,14 +51,16 @@ class PageRouter extends StatefulWidget {
 
   PageRouter({
     Key? key,
-    required this.stack,
-    required this.stackNotifier,
+    required this.onPushPage,
+    required this.onPopPage,
+    required this.pages,
   }) : super(key: key);
 
-  /// The page stack that [PageRouter] manages and displays.
-  final List<PageEntry> stack;
+  final ValueChanged<PageEntry> onPushPage;
 
-  final ChangeNotifierController stackNotifier;
+  final ValueChanged<PageEntry> onPopPage;
+
+  final List<PageEntry> pages;
 
   @override
   _PageRouterState createState() => _PageRouterState();
@@ -78,39 +79,37 @@ class _PageRouterState extends State<PageRouter> {
   void _push(PageEntry page) {
     _initPage(page);
     page._state.isFirstPage = false;
-    setState(() {
-      widget.stack.add(page);
-    });
-    widget.stackNotifier.notify();
+    widget.onPushPage(page);
   }
 
   bool _handlePop(Route route, dynamic result) {
     if (route.didPop(result)) {
       final page = route.settings as PageEntry;
       page.dispose(context);
-      widget.stack.remove(page);
-      widget.stackNotifier.notify();
+      widget.onPopPage(page);
       return true;
     }
     return false;
   }
 
+  void _maybeInitFirstPage() {
+    final firstPage = widget.pages.first;
+    firstPage._state.isFirstPage = true;
+    if (!firstPage._state.initialized) {
+      _initPage(firstPage);
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (widget.stack.length == 1) {
-      final page = widget.stack.first;
-      if (!page._state.initialized) {
-        _initPage(page);
-      }
-    }
+    _maybeInitFirstPage();
   }
 
   @override
   void didUpdateWidget(PageRouter oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final firstPage = widget.stack.first;
-    firstPage._state.isFirstPage = true;
+    _maybeInitFirstPage();
   }
 
   @override
@@ -120,7 +119,7 @@ class _PageRouterState extends State<PageRouter> {
       child: Navigator(
         key: _navigatorKey,
         onPopPage: _handlePop,
-        pages: widget.stack.toList(),
+        pages: List.from(widget.pages),
       ),
     );
   }

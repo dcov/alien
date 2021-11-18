@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' hide Page;
 import 'package:muex/muex.dart';
 
 import '../reddit/endpoints.dart';
@@ -16,6 +17,42 @@ enum FeedKind {
   home,
   popular,
   all
+}
+
+extension FeedKindExtension on FeedKind {
+
+  String get name {
+    switch (this) {
+      case FeedKind.home:
+        return 'home';
+      case FeedKind.popular:
+        return 'popular';
+      case FeedKind.all:
+        return 'all';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case FeedKind.home:
+        return 'Home';
+      case FeedKind.popular:
+        return 'Popular';
+      case FeedKind.all:
+        return 'All';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case FeedKind.home:
+        return Icons.home;
+      case FeedKind.popular:
+        return Icons.trending_up;
+      case FeedKind.all:
+        return Icons.all_inclusive;
+    }
+  }
 }
 
 abstract class Feed implements Model {
@@ -60,31 +97,6 @@ Feed feedFromKind(FeedKind kind) {
     listing: Listing(
       status: ListingStatus.idle,
       pagination: Pagination()));
-}
-
-extension FeedKindExtension on FeedKind {
-
-  String get name {
-    switch (this) {
-      case FeedKind.home:
-        return 'home';
-      case FeedKind.popular:
-        return 'popular';
-      case FeedKind.all:
-        return 'all';
-    }
-  }
-
-  String get displayName {
-    switch (this) {
-      case FeedKind.home:
-        return 'Home';
-      case FeedKind.popular:
-        return 'Popular';
-      case FeedKind.all:
-        return 'All';
-    }
-  }
 }
 
 class TransitionFeed implements Update {

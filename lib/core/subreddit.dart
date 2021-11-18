@@ -46,5 +46,5 @@ Subreddit subredditFromData(SubredditData data) {
     iconImageUrl: data.iconImageUrl,
     name: data.displayName,
     primaryColor: data.primaryColor,
-    userIsSubscriber: data.userIsSubscriber);
+    userIsSubscriber: data.userIsSubscriber ?? false);
 }

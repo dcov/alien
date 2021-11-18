@@ -14,10 +14,12 @@ part 'subscriptions.g.dart';
 
 abstract class Subscriptions implements Model {
 
-  factory Subscriptions({
-    required bool refreshing,
-    List<Subreddit> things
-  }) = _$Subscriptions;
+  factory Subscriptions() {
+    return _$Subscriptions(
+      refreshing: false,
+      things: const <Subreddit>[],
+    );
+  }
 
   bool get refreshing;
   set refreshing(bool value);
