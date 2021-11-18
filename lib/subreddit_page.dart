@@ -13,7 +13,8 @@ import 'post_tile.dart';
 
 class SubredditPage extends PageEntry {
 
-  SubredditPage({ required this.subreddit });
+  SubredditPage({ required this.subreddit })
+    : super(key: ValueKey(subreddit));
 
   final Subreddit subreddit;
   late final SubredditPosts _posts;
@@ -31,6 +32,7 @@ class SubredditPage extends PageEntry {
   @override
   Widget build(BuildContext context) {
     return Column(
+      key: ValueKey(subreddit),
       verticalDirection: VerticalDirection.up,
       children: <Widget>[
         Expanded(child: ListingScrollView(

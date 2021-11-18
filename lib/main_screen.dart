@@ -62,6 +62,7 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
     if (!identical(_tabs[index], _currentTab)) {
       setState(() {
         _currentTab = _tabs[index];
+        _drawerLayoutKey.currentState!.toggleDrawer();
       });
     }
   }
@@ -70,6 +71,7 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
     setState(() {
       _tabs.add(<PageEntry>[rootPage]);
       _currentTab = _tabs.last;
+      _drawerLayoutKey.currentState!.toggleDrawer();
     });
   }
 

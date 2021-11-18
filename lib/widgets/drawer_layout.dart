@@ -28,6 +28,10 @@ class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderSta
     }
   }
 
+  bool isOpen() {
+    return _controller.status == AnimationStatus.completed;
+  }
+
   @override
   void initState() {
     super.initState();

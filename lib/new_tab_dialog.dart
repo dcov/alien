@@ -6,7 +6,6 @@ import 'core/app.dart';
 import 'core/defaults.dart';
 import 'core/feed.dart';
 import 'core/subscriptions.dart';
-import 'core/subreddit.dart';
 import 'core/user.dart';
 import 'widgets/icons.dart';
 import 'widgets/clickable.dart';
@@ -60,10 +59,18 @@ class NewTabDialog {
     return false;
   }
 
-  void show(BuildContext context) {
-    showDialog<PageEntry>(
+  void show(BuildContext context) async {
+    final result = await showDialog<PageEntry>(
       context: context,
+      useRootNavigator: true,
       builder: (BuildContext context) {
+
+        void pop(PageEntry page) {
+          Navigator
+            .of(context, rootNavigator: true)
+            .pop(page);
+        }
+
         return Padding(
           padding: EdgeInsets.all(48.0),
           child: Material(child: Column(
@@ -72,13 +79,28 @@ class NewTabDialog {
               Expanded(child: CustomScrollView(slivers: <Widget>[
                 _HeaderSliver(text: 'FEEDS'),
                 SliverList(delegate: SliverChildBuilderDelegate(
-                  (BuildContext _, int index) => _buildFeedTile(_feeds[index]),
+                  (BuildContext _, int index) {
+                    final kind = _feeds[index];
+                    return _Tile(
+                      onClick: () => pop(FeedPage(kind: kind)),
+                      icon: kind.icon,
+                      title: kind.displayName,
+                    );
+                  },
                   childCount: _feeds.length,
                 )),
                 if (_defaults != null) ...[
                   _HeaderSliver(text: 'SUBSCRIPTIONS'),
                   SliverList(delegate: SliverChildBuilderDelegate(
-                    (BuildContext _, int index) => _buildSubredditTile(_defaults!.things[index]),
+                    (BuildContext _, int index) {
+                      final subreddit = _defaults!.things[index];
+                      return _Tile(
+                        onClick: () => pop(SubredditPage(subreddit: subreddit)),
+                        icon: CustomIcons.subreddit,
+                        iconColor: Colors.grey,
+                        title: subreddit.name,
+                      );
+                    },
                     childCount: _defaults!.things.length,
                   )),
                 ],
@@ -110,23 +132,10 @@ class NewTabDialog {
         );
       },
     );
-  }
 
-  Widget _buildFeedTile(FeedKind kind) {
-    return _Tile(
-      onClick: () => onNewTab(FeedPage(kind: kind)),
-      icon: kind.icon,
-      title: kind.displayName,
-    );
-  }
-
-  Widget _buildSubredditTile(Subreddit subreddit) {
-    return _Tile(
-      onClick: () => onNewTab(SubredditPage(subreddit: subreddit)),
-      icon: CustomIcons.subreddit,
-      iconColor: Colors.grey,
-      title: subreddit.name,
-    );
+    if (result != null) {
+      onNewTab(result);
+    }
   }
 }
 
