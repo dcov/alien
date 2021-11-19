@@ -72,7 +72,7 @@ class _ColumnTileState extends State<ColumnTile> with SingleTickerProviderStateM
                   child: child,
                 ),
               ),
-            Material(child: Row(children: <Widget>[
+            Row(children: <Widget>[
                 Expanded(child: widget.child),
                 if (child != null)
                   Clickable(
@@ -88,7 +88,7 @@ class _ColumnTileState extends State<ColumnTile> with SingleTickerProviderStateM
                       ),
                     ),
                   ),
-            ])),
+            ]),
           ],
         );
       },

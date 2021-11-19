@@ -102,62 +102,68 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
     final theme = Theme.of(context);
     final windowButtonColors = WindowButtonColors(iconNormal: theme.iconTheme.color);
     return Column(children: <Widget>[
-      WindowTitleBarBox(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Clickable(
-                  opaque: false,
-                  onClick: () { },
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
-                    child: Icon(
-                      Icons.person_rounded,
-                      size: 16.0,
+      DecoratedBox(
+        decoration: BoxDecoration(color: Colors.grey.shade900),
+        child: WindowTitleBarBox(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Clickable(
+                    opaque: false,
+                    onClick: () { },
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: 16.0,
+                      ),
                     ),
                   ),
-                ),
-                Clickable(
-                  opaque: true,
-                  onClick: () => _drawerLayoutKey.currentState!.toggleDrawer(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
-                    child: Icon(
-                      Icons.menu,
-                      size: 16.0,
+                  Clickable(
+                    opaque: true,
+                    onClick: () => _drawerLayoutKey.currentState!.toggleDrawer(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
+                      child: Icon(
+                        Icons.menu,
+                        size: 16.0,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            Expanded(child: MoveWindow()),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                MinimizeWindowButton(colors: windowButtonColors),
-                MaximizeWindowButton(colors: windowButtonColors),
-                CloseWindowButton(
-                  colors: WindowButtonColors(
-                    mouseOver: const Color(0xFFD32F2F),
-                    iconNormal: windowButtonColors.iconNormal,
+                ],
+              ),
+              Expanded(child: MoveWindow()),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  MinimizeWindowButton(colors: windowButtonColors),
+                  MaximizeWindowButton(colors: windowButtonColors),
+                  CloseWindowButton(
+                    colors: WindowButtonColors(
+                      mouseOver: const Color(0xFFD32F2F),
+                      iconNormal: windowButtonColors.iconNormal,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       Expanded(child: DrawerLayout(
         key: _drawerLayoutKey,
-        drawer: _TabsDrawer(
-          onTabSelected: _handleTabSelected,
-          onTabPopped: _handleTabPopped,
-          newTabDialog: _newTabDialog,
-          tabs: _tabs,
+        drawer: DecoratedBox(
+          decoration: BoxDecoration(color: Colors.grey.shade900),
+          child: _TabsDrawer(
+            onTabSelected: _handleTabSelected,
+            onTabPopped: _handleTabPopped,
+            newTabDialog: _newTabDialog,
+            tabs: _tabs,
+          ),
         ),
         body: PageRouter(
           onPushPage: _handlePushPage,
@@ -190,44 +196,42 @@ class _TabsDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canPop = tabs.length > 1;
-    return Material(
-      child: SizedBox(
-        width: 200,
-        child: ListView.builder(
-          itemCount: tabs.length + 1,
-          itemBuilder: (_, int i) {
-            if (i == tabs.length) {
-              return Clickable(
-                onClick: () {
-                  newTabDialog.show(context);
-                },
-                child: _IconTextTile(
-                  icon: Icons.add,
-                  title: 'New tab',
-                ),
-              );
-            }
-            
-            final tab = tabs[i];
+    return SizedBox(
+      width: 200,
+      child: ListView.builder(
+        itemCount: tabs.length + 1,
+        itemBuilder: (_, int i) {
+          if (i == tabs.length) {
             return Clickable(
-              opaque: true,
               onClick: () {
-                onTabSelected(i);
+                newTabDialog.show(context);
               },
-              builder: (BuildContext _, bool hovering, Widget? __) {
-                return ColumnTile(
-                  child: _PageTile(
-                    onPop: hovering && canPop ? () => onTabPopped(i) : null,
-                    page: tab.first,
-                  ),
-                  children: tab.getRange(1, tab.length).map((PageEntry page) {
-                    return _PageTile(page: page);
-                  }).toList(),
-                );
-              },
+              child: _IconTextTile(
+                icon: Icons.add,
+                title: 'New tab',
+              ),
             );
-          },
-        ),
+          }
+          
+          final tab = tabs[i];
+          return Clickable(
+            opaque: true,
+            onClick: () {
+              onTabSelected(i);
+            },
+            builder: (BuildContext _, bool hovering, Widget? __) {
+              return ColumnTile(
+                child: _PageTile(
+                  onPop: hovering && canPop ? () => onTabPopped(i) : null,
+                  page: tab.first,
+                ),
+                children: tab.getRange(1, tab.length).map((PageEntry page) {
+                  return _PageTile(page: page);
+                }).toList(),
+              );
+            },
+          );
+        },
       ),
     );
   }

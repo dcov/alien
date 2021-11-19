@@ -5,7 +5,6 @@ import 'package:muex_flutter/muex_flutter.dart';
 import 'core/app.dart';
 import 'core/context.dart';
 import 'widgets/splash_screen.dart';
-import 'widgets/theming.dart';
 
 import 'main_screen.dart';
 import 'reddit_credentials.dart';
@@ -40,20 +39,7 @@ void main() {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
               theme: ThemeData.dark(),
-              builder: (_, Widget? child) {
-                return Themer(
-                  kind: ThemeKind.dark,
-                  child: child!,
-                );
-              },
-              home: Builder(
-                builder: (BuildContext context) {
-                  return Material(
-                    color: Theming.of(context).canvasColor,
-                    child: MainScreen(app: app),
-                  );
-                },
-              ),
+              home: Material(child: MainScreen(app: app)),
             );
           },
         );
