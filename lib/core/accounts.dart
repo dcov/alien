@@ -77,13 +77,15 @@ class InitAccounts implements Update {
     if (owner.accounts.isInScriptMode) {
       return Then(_GetScriptUserData(
         onInitialized: onInitialized,
-        onFailed: onFailed));
+        onFailed: onFailed
+      ));
     }
 
     // Kick off a side effect to retrieve any stored users data.
     return Then(_GetPackedAccountsData(
       onInitialized: onInitialized,
-      onFailed: onFailed));
+      onFailed: onFailed
+    ));
   }
 }
 
@@ -103,11 +105,13 @@ class _GetScriptUserData implements Effect {
     return context.redditScriptClient!
       .getMe()
       .then((AccountData data) {
-         return Then(_AddScriptUser(
+          return Then(_AddScriptUser(
             data: data,
-            onInitialized: onInitialized));
-       },
-       onError: (_) => onFailed());
+            onInitialized: onInitialized
+          ));
+        },
+        onError: (_) => onFailed()
+      );
   }
 }
 
@@ -151,7 +155,8 @@ class _GetPackedAccountsData implements Effect {
       return Then(_UnpackAccountsData(
         usersData: usersData,
         currentUserData: currentUserData,
-        onInitialized: onInitialized));
+        onInitialized: onInitialized
+      ));
     } catch (_) {
       return onFailed();
     }
@@ -210,13 +215,15 @@ class AddUser implements Update {
         }
         return true;
       }(),
-      'AddUser dispatched with an existing user');
+      'AddUser dispatched with an existing user'
+    );
 
     accounts.users.add(user);
 
     return Then(_PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name));
+      currentUserData: accounts.currentUser?.name
+    ));
   }
 }
 
@@ -242,7 +249,8 @@ class RemoveUser implements Update {
         }
         return false;
       }(),
-      'RemoveUser dispatched with a non-existing user');
+      'RemoveUser dispatched with a non-existing user'
+    );
 
     accounts.users.removeWhere((User existingUser) {
       return existingUser.name == user.name;
@@ -254,7 +262,8 @@ class RemoveUser implements Update {
 
     return Then(_PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name));
+      currentUserData: accounts.currentUser?.name
+    ));
   }
 }
 
@@ -278,7 +287,8 @@ class SetCurrentUser implements Update {
 
     return Then(_PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name));
+      currentUserData: accounts.currentUser?.name
+    ));
   }
 }
 

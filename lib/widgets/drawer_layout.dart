@@ -16,9 +16,17 @@ class DrawerLayout extends StatefulWidget {
   DrawerLayoutState createState() => DrawerLayoutState();
 }
 
-class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderStateMixin {
+class DrawerLayoutState extends State<DrawerLayout> with TickerProviderStateMixin {
 
-  late final AnimationController _controller;
+  late AnimationController _controller;
+
+  void _initController([double value = 0.0]) {
+    _controller = AnimationController(
+      duration: Duration(milliseconds: 100),
+      value: value,
+      vsync: this,
+    );
+  }
 
   void toggleDrawer() {
     if (_controller.status == AnimationStatus.completed) {
@@ -35,11 +43,7 @@ class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderSta
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: Duration(milliseconds: 250),
-      value: 0.0,
-      vsync: this,
-    );
+    _initController();
   }
 
   @override
@@ -49,11 +53,17 @@ class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderSta
   }
 
   @override
+  void reassemble() {
+    super.reassemble();
+    final value = _controller.value;
+    _controller.dispose();
+    _initController(value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CustomMultiChildLayout(
-      delegate: _LayoutDelegate(
-        position: _controller,
-      ),
+      delegate: _LayoutDelegate(animation: _controller),
       children: <Widget>[
         LayoutId(
           id: _LayoutSlot.drawer,
@@ -70,19 +80,15 @@ class DrawerLayoutState extends State<DrawerLayout> with SingleTickerProviderSta
         ),
         LayoutId(
           id: _LayoutSlot.body,
-          child: ValueListenableBuilder(
-            valueListenable: _controller,
-            child: widget.body,
-            builder: (BuildContext _, double value, Widget? child) {
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (BuildContext _, Widget? child) {
               return IgnorePointer(
-                ignoring: _controller.status != AnimationStatus.dismissed,
-                child: DecoratedBox(
-                  position: DecorationPosition.foreground,
-                  decoration: BoxDecoration(color: Colors.black.withOpacity(value / 2)),
-                  child: child,
-                ),
+                ignoring: _controller.isAnimating,
+                child: child,
               );
             },
+            child: widget.body,
           ),
         ),
       ],
@@ -98,10 +104,10 @@ enum _LayoutSlot {
 class _LayoutDelegate extends MultiChildLayoutDelegate {
 
   _LayoutDelegate({
-    required this.position,
-  }) : super(relayout: position);
+    required this.animation,
+  }) : super(relayout: animation);
 
-  final Animation<double> position;
+  final Animation<double> animation;
 
   @override
   void performLayout(Size size) {
@@ -111,28 +117,27 @@ class _LayoutDelegate extends MultiChildLayoutDelegate {
     final drawerWidth = layoutChild(
       _LayoutSlot.drawer,
       BoxConstraints.tightFor(
-        width: 300,
         height: size.height,
       ),
     ).width;
 
     positionChild(
       _LayoutSlot.drawer,
-      Offset(
-        -36.0 * (1.0 - position.value),
-        0.0,
-      ),
+      Offset.zero,
     );
 
     layoutChild(
       _LayoutSlot.body,
-      BoxConstraints.tight(size),
+      BoxConstraints.tight(Size(
+        size.width - (drawerWidth * animation.value),
+        size.height,
+      )),
     );
 
     positionChild(
       _LayoutSlot.body,
       Offset(
-        drawerWidth * position.value,
+        drawerWidth * animation.value,
         0.0,
       ),
     );
@@ -140,6 +145,6 @@ class _LayoutDelegate extends MultiChildLayoutDelegate {
 
   @override
   bool shouldRelayout(_LayoutDelegate oldDelegate) {
-    return this.position != oldDelegate.position;
+    return this.animation != oldDelegate.animation;
   }
 }

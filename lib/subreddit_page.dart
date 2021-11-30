@@ -6,15 +6,17 @@ import 'core/post.dart';
 import 'core/subreddit.dart';
 import 'core/subreddit_posts.dart';
 import 'reddit/types.dart';
-import 'widgets/page_router.dart';
+import 'widgets/page_stack.dart';
 
 import 'listing_scroll_view.dart';
 import 'post_tile.dart';
 
-class SubredditPage extends PageEntry {
+class SubredditPage extends PageStackEntry {
 
-  SubredditPage({ required this.subreddit })
-    : super(key: ValueKey(subreddit), name: subreddit.name);
+  SubredditPage({
+    required ValueKey<String> key,
+    required this.subreddit,
+  }) : super(key: key);
 
   final Subreddit subreddit;
   late final SubredditPosts _posts;
@@ -56,7 +58,7 @@ class SubredditPage extends PageEntry {
             height: 56.0,
             child: NavigationToolbar(
               centerMiddle: false,
-              leading: !isFirstPage ? PopPageButton() : null,
+              leading: CloseButton(),
               middle: Text(
                 subreddit.name,
                 style: const TextStyle(

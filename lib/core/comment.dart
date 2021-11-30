@@ -58,5 +58,6 @@ Comment commentFromData(CommentData data) {
     id: data.id,
     kind: data.kind,
     score: data.score,
-    voteDir: data.voteDir);
+    voteDir: data.voteDir,
+  );
 }

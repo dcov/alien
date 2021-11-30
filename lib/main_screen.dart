@@ -47,12 +47,14 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
   @override
   void capture(StateSetter setState) {
     if (_newTabDialog.reset(widget.app, context)) {
-      _tabs = <List<PageEntry>>[
-        <PageEntry>[
-          FeedPage(kind: FeedKind.popular)
-        ]
-      ];
-      _currentTab = _tabs.first;
+      setState(() {
+        _tabs = <List<PageEntry>>[
+          <PageEntry>[
+            FeedPage(kind: FeedKind.popular)
+          ]
+        ];
+        _currentTab = _tabs.first;
+      });
     }
   }
 
@@ -61,7 +63,6 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
     if (!identical(_tabs[index], _currentTab)) {
       setState(() {
         _currentTab = _tabs[index];
-        _drawerLayoutKey.currentState!.toggleDrawer();
       });
     }
   }
@@ -80,7 +81,6 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
     setState(() {
       _tabs.add(<PageEntry>[rootPage]);
       _currentTab = _tabs.last;
-      _drawerLayoutKey.currentState!.toggleDrawer();
     });
   }
 
@@ -108,33 +108,16 @@ class _MainScreenState extends State<MainScreen> with ConnectionCaptureStateMixi
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Clickable(
-                    opaque: false,
-                    onClick: () { },
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 16.0,
-                      ),
-                    ),
+              Clickable(
+                opaque: true,
+                onClick: () => _drawerLayoutKey.currentState!.toggleDrawer(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
+                  child: Icon(
+                    Icons.menu,
+                    size: 16.0,
                   ),
-                  Clickable(
-                    opaque: true,
-                    onClick: () => _drawerLayoutKey.currentState!.toggleDrawer(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints.tight(appWindow.titleBarButtonSize),
-                      child: Icon(
-                        Icons.menu,
-                        size: 16.0,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
               Expanded(child: MoveWindow()),
               Row(
@@ -198,41 +181,56 @@ class _TabsDrawer extends StatelessWidget {
     final canPop = tabs.length > 1;
     return SizedBox(
       width: 200,
-      child: ListView.builder(
-        itemCount: tabs.length + 1,
-        itemBuilder: (_, int i) {
-          if (i == tabs.length) {
+      child: Column(children: <Widget>[
+        Expanded(child: ListView.builder(
+          itemCount: tabs.length,
+          itemBuilder: (_, int i) {
+            final tab = tabs[i];
             return Clickable(
+              opaque: true,
               onClick: () {
-                newTabDialog.show(context);
+                onTabSelected(i);
               },
-              child: _IconTextTile(
-                icon: Icons.add,
-                title: 'New tab',
-              ),
+              builder: (BuildContext _, bool hovering, Widget? __) {
+                return ColumnTile(
+                  child: _PageTile(
+                    onPop: hovering && canPop ? () => onTabPopped(i) : null,
+                    page: tab.first,
+                  ),
+                  children: tab.getRange(1, tab.length).map((PageEntry page) {
+                    return _PageTile(page: page);
+                  }).toList(),
+                );
+              },
             );
-          }
-          
-          final tab = tabs[i];
-          return Clickable(
-            opaque: true,
-            onClick: () {
-              onTabSelected(i);
-            },
-            builder: (BuildContext _, bool hovering, Widget? __) {
-              return ColumnTile(
-                child: _PageTile(
-                  onPop: hovering && canPop ? () => onTabPopped(i) : null,
-                  page: tab.first,
-                ),
-                children: tab.getRange(1, tab.length).map((PageEntry page) {
-                  return _PageTile(page: page);
-                }).toList(),
-              );
-            },
-          );
-        },
-      ),
+          },
+        )),
+        DecoratedBox(
+          decoration: BoxDecoration(border: Border(
+            top: BorderSide(
+              width: 0.1,
+              color: Colors.grey,
+            ),
+          )),
+          child: SizedBox(
+            height: 36.0,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Expanded(child: Clickable(
+                  child: Icon(Icons.settings),
+                )),
+                Expanded(child: Clickable(
+                  onClick: () {
+                    newTabDialog.show(context);
+                  },
+                  child: Icon(Icons.add),
+                )),
+              ],
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }

@@ -9,7 +9,7 @@ import 'reddit/types.dart';
 import 'widgets/clickable.dart';
 import 'widgets/depth_painter.dart';
 import 'widgets/formatting.dart';
-import 'widgets/page_router.dart';
+import 'widgets/page_stack.dart';
 import 'widgets/sliver_custom_paint.dart';
 import 'widgets/widget_extensions.dart';
 
@@ -17,9 +17,12 @@ import 'snudown_view.dart';
 import 'sort_views.dart';
 import 'votable_views.dart';
 
-class PostPage extends PageEntry {
+class PostPage extends PageStackEntry {
 
-  PostPage({ required this.post }) : super(key: ValueKey(post));
+  PostPage({
+    required ValueKey<String> key,
+    required this.post
+  }) : super(key: key);
 
   final Post post;
   late final PostComments _comments;
@@ -47,7 +50,7 @@ class PostPage extends PageEntry {
             height: 56.0,
             child: NavigationToolbar(
               centerMiddle: false,
-              leading: !isFirstPage ? PopPageButton() : null,
+              leading: CloseButton(),
               middle: Text(
                 post.title,
                 maxLines: 1,
