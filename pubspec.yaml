@@ -65,6 +65,8 @@ dev_dependencies:
 
   mockito: 5.0.16
 
+  test: 1.17.12
+
 flutter_icons:
   android: true
   ios: true
