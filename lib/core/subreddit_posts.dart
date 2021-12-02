@@ -2,13 +2,11 @@ import 'package:muex/muex.dart';
 
 import '../reddit/endpoints.dart';
 import '../reddit/types.dart';
-import '../reddit/utils.dart';
 
 import 'context.dart';
 import 'accounts.dart';
 import 'listing.dart';
-import 'post.dart';
-import 'subreddit.dart';
+import 'thing_store.dart';
 import 'user.dart';
 
 part 'subreddit_posts.g.dart';
@@ -16,13 +14,23 @@ part 'subreddit_posts.g.dart';
 abstract class SubredditPosts implements Model {
 
   factory SubredditPosts({
-    required Subreddit subreddit,
+    required String subredditName,
+  }) {
+    return _$SubredditPosts(
+      subredditName: subredditName,
+      sortBy: SubredditSort.hot,
+      listing: Listing(),
+    );
+  }
+
+  factory SubredditPosts.raw({
+    required String subredditName,
     required SubredditSort sortBy,
     TimeSort sortFrom,
-    required Listing<Post> listing
+    required Listing listing
   }) = _$SubredditPosts;
 
-  Subreddit get subreddit;
+  String get subredditName;
 
   SubredditSort get sortBy;
   set sortBy(SubredditSort value);
@@ -30,16 +38,7 @@ abstract class SubredditPosts implements Model {
   TimeSort? get sortFrom;
   set sortFrom(TimeSort? value);
 
-  Listing<Post> get listing;
-}
-
-SubredditPosts postsFromSubreddit(Subreddit subreddit) {
-  return SubredditPosts(
-    subreddit: subreddit,
-    sortBy: SubredditSort.hot,
-    listing: Listing<Post>(
-      status: ListingStatus.idle,
-      pagination: Pagination()));
+  Listing get listing;
 }
 
 class TransitionSubredditPosts implements Update {
@@ -65,10 +64,7 @@ class TransitionSubredditPosts implements Update {
     if (sortBy != null && (sortBy != posts.sortBy || sortFrom != posts.sortFrom)) {
       assert(to == ListingStatus.refreshing);
       posts..sortBy = sortBy!
-           ..sortFrom = sortFrom
-           /// We're changing the sort value so we'll clear the current posts since they no longer correspond to
-           /// the sort value.
-           ..listing.things.clear();
+           ..sortFrom = sortFrom;
       changedSort = true;
     }
 
@@ -76,13 +72,18 @@ class TransitionSubredditPosts implements Update {
       listing: posts.listing,
       to: to,
       forceIfRefreshing: changedSort,
-      effectFactory: (Page page, Object transitionMarker) {
-        return Then(_GetSubredditPosts(
+      onRemoveIds: (List<String> removedIds) {
+        return UnstorePosts(postIds: removedIds);
+      },
+      onLoadPage: (Page page, Object transitionMarker) {
+        return _GetSubredditPosts(
           posts: posts,
           page: page,
           transitionMarker: transitionMarker,
-          user: owner.accounts.currentUser));
-      }));
+          user: owner.accounts.currentUser,
+        );
+      },
+    ));
   }
 }
 
@@ -108,22 +109,21 @@ class _GetSubredditPosts implements Effect {
     try {
       final listing = await context
           .clientFromUser(user)
-          .getSubredditPosts(posts.subreddit.name, page, posts.sortBy, posts.sortFrom);
+          .getSubredditPosts(posts.subredditName, page, posts.sortBy, posts.sortFrom);
 
-      /// We will use this when [FinishListingTransition] calls the [thingFactory].
-      final hasBeenViewed = await context.getPostListingDataHasBeenViewed(listing);
-      
       return Then(FinishListingTransition(
         listing: posts.listing,
         transitionMarker: transitionMarker,
         data: listing,
-        thingFactory: (PostData data) {
-          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]!);
-        }));
+        onAddNewThings: (List<PostData> posts, Then then) {
+          return StorePosts(posts: posts, then: then);
+        },
+      ));
     } catch (_) {
       return Then(ListingTransitionFailed(
         listing: posts.listing,
-        transitionMarker: transitionMarker));
+        transitionMarker: transitionMarker,
+      ));
     }
   }
 }

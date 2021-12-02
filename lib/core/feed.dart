@@ -3,12 +3,11 @@ import 'package:muex/muex.dart';
 
 import '../reddit/endpoints.dart';
 import '../reddit/types.dart';
-import '../reddit/utils.dart';
 
 import 'context.dart';
 import 'accounts.dart';
 import 'listing.dart';
-import 'post.dart';
+import 'thing_store.dart';
 import 'user.dart';
 
 part 'feed.g.dart';
@@ -19,49 +18,32 @@ enum FeedKind {
   all
 }
 
-extension FeedKindExtension on FeedKind {
-
-  String get name {
-    switch (this) {
-      case FeedKind.home:
-        return 'home';
-      case FeedKind.popular:
-        return 'popular';
-      case FeedKind.all:
-        return 'all';
-    }
-  }
-
-  String get displayName {
-    switch (this) {
-      case FeedKind.home:
-        return 'Home';
-      case FeedKind.popular:
-        return 'Popular';
-      case FeedKind.all:
-        return 'All';
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case FeedKind.home:
-        return Icons.home;
-      case FeedKind.popular:
-        return Icons.trending_up;
-      case FeedKind.all:
-        return Icons.all_inclusive;
-    }
-  }
-}
-
 abstract class Feed implements Model {
 
-  factory Feed({
+  factory Feed({ required FeedKind kind }) {
+
+    late RedditArg sortBy;
+    switch (kind) {
+      case FeedKind.home:
+        sortBy = HomeSort.best;
+        break;
+      case FeedKind.popular:
+      case FeedKind.all:
+        sortBy = SubredditSort.hot;
+    }
+
+    return _$Feed(
+      kind: kind,
+      sortBy: sortBy,
+      listing: Listing(),
+    );
+  }
+
+  factory Feed.raw({
     required FeedKind kind,
     required RedditArg sortBy,
     TimeSort? sortFrom,
-    required Listing<Post> listing,
+    required Listing listing,
   }) = _$Feed;
 
   FeedKind get kind;
@@ -77,26 +59,7 @@ abstract class Feed implements Model {
   TimeSort? get sortFrom;
   set sortFrom(TimeSort? value);
 
-  Listing<Post> get listing;
-}
-
-Feed feedFromKind(FeedKind kind) {
-  RedditArg sortBy;
-  switch (kind) {
-    case FeedKind.home:
-      sortBy = HomeSort.best;
-      break;
-    case FeedKind.popular:
-    case FeedKind.all:
-      sortBy = SubredditSort.hot;
-  }
-
-  return Feed(
-    kind: kind,
-    sortBy: sortBy,
-    listing: Listing(
-      status: ListingStatus.idle,
-      pagination: Pagination()));
+  Listing get listing;
 }
 
 class TransitionFeed implements Update {
@@ -138,7 +101,7 @@ class TransitionFeed implements Update {
 
     if (feed.sortBy is TimedParameter &&
         (feed.sortBy as TimedParameter).isTimed &&
-        feed.sortFrom == null) {
+         feed.sortFrom == null) {
       feed.sortFrom = TimeSort.day;
     }
 
@@ -146,13 +109,16 @@ class TransitionFeed implements Update {
       listing: feed.listing,
       to: to,
       forceIfRefreshing: changedSort,
-      effectFactory: (Page page, Object transitionMarker) {
-        return Then(_GetFeedPosts(
+      onRemoveIds: (List<String> removedIds) {
+        return UnstorePosts(postIds: removedIds);
+      },
+      onLoadPage: (Page page, Object transitionMarker) {
+        return _GetFeedPosts(
           feed: feed,
           page: page,
           transitionMarker: transitionMarker,
           user: owner.accounts.currentUser,
-        ));
+        );
       },
     ));
   }
@@ -192,19 +158,55 @@ class _GetFeedPosts implements Effect {
             .getSubredditPosts(subredditName, page, feed.sortBy as SubredditSort, feed.sortFrom);
       }
 
-      final hasBeenViewed = await context.getPostListingDataHasBeenViewed(listing);
-
       return Then(FinishListingTransition(
         listing: feed.listing,
         transitionMarker: transitionMarker,
         data: listing,
-        thingFactory: (PostData data) {
-          return postFromData(data, hasBeenViewed: hasBeenViewed[data.id]!);
-        }));
+        onAddNewThings: (List<PostData> newThings, Then then) {
+          return StorePosts(posts: newThings, then: then);
+        },
+      ));
     } catch (_) {
       return Then(ListingTransitionFailed(
         listing: feed.listing,
-        transitionMarker: transitionMarker));
+        transitionMarker: transitionMarker,
+      ));
+    }
+  }
+}
+
+extension FeedKindExtension on FeedKind {
+
+  String get name {
+    switch (this) {
+      case FeedKind.home:
+        return 'home';
+      case FeedKind.popular:
+        return 'popular';
+      case FeedKind.all:
+        return 'all';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case FeedKind.home:
+        return 'Home';
+      case FeedKind.popular:
+        return 'Popular';
+      case FeedKind.all:
+        return 'All';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case FeedKind.home:
+        return Icons.home;
+      case FeedKind.popular:
+        return Icons.trending_up;
+      case FeedKind.all:
+        return Icons.all_inclusive;
     }
   }
 }

@@ -13,19 +13,19 @@ enum ListingStatus {
   loadingMore,
 }
 
-abstract class Listing<T extends Thing> implements Model {
+abstract class Listing implements Model {
 
-  factory Listing({
-    required ListingStatus status,
-    List<T> things,
-    required Pagination pagination,
-    Object? latestTransitionMarker
-  }) = _$Listing;
+  factory Listing() {
+    return _$Listing(
+      status: ListingStatus.idle,
+      pagination: Pagination(),
+    );
+  }
 
   ListingStatus get status;
   set status(ListingStatus value);
 
-  List<T> get things;
+  List<String> get ids;
 
   Pagination get pagination;
   set pagination(Pagination pagination);
@@ -34,23 +34,20 @@ abstract class Listing<T extends Thing> implements Model {
   set latestTransitionMarker(Object? value);
 }
 
-typedef _ListingTransitionEffectFactory = Then Function(Page page, Object marker);
-
 class TransitionListing implements Update {
 
   TransitionListing({
     required this.listing,
     required this.to,
     required this.forceIfRefreshing,
-    required this.effectFactory
+    required this.onRemoveIds,
+    required this.onLoadPage,
   }) : assert(to != ListingStatus.idle),
-       assert(!forceIfRefreshing || to != ListingStatus.loadingMore);
+       assert(!forceIfRefreshing || to == ListingStatus.refreshing);
 
   final Listing listing;
 
-  /// The status to transition to.
-  ///
-  /// This value cannot be [ListingStatus.idle].
+  // The ListingStatus to transition to. (Cannot be .idle)
   final ListingStatus to;
 
   /// Whether to force the transition if we're transitioning to [ListingStatus.refreshing]
@@ -58,41 +55,47 @@ class TransitionListing implements Update {
   /// This only applies if [to] == [ListingStatus.refreshing].
   final bool forceIfRefreshing;
 
-  final _ListingTransitionEffectFactory effectFactory;
+  final Update Function(List<String> ids) onRemoveIds;
+
+  final Effect Function(Page page, Object marker) onLoadPage;
 
   @override
   Then update(_) {
     switch(to) {
       case ListingStatus.refreshing:
-        // We can only transition to refreshing if we're not already refreshing, or if we're forcing a refresh.
+        // If we're already refreshing and we're not forced to re-refresh then we don't have
+        // anything to do.
         if (listing.status == ListingStatus.refreshing && !forceIfRefreshing)
           return Then.done();
 
-        listing.pagination = Pagination();
-        break;
+        final removedIds = listing.ids.toList();
+        listing..status = to
+               ..ids.clear()
+               ..pagination = Pagination()
+               ..latestTransitionMarker = Object();
+
+        return Then.all({
+          if (removedIds.isNotEmpty)
+            onRemoveIds(removedIds),
+          onLoadPage(listing.pagination.nextPage!, listing.latestTransitionMarker!),
+        });
       case ListingStatus.loadingMore:
-        // We can only transition to loadingMore if we're idling
+        // If we're already loading the next listing or refreshing then we should ignore this
+        // update.
         if (listing.status != ListingStatus.idle)
           return Then.done();
 
-        // We can transition to loadingMore so there should be a next page to transition to
         assert(listing.pagination.nextPageExists);
-        break;
+
+        listing..status = to
+               ..latestTransitionMarker = Object();
+
+        return Then(onLoadPage(listing.pagination.nextPage!, listing.latestTransitionMarker!));
       case ListingStatus.idle:
-        throw StateError('Cannot transition to ListingStatus.idle manually.');
+        throw StateError('TransitionListing cannot transition to .idle');
     }
-
-    /// Create a new marker to mark this transition instance.
-    final transitionMarker = Object();
-
-    listing..status = to
-           ..latestTransitionMarker = transitionMarker;
-
-    return effectFactory(listing.pagination.nextPage!, transitionMarker);
   }
 }
-
-typedef _ThingFactory<TD extends ThingData, T extends Thing> = T Function(TD data);
 
 class FinishListingTransition<TD extends ThingData, T extends Thing> implements Update {
 
@@ -100,49 +103,66 @@ class FinishListingTransition<TD extends ThingData, T extends Thing> implements 
     required this.listing,
     required this.transitionMarker,
     required this.data,
-    required this.thingFactory
+    required this.onAddNewThings,
   });
 
-  final Listing<T> listing;
+  final Listing listing;
 
   final Object transitionMarker;
 
   final ListingData<TD> data;
 
-  final _ThingFactory<TD, T> thingFactory;
+  final Update Function(List<TD> things, Then then) onAddNewThings;
 
   @override
   Then update(_) {
-    // If the latest marker isn't the marker
-    // we have, then this transition has been overriden by a different transition, in which case we don't need to do
-    // anything.
-    if (transitionMarker == listing.latestTransitionMarker) {
-      late Iterable<TD> things;
-      switch (listing.status) {
-        case ListingStatus.refreshing:
-          listing.things.clear();
-          things = data.things;
-          break;
-        case ListingStatus.loadingMore:
-          /// Filter out any [Thing] items from [things] that are already in
-          /// [listing.things] by comparing their [Thing.id] values.
-          things = data.things.where((TD td) {
-            for (final Thing t in listing.things) {
-              if (t.id == td.id)
-                return false;
-            }
-            return true;
-          });
-          break;
-        case ListingStatus.idle:
-          throw StateError('Cannot finish transitioning to ListingStatus.idle manually.');
-      }
-
-      listing..pagination = listing.pagination.forward(data)
-             ..things.addAll(things.map(thingFactory))
-             ..status = ListingStatus.idle
-             ..latestTransitionMarker = null;
+    // If the latest marker isn't the marker we have, then this transition has been overriden by a
+    // different transition, in which case we don't need to do anything.
+    if (transitionMarker != listing.latestTransitionMarker) {
+      return Then.done();
     }
+
+    listing.pagination = listing.pagination.forward(data);
+
+    final newThings = data.things.toList();
+    if (listing.status == ListingStatus.loadingMore) {
+      for (var i = 0; i < newThings.length; ) {
+        final thing = newThings[i];
+        if (listing.ids.contains(thing.id)) {
+          newThings.removeAt(i);
+          continue;
+        }
+
+        i++;
+      }
+    }
+
+    return Then(onAddNewThings(
+      newThings,
+      Then(_AddedNewThings(
+        listing: listing,
+        newIds: newThings.map((thing) => thing.id).toList(growable: false),
+      )),
+    ));
+  }
+}
+
+class _AddedNewThings implements Update {
+
+  _AddedNewThings({
+    required this.listing,
+    required this.newIds,
+  });
+
+  final Listing listing;
+
+  final List<String> newIds;
+
+  @override
+  Then update(_) {
+    listing..status = ListingStatus.idle
+           ..ids.addAll(newIds)
+           ..latestTransitionMarker = null;
 
     return Then.done();
   }
