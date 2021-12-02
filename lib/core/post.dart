@@ -13,6 +13,55 @@ part 'post.g.dart';
 abstract class Post implements Model, Saveable, Votable {
 
   factory Post({
+    required PostData data,
+    required bool hasBeenViewed,
+  }) {
+    Media? media;
+    if (!data.isSelf) {
+      var thumbnail = data.thumbnailUrl ??
+          (data.preview?.resolutions.length != 0 ?
+              data.preview?.resolutions.first.url :
+              null);
+
+      if (thumbnail != null) {
+        thumbnail = Uri.tryParse(thumbnail)?.hasScheme == true ? thumbnail : null;
+      }
+
+      media = Media(
+        // If it's not a self post then it should have a url
+        source: data.url!,
+        thumbnail: thumbnail,
+        thumbnailStatus: thumbnail != null ? ThumbnailStatus.loaded : ThumbnailStatus.notLoaded);
+    }
+
+    Snudown? selfText;
+    if (data.selfText?.isNotEmpty == true) {
+      selfText = snudownFromMarkdown(data.selfText!);
+    }
+
+    return _$Post(
+      commentCount: data.commentCount,
+      isNSFW: data.isNSFW,
+      authorName: data.authorName,
+      createdAtUtc: data.createdAtUtc,
+      domainName: data.domainName,
+      hasBeenViewed: hasBeenViewed,
+      isSelf: data.isSelf,
+      media: media,
+      permalink: data.permalink,
+      selfText: selfText,
+      subredditName: data.subredditName,
+      title: data.title,
+      url: data.url,
+      isSaved: data.isSaved,
+      id: data.id,
+      kind: data.kind,
+      score: data.score,
+      voteDir: data.voteDir
+    );
+  }
+
+  factory Post.raw({
     required int commentCount,
     required bool isNSFW,
     required String authorName,
@@ -63,65 +112,12 @@ abstract class Post implements Model, Saveable, Votable {
   String? get url;
 }
 
-Post postFromData(PostData data, { bool hasBeenViewed = false }) {
-  Media? media;
-  if (!data.isSelf) {
-    var thumbnail = data.thumbnailUrl ??
-        (data.preview?.resolutions.length != 0 ?
-            data.preview?.resolutions.first.url :
-            null);
-
-    if (thumbnail != null) {
-      thumbnail = Uri.tryParse(thumbnail)?.hasScheme == true ? thumbnail : null;
-    }
-
-    media = Media(
-      // If it's not a self post then it should have a url
-      source: data.url!,
-      thumbnail: thumbnail,
-      thumbnailStatus: thumbnail != null ? ThumbnailStatus.loaded : ThumbnailStatus.notLoaded);
-  }
-
-  Snudown? selfText;
-  if (data.selfText?.isNotEmpty == true) {
-    selfText = snudownFromMarkdown(data.selfText!);
-  }
-
-  return Post(
-    commentCount: data.commentCount,
-    isNSFW: data.isNSFW,
-    authorName: data.authorName,
-    createdAtUtc: data.createdAtUtc,
-    domainName: data.domainName,
-    hasBeenViewed: hasBeenViewed,
-    isSelf: data.isSelf,
-    media: media,
-    permalink: data.permalink,
-    selfText: selfText,
-    subredditName: data.subredditName,
-    title: data.title,
-    url: data.url,
-    isSaved: data.isSaved,
-    id: data.id,
-    kind: data.kind,
-    score: data.score,
-    voteDir: data.voteDir);
-}
-
 String _postIdToViewedKey(String id) => 'viewed-$id';
 
 extension PostEffectsExtensions on CoreContext {
 
-  Future<bool> getPostHasBeenViewed(Post post) {
-    return this.cache.containsKey(_postIdToViewedKey(post.id));
-  }
-
-  Future<Map<String, bool>> getPostListingDataHasBeenViewed(ListingData<PostData> listing) async {
-    final result = Map<String, bool>();
-    for (final postData in listing.things) {
-      result[postData.id] = await this.cache.containsKey(_postIdToViewedKey(postData.id));
-    }
-    return result;
+  Future<bool> getPostHasBeenViewed(String id) {
+    return this.cache.containsKey(_postIdToViewedKey(id));
   }
 }
 

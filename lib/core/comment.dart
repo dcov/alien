@@ -11,6 +11,26 @@ part 'comment.g.dart';
 abstract class Comment implements Model, Saveable, Votable {
 
   factory Comment({
+    required CommentData data,
+  }) {
+    return _$Comment(
+      authorFlairText: data.authorFlairText,
+      authorName: data.authorName,
+      body: snudownFromMarkdown(data.body),
+      createdAtUtc: data.createdAtUtc,
+      depth: data.depth,
+      distinguishment: data.distinguishment,
+      editedAtUtc: data.editedAtUtc,
+      isSubmitter: data.isSubmitter,
+      isSaved: data.isSaved,
+      id: data.id,
+      kind: data.kind,
+      score: data.score,
+      voteDir: data.voteDir,
+    );
+  }
+
+  factory Comment.raw({
     String? authorFlairText,
     required String authorName,
     required Snudown body,
@@ -42,22 +62,4 @@ abstract class Comment implements Model, Saveable, Votable {
   int? get editedAtUtc;
 
   bool get isSubmitter;
-}
-
-Comment commentFromData(CommentData data) {
-  return Comment(
-    authorFlairText: data.authorFlairText,
-    authorName: data.authorName,
-    body: snudownFromMarkdown(data.body),
-    createdAtUtc: data.createdAtUtc,
-    depth: data.depth,
-    distinguishment: data.distinguishment,
-    editedAtUtc: data.editedAtUtc,
-    isSubmitter: data.isSubmitter,
-    isSaved: data.isSaved,
-    id: data.id,
-    kind: data.kind,
-    score: data.score,
-    voteDir: data.voteDir,
-  );
 }
