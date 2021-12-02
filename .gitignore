@@ -83,4 +83,4 @@ build/
 *.g.dart
 *.mocks.dart
 **/reddit_credentials.dart
-reddit/bin/json/
+bin/json/
