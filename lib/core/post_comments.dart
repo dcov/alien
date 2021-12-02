@@ -5,16 +5,32 @@ import '../reddit/types.dart';
 
 import 'context.dart';
 import 'accounts.dart';
-import 'comment.dart';
-import 'post.dart';
 import 'thing.dart';
+import 'thing_store.dart';
 import 'user.dart';
 
 part 'post_comments.g.dart';
 
+const kMoreCommentsIdPrefix = '+';
+
 abstract class More implements Model, Thing {
 
   factory More({
+    required MoreData data,
+    required Object refreshMarker,
+  }) {
+    return _$More(
+      kind: data.kind,
+      id: data.id,
+      count: data.count,
+      depth: data.depth,
+      isLoading: false,
+      thingIds: data.thingIds,
+      refreshMarker: refreshMarker,
+    );
+  }
+
+  factory More.raw({
     required bool isLoading,
     required int count,
     required int depth,
@@ -44,19 +60,30 @@ abstract class More implements Model, Thing {
 abstract class PostComments implements Model {
 
   factory PostComments({
-    required Post post,
-    required CommentsSort sortBy,
-    List<Thing> things,
+    required String fullPostId,
+    required String permalink,
+  }) {
+    return _$PostComments(
+      fullPostId: fullPostId,
+      permalink: permalink,
+      sortBy: CommentsSort.best,
+      refreshing: false,
+    );
+  }
+
+  factory PostComments.raw({
+    required String fullPostId,
+    required String permalink,
     required bool refreshing,
     Object? latestRefreshMarker,
+    required CommentsSort sortBy,
+    List<String> ids,
+    Map<String, More> idToMore,
   }) = _$PostComments;
 
-  Post get post;
+  String get fullPostId;
 
-  CommentsSort get sortBy;
-  set sortBy(CommentsSort value);
-
-  List<Thing> get things;
+  String get permalink;
 
   bool get refreshing;
   set refreshing(bool value);
@@ -70,39 +97,13 @@ abstract class PostComments implements Model {
   /// changed and those comments might not correspond to it anymore.
   Object? get latestRefreshMarker;
   set latestRefreshMarker(Object? value);
-}
 
-PostComments commentsFromPost(Post post) {
-  return PostComments(
-    post: post,
-    sortBy: CommentsSort.best,
-    refreshing: false);
-}
+  CommentsSort get sortBy;
+  set sortBy(CommentsSort value);
 
-// Maps [data] to a either a [Comment], or [More] object depending on its type.
-Thing _mapThing(ThingData data, Object refreshMarker) {
-  if (data is CommentData)
-    return commentFromData(data);
-  else if (data is MoreData)
-    return More(
-      isLoading: false,
-      count: data.count,
-      depth: data.depth,
-      thingIds: data.thingIds,
-      refreshMarker: refreshMarker,
-      id: data.id,
-      kind: data.kind);
-  else
-    throw StateError('$data was not a CommentData or MoreData instance.');
-}
+  List<String> get ids;
 
-// Flattens the [data] tree structure.
-Iterable<ThingData> _flattenTree(Iterable<ThingData> data) sync* {
-  for (final ThingData td in data) {
-    yield td;
-    if (td is CommentData)
-      yield* _flattenTree(td.replies);
-  }
+  Map<String, More> get idToMore;
 }
 
 class RefreshPostComments implements Update {
@@ -125,22 +126,25 @@ class RefreshPostComments implements Update {
       return Then.done();
     }
 
-    /// Create a new marker to be used to represent this instantiation of the refresh flow.
-    final refreshMarker = Object();
+    comments..refreshing = true
+            ..latestRefreshMarker = Object()
+            ..sortBy = sortBy ?? comments.sortBy
+            ..idToMore.clear();
 
-    comments
-        ..refreshing = true
-        ..latestRefreshMarker = refreshMarker;
+    final removedIds = comments.ids
+      .where((String id) => id[0] != kMoreCommentsIdPrefix)
+      .toList(growable: false);
 
-    if (sortBy != null && sortBy != comments.sortBy) {
-      comments..sortBy = sortBy!
-              ..things.clear();
-    }
+    comments.ids.clear();
     
-    return Then(_GetPostComments(
-      comments: comments,
-      refreshMarker: refreshMarker,
-      user: owner.accounts.currentUser));
+    return Then.all({
+      UnstoreComments(commentIds: removedIds),
+      _GetPostComments(
+        comments: comments,
+        refreshMarker: comments.latestRefreshMarker!,
+        user: owner.accounts.currentUser,
+      ),
+    });
   }
 }
 
@@ -149,7 +153,7 @@ class _GetPostComments implements Effect {
   _GetPostComments({
     required this.comments,
     required this.refreshMarker,
-    this.user
+    this.user,
   });
 
   final PostComments comments;
@@ -162,21 +166,24 @@ class _GetPostComments implements Effect {
   Future<Then> effect(CoreContext context) {
     return context.clientFromUser(user)
       .getPostComments(
-        comments.post.permalink,
-        comments.sortBy)
+        comments.permalink,
+        comments.sortBy
+      )
       .then(
         (ListingData<ThingData> result) {
           return Then(_FinishRefreshing(
             comments: comments,
             result: result.things,
-            refreshMarker: refreshMarker
+            refreshMarker: refreshMarker,
           ));
         },
         onError: (_) {
           return Then(_GetPostCommentsFailed(
             comments: comments,
-            refreshMarker: refreshMarker));
-        });
+            refreshMarker: refreshMarker,
+          ));
+        },
+      );
   }
 }
 
@@ -185,7 +192,7 @@ class _FinishRefreshing implements Update {
   _FinishRefreshing({
     required this.comments,
     required this.result,
-    required this.refreshMarker
+    required this.refreshMarker,
   });
 
   final PostComments comments;
@@ -196,12 +203,12 @@ class _FinishRefreshing implements Update {
 
   @override
   Then update(_) {
-    /// If the refreshMarker that corresponds to us is not the most recent marker, don't do anything.
+    /// If the refreshMarker that corresponds to us is not the most recent
+    // marker, don't do anything.
     if (refreshMarker == comments.latestRefreshMarker) {
-      comments
-          ..refreshing = false
-          ..things.clear()
-          ..things.addAll(_flattenTree(result).map((data) => _mapThing(data, refreshMarker)));
+      final newComments = _addToTree(comments, result);
+      comments.refreshing = false;
+      return Then(StoreComments(comments: newComments));
     }
 
     return Then.done();
@@ -212,7 +219,7 @@ class _GetPostCommentsFailed implements Update {
 
   _GetPostCommentsFailed({
     required this.comments,
-    required this.refreshMarker
+    required this.refreshMarker,
   });
 
   final PostComments comments;
@@ -223,7 +230,9 @@ class _GetPostCommentsFailed implements Update {
   Then update(_) {
     if (refreshMarker == comments.latestRefreshMarker) {
       comments.refreshing = false;
+      // TODO: Return a UI Effect here that notifies the user that this failed.
     }
+
     return Then.done();
   }
 }
@@ -232,7 +241,7 @@ class LoadMoreComments implements Update {
 
   LoadMoreComments({
     required this.comments,
-    required this.more
+    required this.more,
   });
 
   final PostComments comments;
@@ -241,15 +250,21 @@ class LoadMoreComments implements Update {
 
   @override
   Then update(AccountsOwner owner) {
-    assert(more.refreshMarker == comments.latestRefreshMarker);
-    assert(comments.things.contains(more));
+    // This should never happen if the UI is implemented correctly, but just in
+    // case...
+    if (more.refreshMarker != comments.latestRefreshMarker) {
+      return Then.done();
+    }
 
+    // This should also never happen if the UI is implemented correctly, but
+    // just in case...
     if (!more.isLoading) {
       more.isLoading = true;
       return Then(_GetMoreComments(
         comments: comments,
         more: more,
-        user: owner.accounts.currentUser));
+        user: owner.accounts.currentUser,
+      ));
     }
 
     return Then.done();
@@ -274,20 +289,24 @@ class _GetMoreComments implements Effect {
   Future<Then> effect(CoreContext context) {
     return context.clientFromUser(user)
       .getMoreComments(
-        comments.post.fullId,
+        comments.fullPostId,
         more.id,
-        more.thingIds)
+        more.thingIds,
+      )
       .then((ListingData<ThingData> result) {
           return Then(_InsertMoreComments(
             comments: comments,
             more: more,
-            result: result.things
+            result: result.things,
           ));
         },
         onError: (e) {
           return Then(_GetMoreCommentsFailed(
-            more: more));
-        });
+            comments: comments,
+            more: more,
+          ));
+        },
+      );
   }
 }
 
@@ -296,14 +315,14 @@ class _InsertMoreComments implements Update {
   _InsertMoreComments({
     required this.comments,
     required this.more,
-    required this.result
+    required this.result,
   });
 
   final PostComments comments;
 
   final More more;
 
-  final Iterable<ThingData> result ;
+  final Iterable<ThingData> result;
 
   @override
   Then update(_) {
@@ -311,11 +330,16 @@ class _InsertMoreComments implements Update {
     more.isLoading = false;
 
     if (more.refreshMarker == comments.latestRefreshMarker) {
-      final things = _flattenTree(result).map((data) => _mapThing(data, more.refreshMarker));
-      final insertIndex = comments.things.indexOf(more);
-      comments.things
-          ..removeAt(insertIndex)
-          ..insertAll(insertIndex, things);
+      final insertIndex = comments.ids.indexOf(kMoreCommentsIdPrefix + more.id);
+      comments.ids.removeAt(insertIndex);
+
+      final newComments = _addToTree(
+        comments,
+        result,
+        _InsertIndex(insertIndex),
+      );
+
+      return Then(StoreComments(comments: newComments));
     }
 
     return Then.done();
@@ -325,14 +349,55 @@ class _InsertMoreComments implements Update {
 class _GetMoreCommentsFailed implements Update {
 
   _GetMoreCommentsFailed({
-    required this.more
+    required this.comments,
+    required this.more,
   });
+
+  final PostComments comments;
 
   final More more;
 
   @override
   Then update(_) {
     more.isLoading = false;
+    if (more.refreshMarker == comments.latestRefreshMarker) {
+      // TODO: Return a UI Effect notifying the user that this failed.
+    }
     return Then.done();
   }
+}
+
+class _InsertIndex {
+  _InsertIndex(this.value);
+  int value;
+}
+
+List<CommentData> _addToTree(PostComments comments, Iterable<ThingData> newThings, [_InsertIndex? insertIndex, List<CommentData>? result]) {
+  result = result ?? <CommentData>[];
+  for (final thing in newThings) {
+    if (thing is CommentData) {
+      result.add(thing);
+      if (insertIndex != null) {
+        comments.ids.insert(insertIndex.value, thing.id);
+        insertIndex.value += 1;
+      } else {
+        comments.ids.add(thing.id);
+      }
+      _addToTree(comments, thing.replies, insertIndex, result);
+    } else if (thing is MoreData) {
+      final id = kMoreCommentsIdPrefix + thing.id;
+      if (insertIndex != null) {
+        comments.ids.insert(insertIndex.value, id);
+      } else {
+        comments.ids.add(id);
+      }
+      comments.idToMore[id] = More(
+        data: thing,
+        refreshMarker: comments.latestRefreshMarker!,
+      );
+    } else {
+      throw StateError('PostComments unexpectedly received something other than CommentData or MoreData.');
+    }
+  }
+  return result;
 }
