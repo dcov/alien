@@ -6,8 +6,7 @@ import '../reddit/utils.dart';
 
 import 'accounts.dart';
 import 'context.dart';
-import 'subreddit.dart';
-import 'thing.dart';
+import 'thing_store.dart';
 import 'user.dart';
 
 part 'subscriptions.g.dart';
@@ -15,214 +14,121 @@ part 'subscriptions.g.dart';
 abstract class Subscriptions implements Model {
 
   factory Subscriptions() {
-    return _$Subscriptions(
-      refreshing: false,
-      things: const <Subreddit>[],
-    );
+    return _$Subscriptions(refreshing: false);
   }
 
   bool get refreshing;
   set refreshing(bool value);
 
-  List<Subreddit> get things;
+  Map<String, List<User>> get subscribers;
+}
+
+abstract class SubscriptionsOwner {
+
+  Subscriptions get subscriptions;
 }
 
 class RefreshSubscriptions implements Update {
 
-  RefreshSubscriptions({
-    required this.subscriptions
-  });
-
-  final Subscriptions subscriptions;
+  const RefreshSubscriptions();
 
   @override
-  Then update(AccountsOwner owner) {
-    // If it's already refreshing we don't need to do anything.
-    if (subscriptions.refreshing)
-      return Then.done();
+  Then update(Object owner) {
+    assert(owner is AccountsOwner);
+    assert(owner is SubscriptionsOwner);
+    final accounts = (owner as AccountsOwner).accounts;
+    final subscriptions = (owner as SubscriptionsOwner).subscriptions;
 
     subscriptions.refreshing = true;
+    final removedIds = subscriptions.subscribers.keys.toList(growable: false);
+    subscriptions.subscribers.clear();
 
-    return Then(_GetSubscriptions(
-      subscriptions: subscriptions,
-      user: owner.accounts.currentUser));
+    return Then.all({
+      UnstoreSubreddits(subredditIds: removedIds),
+      _GetSubscriptions(users: accounts.users),
+    });
   }
 }
 
 class _GetSubscriptions implements Effect {
 
   _GetSubscriptions({
-    required this.subscriptions,
-    required this.user
+    required this.users,
   });
 
-  final Subscriptions subscriptions;
-
-  final User? user;
+  final List<User> users;
 
   @override
   Future<Then> effect(CoreContext context) async {
-    try {
-      final  result = <SubredditData>[];
-      Pagination pagination = Pagination.maxLimit();
-
+    final result = <MapEntry<User, List<SubredditData>>>[];
+    for (final user in users) {
+      final userResult = <SubredditData>[];
+      var pagination = Pagination.maxLimit();
       do {
-        final listing = await context.clientFromUser(user)
+        try {
+          final listing = await context.clientFromUser(user)
             .getUserSubreddits(
-                UserSubreddits.subscriber,
-                pagination.nextPage!,
-                false);
-        result.addAll(listing.things);
-        pagination = pagination.forward(listing);
+              UserSubreddits.subscriber,
+              pagination.nextPage!,
+              false
+            );
+          userResult.addAll(listing.things);
+          pagination = pagination.forward(listing);
+        } catch (_) {
+          return Then(const _RefreshFailed());
+        }
       } while (pagination.nextPageExists);
 
-      return Then(_FinishRefreshing(
-        subscriptions: subscriptions,
-        result: result));
-    } catch (e) {
-      return Then(_GetSubscriptionsFailed(subscriptions: subscriptions));
+      result.add(MapEntry(user, userResult));
     }
+
+    return Then(_FinishRefreshing(result));
   }
 }
 
 class _FinishRefreshing implements Update {
 
-  _FinishRefreshing({
-    required this.subscriptions,
-    required this.result
-  });
+  _FinishRefreshing(this.result);
 
-  final Subscriptions subscriptions;
-
-  final List<SubredditData> result;
+  final List<MapEntry<User, List<SubredditData>>> result;
 
   @override
-  Then update(_) {
-    subscriptions
-      ..refreshing = false
-      ..things.clear()
-      ..things.addAll(result.map(subredditFromData))
-      ..things.sort((s1, s2) => s1.name.toLowerCase().compareTo(s2.name.toLowerCase()));
+  Then update(SubscriptionsOwner owner) {
+    final subscriptions = owner.subscriptions;
+    assert(subscriptions.refreshing);
 
-    return Then.done();
-  }
-}
+    final subreddits = <SubredditData>[];
 
-class _GetSubscriptionsFailed implements Update {
+    for (final entry in result) {
+      final user = entry.key;
+      final subscribed = entry.value;
+      for (final sub in subscribed) {
+        subscriptions.subscribers.update(
+          sub.id,
+          (List<User> list) {
+            list.add(user);
+            return list;
+          },
+          ifAbsent: () {
+            subreddits.add(sub);
+            return <User>[user];
+          }
+        );
+      }
+    }
 
-  _GetSubscriptionsFailed({
-    required this.subscriptions,
-  });
-
-  final Subscriptions subscriptions;
-
-  @override
-  Then update(_) {
-    // TODO: implement better error handling
     subscriptions.refreshing = false;
 
+    return Then(StoreSubreddits(subreddits: subreddits));
+  }
+}
+
+class _RefreshFailed implements Update {
+
+  const _RefreshFailed();
+
+  @override
+  Then update(SubscriptionsOwner owner) {
     return Then.done();
-  }
-}
-
-class ToggleSubscribed implements Update {
-
-  ToggleSubscribed({
-    required this.subreddit
-  });
-
-  final Subreddit subreddit;
-
-  @override
-  Then update(AccountsOwner owner) {
-    assert(owner.accounts.currentUser != null,
-        'Tried to toggle Subreddit subscription without a User.');
-
-    final User user = owner.accounts.currentUser!;
-
-    // Just flip their subscription state
-    subreddit.userIsSubscriber = !subreddit.userIsSubscriber;
-    if (subreddit.userIsSubscriber)
-      return Then.all({
-        RemoveSubscription(),
-        PostUnsubscribe(
-          subreddit: subreddit,
-          user: user)
-      });
-
-    return Then.all({
-      AddSubscription(),
-      PostSubscribe(
-        subreddit: subreddit,
-        user: user)
-    });
-  }
-}
-
-class AddSubscription implements Update {
-
-  AddSubscription();
-
-  @override
-  Then update(_) {
-    // TODO: implement
-    return Then.done();
-  }
-}
-
-class PostSubscribe implements Effect {
-
-  PostSubscribe({
-    required this.subreddit,
-    required this.user
-  });
-
-  final Subreddit subreddit;
-
-  final User user;
-
-  @override
-  Future<Then> effect(CoreContext context) {
-    return context.clientFromUser(user)
-      .postSubscribe(subreddit.fullId)
-      .then((_) => Then.done())
-      .catchError((_) {
-         // TODO: error handling
-        return Then.done();
-       });
-  }
-}
-
-class RemoveSubscription implements Update {
-
-  RemoveSubscription();
-
-  @override
-  Then update(_) {
-    // TODO: Implement
-    return Then.done();
-  }
-}
-
-class PostUnsubscribe implements Effect {
-
-  PostUnsubscribe({
-    required this.subreddit,
-    required this.user
-  });
-
-  final Subreddit subreddit;
-
-  final User user;
-
-  @override
-  Future<Then> effect(CoreContext context) {
-    return context.clientFromUser(user)
-      .postUnsubscribe(subreddit.fullId)
-      .then((_) => Then.done())
-      .catchError((_) {
-         // TODO: error handling
-         return Then.done();
-       });
   }
 }
