@@ -34,7 +34,6 @@ class PostTile extends StatelessWidget {
       return Clickable(
         opaque: true,
         onClick: () {
-          context.push(PostPage(post: post));
         },
         child: DecoratedBox(
           decoration: BoxDecoration(

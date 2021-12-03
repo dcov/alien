@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:muex/muex.dart';
 
 part 'completion.g.dart';

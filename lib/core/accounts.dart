@@ -60,45 +60,28 @@ List<AppUser> unpackUsersList(String jsonData) {
 /// if along the way there is an error.
 class InitAccounts implements Update {
 
-  InitAccounts({
-    required this.onInitialized,
-    required this.onFailed,
-  });
+  InitAccounts({ this.then });
 
   /// Called once the [Accounts] data has been initialized.
-  final ThenCallback onInitialized;
-
-  /// Called if there is an error in initializing the [Accounts] data.
-  final ThenCallback onFailed;
+  final Then? then;
 
   @override
   Then update(AccountsOwner owner) {
     // Check if we're running in script mode, in which case we need to get the script user's data.
     if (owner.accounts.isInScriptMode) {
-      return Then(_GetScriptUserData(
-        onInitialized: onInitialized,
-        onFailed: onFailed
-      ));
+      return Then(_GetScriptUserData(then: then));
     }
 
     // Kick off a side effect to retrieve any stored users data.
-    return Then(_GetPackedAccountsData(
-      onInitialized: onInitialized,
-      onFailed: onFailed
-    ));
+    return Then(_GetPackedAccountsData(then: then));
   }
 }
 
 class _GetScriptUserData implements Effect {
 
-  _GetScriptUserData({
-    required this.onInitialized,
-    required this.onFailed
-  });
+  _GetScriptUserData({ this.then });
 
-  final ThenCallback onInitialized;
-
-  final ThenCallback onFailed;
+  final Then? then;
 
   @override
   Future<Then> effect(CoreContext context) async {
@@ -107,10 +90,10 @@ class _GetScriptUserData implements Effect {
       .then((AccountData data) {
           return Then(_AddScriptUser(
             data: data,
-            onInitialized: onInitialized
+            then: then,
           ));
         },
-        onError: (_) => onFailed()
+        onError: (_) => then ?? Then.done(),
       );
   }
 }
@@ -119,32 +102,27 @@ class _AddScriptUser implements Update {
 
   _AddScriptUser({
    required this.data,
-   required this.onInitialized
+   this.then,
   });
 
   final AccountData data;
 
-  final ThenCallback onInitialized;
+  final Then? then;
 
   @override
   Then update(AccountsOwner owner) {
     final user = ScriptUser(name: data.username);
     owner.accounts..users.add(user)
                   ..currentUser = user;
-    return onInitialized();
+    return then ?? Then.done();
   }
 }
 
 class _GetPackedAccountsData implements Effect {
 
-  _GetPackedAccountsData({
-    required this.onInitialized,
-    required this.onFailed
-  });
+  _GetPackedAccountsData({ this.then });
 
-  final ThenCallback onInitialized;
-
-  final ThenCallback onFailed;
+  final Then? then;
 
   @override
   Future<Then> effect(CoreContext context) async {
@@ -155,10 +133,10 @@ class _GetPackedAccountsData implements Effect {
       return Then(_UnpackAccountsData(
         usersData: usersData,
         currentUserData: currentUserData,
-        onInitialized: onInitialized
+        then: then, 
       ));
     } catch (_) {
-      return onFailed();
+      return then ?? Then.done();
     }
   }
 }
@@ -168,14 +146,14 @@ class _UnpackAccountsData implements Update {
   _UnpackAccountsData({
     this.usersData,
     this.currentUserData,
-    required this.onInitialized,
+    this.then,
   });
 
   final String? usersData;
 
   final String? currentUserData;
-
-  final ThenCallback onInitialized;
+  
+  final Then? then;
 
   @override
   Then update(AccountsOwner owner) {
@@ -189,7 +167,7 @@ class _UnpackAccountsData implements Update {
       }
     }
 
-    return onInitialized();
+    return then ?? Then.done();
   }
 }
 

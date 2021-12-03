@@ -37,6 +37,7 @@ class RefreshSubscriptions implements Update {
     assert(owner is AccountsOwner);
     assert(owner is SubscriptionsOwner);
     final accounts = (owner as AccountsOwner).accounts;
+
     final subscriptions = (owner as SubscriptionsOwner).subscriptions;
 
     subscriptions.refreshing = true;
@@ -44,17 +45,17 @@ class RefreshSubscriptions implements Update {
     subscriptions.subscribers.clear();
 
     return Then.all({
-      UnstoreSubreddits(subredditIds: removedIds),
-      _GetSubscriptions(users: accounts.users),
+      if (removedIds.isNotEmpty)
+        UnstoreSubreddits(subredditIds: removedIds),
+      if (accounts.users.isNotEmpty)
+        _GetSubscriptions(accounts.users),
     });
   }
 }
 
 class _GetSubscriptions implements Effect {
 
-  _GetSubscriptions({
-    required this.users,
-  });
+  _GetSubscriptions(this.users);
 
   final List<User> users;
 
@@ -129,6 +130,7 @@ class _RefreshFailed implements Update {
 
   @override
   Then update(SubscriptionsOwner owner) {
+    owner.subscriptions.refreshing = false;
     return Then.done();
   }
 }

@@ -5,6 +5,7 @@ import 'core/comment.dart';
 import 'core/post.dart';
 import 'core/post_comments.dart';
 import 'core/thing.dart';
+import 'core/thing_store.dart';
 import 'reddit/types.dart';
 import 'widgets/clickable.dart';
 import 'widgets/depth_painter.dart';
@@ -29,7 +30,10 @@ class PostPage extends PageStackEntry {
 
   @override
   void initState(BuildContext context) {
-    _comments = commentsFromPost(post);
+    _comments = PostComments(
+      permalink: post.permalink,
+      fullPostId: post.fullId,
+    );
     context.then(Then.all({
       MarkPostAsViewed(post: post),
       RefreshPostComments(comments: _comments),
