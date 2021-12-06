@@ -37,17 +37,12 @@ abstract class CompletionOwner {
 
 class AddCompletionCandidates implements Update {
 
-  AddCompletionCandidates({
-    required this.candidates,
-    this.onThen,
-  });
+  AddCompletionCandidates({ required this.candidates });
 
   final Map<String, Object> candidates;
 
-  final ThenCallback? onThen;
-
   @override
-  Then update(CompletionOwner owner) {
+  Action update(CompletionOwner owner) {
     final completion = owner.completion;
 
     for (final candidate in candidates.entries) {
@@ -60,30 +55,25 @@ class AddCompletionCandidates implements Update {
            .._value = candidate.value;
     }
 
-    return onThen?.call() ?? Then.done();
+    return None();
   }
 }
 
 class RemoveCompletionCandidates implements Update {
 
-  RemoveCompletionCandidates({
-    required this.candidates,
-    this.onThen,
-  });
+  RemoveCompletionCandidates({ required this.candidates });
 
   final List<String> candidates;
 
-  final ThenCallback? onThen;
-
   @override
-  Then update(CompletionOwner owner) {
+  Action update(CompletionOwner owner) {
     final completion = owner.completion;
 
     for (final key in candidates) {
       completion.candidates.remove(key);
     }
 
-    return onThen?.call() ?? Then.done();
+    return None();
   }
 }
 
@@ -96,7 +86,7 @@ class UpdateCompletionQuery implements Update {
   final String newQuery;
 
   @override
-  Then update(CompletionOwner owner) {
+  Action update(CompletionOwner owner) {
     final completion = owner.completion;
 
     final oldQuery = completion.query;
@@ -105,7 +95,7 @@ class UpdateCompletionQuery implements Update {
     if (newQuery.isEmpty) {
       completion..matches.clear()
                 ..results = const <Entry>[];
-      return Then.done();
+      return None();
     }
 
     int startCharIndex = -1;
@@ -121,7 +111,7 @@ class UpdateCompletionQuery implements Update {
         if (oldQueryEndReached) {
           if (newQueryEndReached) {
             // The query did not change in length nor content
-            return Then.done();
+            return None();
           }
 
           // The query was added to
@@ -179,6 +169,6 @@ class UpdateCompletionQuery implements Update {
 
     completion.results = completion.matches[newQuery.length - 1];
 
-    return Then.done();
+    return None();
   }
 }

@@ -24,11 +24,11 @@ class SubredditPage extends PageStackEntry {
   @override
   void initState(BuildContext context) {
     _posts = postsFromSubreddit(subreddit);
-    context.then(Then(TransitionSubredditPosts(
+    context.then(TransitionSubredditPosts(
       posts: _posts,
       to: ListingStatus.refreshing,
       sortBy: SubredditSort.hot,
-    )));
+    ));
   }
 
   @override
@@ -40,10 +40,10 @@ class SubredditPage extends PageStackEntry {
         Expanded(child: ListingScrollView(
           listing: _posts.listing,
           onTransitionListing: (ListingStatus to) {
-            context.then(Then(TransitionSubredditPosts(
+            context.then(TransitionSubredditPosts(
               posts: _posts,
               to: to,
-            )));
+            ));
           },
           thingBuilder: (BuildContext _, Post post) {
             return PostTile(

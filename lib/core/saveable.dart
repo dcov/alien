@@ -25,13 +25,14 @@ class ToggleSaved implements Update {
   final User? user;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     assert(user != null || owner.accounts.currentUser != null,
         'Tried to save a Thing without providing a User or one being signed in.');
     saveable.isSaved = !saveable.isSaved;
-    return Then(_PostSaved(
+    return _PostSaved(
       saveable: saveable,
-      user: user ?? owner.accounts.currentUser!));
+      user: user ?? owner.accounts.currentUser!,
+    );
   }
 }
 
@@ -47,16 +48,16 @@ class _PostSaved implements Effect {
   final User user;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     try {
       if (saveable.isSaved) {
         context.clientFromUser(user).postSave(saveable.fullId);
       } else {
         context.clientFromUser(user).postUnsave(saveable.fullId);
       }
-      return Then.done();
+      return None();
     } catch (_) {
-      return Then(_PostSavedFailed(saveable: saveable));
+      return _PostSavedFailed(saveable: saveable);
     }
   }
 }
@@ -70,8 +71,8 @@ class _PostSavedFailed implements Update {
   final Saveable saveable;
 
   @override
-  Then update(_) {
+  Action update(_) {
     saveable.isSaved = !saveable.isSaved;
-    return Then.done();
+    return None();
   }
 }

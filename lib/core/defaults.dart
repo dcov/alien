@@ -27,23 +27,23 @@ abstract class Defaults implements Model {
 
 class RefreshDefaults implements Update {
 
-  RefreshDefaults({
-    required this.defaults
-  });
+  RefreshDefaults({ required this.defaults });
 
   final Defaults defaults;
 
   @override
-  Then update(AccountsOwner owner) {
-    if (defaults.refreshing)
-      return Then.done();
+  Action update(AccountsOwner owner) {
+    if (defaults.refreshing) {
+      return None();
+    }
     
     defaults..refreshing = true
             ..things.clear();
 
-    return Then(GetDefaults(
+    return GetDefaults(
       defaults: defaults,
-      user: owner.accounts.currentUser));
+      user: owner.accounts.currentUser,
+    );
   }
 }
 
@@ -59,21 +59,22 @@ class GetDefaults implements Effect {
   final User? user;
 
   @override
-  Future<Then> effect(CoreContext context) {
+  Future<Action> effect(CoreContext context) {
     return context.clientFromUser(user)
       .getSubredditsWhere(
           Subreddits.defaults,
           Page(limit: Page.kMaxLimit))
       .then(
-          (ListingData<SubredditData> result) {
-            return Then(GetDefaultsSuccess(
-              defaults: defaults,
-              result: result.things));
-          },
-          onError: (e) {
-            return Then(GetDefaultsFailure(
-              defaults: defaults));
-          });
+        (ListingData<SubredditData> result) {
+          return GetDefaultsSuccess(
+            defaults: defaults,
+            result: result.things,
+          );
+        },
+        onError: (e) {
+          return GetDefaultsFailure(defaults: defaults);
+        },
+      );
   }
 }
 
@@ -89,18 +90,18 @@ class GetDefaultsSuccess implements Update {
   final Iterable<SubredditData> result;
 
   @override
-  Then update(_) {
+  Action update(_) {
     // Ensure we're still expecting this.
     if (defaults.refreshing) {
       defaults
         ..refreshing = false
-        ..things.addAll(result.map(subredditFromData))
+        ..things.addAll(result.map((data) => Subreddit(data: data)))
         ..things.sort((s1, s2) {
             return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
           });
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -113,10 +114,9 @@ class GetDefaultsFailure implements Update {
   final Defaults defaults;
 
   @override
-  Then update(_) {
+  Action update(_) {
     // TODO: better handle this error case
     defaults.refreshing = false;
-
-    return Then.done();
+    return None();
   }
 }

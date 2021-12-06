@@ -21,10 +21,16 @@ dependencies:
   flutter:
     sdk: flutter
 
+  muex:
+    git:
+      url: git://github.com/dcov/muex.git
+      ref: main
+      path: muex
+
   muex_flutter:
     git:
       url: git://github.com/dcov/muex.git
-      ref: master
+      ref: main
       path: muex_flutter
 
   bitsdojo_window: 0.1.1+1
@@ -58,7 +64,7 @@ dev_dependencies:
   muex_gen:
     git:
       url: git://github.com/dcov/muex.git
-      ref: master
+      ref: main
       path: muex_gen
 
   build_runner: 2.1.4

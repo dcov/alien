@@ -118,12 +118,12 @@ class RefreshPostComments implements Update {
   final CommentsSort? sortBy;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     // If we're already in a refreshing state and we're not changing the sort value then we
     // shouldn't do anything.
     if (comments.refreshing &&
         (sortBy == null || sortBy == comments.sortBy)) {
-      return Then.done();
+      return None();
     }
 
     comments..refreshing = true
@@ -137,7 +137,7 @@ class RefreshPostComments implements Update {
 
     comments.ids.clear();
     
-    return Then.all({
+    return Unchained({
       UnstoreComments(commentIds: removedIds),
       _GetPostComments(
         comments: comments,
@@ -163,7 +163,7 @@ class _GetPostComments implements Effect {
   final User? user;
 
   @override
-  Future<Then> effect(CoreContext context) {
+  Future<Action> effect(CoreContext context) {
     return context.clientFromUser(user)
       .getPostComments(
         comments.permalink,
@@ -171,17 +171,17 @@ class _GetPostComments implements Effect {
       )
       .then(
         (ListingData<ThingData> result) {
-          return Then(_FinishRefreshing(
+          return _FinishRefreshing(
             comments: comments,
             result: result.things,
             refreshMarker: refreshMarker,
-          ));
+          );
         },
         onError: (_) {
-          return Then(_GetPostCommentsFailed(
+          return _GetPostCommentsFailed(
             comments: comments,
             refreshMarker: refreshMarker,
-          ));
+          );
         },
       );
   }
@@ -202,16 +202,16 @@ class _FinishRefreshing implements Update {
   final Object refreshMarker;
 
   @override
-  Then update(_) {
+  Action update(_) {
     /// If the refreshMarker that corresponds to us is not the most recent
     // marker, don't do anything.
     if (refreshMarker == comments.latestRefreshMarker) {
       final newComments = _addToTree(comments, result);
       comments.refreshing = false;
-      return Then(StoreComments(comments: newComments));
+      return StoreComments(comments: newComments);
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -227,13 +227,13 @@ class _GetPostCommentsFailed implements Update {
   final Object refreshMarker;
 
   @override
-  Then update(_) {
+  Action update(_) {
     if (refreshMarker == comments.latestRefreshMarker) {
       comments.refreshing = false;
       // TODO: Return a UI Effect here that notifies the user that this failed.
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -249,25 +249,25 @@ class LoadMoreComments implements Update {
   final More more;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     // This should never happen if the UI is implemented correctly, but just in
     // case...
     if (more.refreshMarker != comments.latestRefreshMarker) {
-      return Then.done();
+      return None();
     }
 
     // This should also never happen if the UI is implemented correctly, but
     // just in case...
     if (!more.isLoading) {
       more.isLoading = true;
-      return Then(_GetMoreComments(
+      return _GetMoreComments(
         comments: comments,
         more: more,
         user: owner.accounts.currentUser,
-      ));
+      );
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -286,25 +286,26 @@ class _GetMoreComments implements Effect {
   final User? user;
 
   @override
-  Future<Then> effect(CoreContext context) {
+  Future<Action> effect(CoreContext context) {
     return context.clientFromUser(user)
       .getMoreComments(
         comments.fullPostId,
         more.id,
         more.thingIds,
       )
-      .then((ListingData<ThingData> result) {
-          return Then(_InsertMoreComments(
+      .then(
+        (ListingData<ThingData> result) {
+          return _InsertMoreComments(
             comments: comments,
             more: more,
             result: result.things,
-          ));
+          );
         },
         onError: (e) {
-          return Then(_GetMoreCommentsFailed(
+          return _GetMoreCommentsFailed(
             comments: comments,
             more: more,
-          ));
+          );
         },
       );
   }
@@ -325,7 +326,7 @@ class _InsertMoreComments implements Update {
   final Iterable<ThingData> result;
 
   @override
-  Then update(_) {
+  Action update(_) {
     assert(more.isLoading);
     more.isLoading = false;
 
@@ -339,10 +340,10 @@ class _InsertMoreComments implements Update {
         _InsertIndex(insertIndex),
       );
 
-      return Then(StoreComments(comments: newComments));
+      return StoreComments(comments: newComments);
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -358,12 +359,12 @@ class _GetMoreCommentsFailed implements Update {
   final More more;
 
   @override
-  Then update(_) {
+  Action update(_) {
     more.isLoading = false;
     if (more.refreshMarker == comments.latestRefreshMarker) {
       // TODO: Return a UI Effect notifying the user that this failed.
     }
-    return Then.done();
+    return None();
   }
 }
 

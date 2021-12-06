@@ -130,12 +130,12 @@ class MarkPostAsViewed implements Update {
   final Post post;
 
   @override
-  Then update(_) {
+  Action update(_) {
     if (post.hasBeenViewed)
-      return Then.done();
+      return None();
 
     post.hasBeenViewed = true;
-    return Then(_CachePostAsViewed(post: post));
+    return _CachePostAsViewed(post: post);
   }
 }
 
@@ -148,8 +148,8 @@ class _CachePostAsViewed implements Effect {
   final Post post;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     await context.cache.put(_postIdToViewedKey(post.id), '');
-    return Then.done();
+    return None();
   }
 }

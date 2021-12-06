@@ -49,10 +49,10 @@ class FeedPage extends PageEntry {
 
   @override
   void initState(BuildContext context) {
-    context.then(Then(TransitionFeed(
+    context.then(TransitionFeed(
       feed: feed,
       to: ListingStatus.refreshing,
-    )));
+    ));
   }
 
   @override
@@ -64,10 +64,10 @@ class FeedPage extends PageEntry {
           listing: feed.listing,
           onTransitionListing: (ListingStatus to) {
             context.then(
-              Then(TransitionFeed(
+              TransitionFeed(
                 feed: feed,
                 to: to,
-              )));
+              ));
           },
           thingBuilder: (BuildContext context, Post post) {
             return PostTile(
@@ -98,11 +98,11 @@ class FeedPage extends PageEntry {
                     children: <Widget>[
                       SortButton(
                         onSortChanged: (RedditArg newSortBy) {
-                          context.then(Then(TransitionFeed(
+                          context.then(TransitionFeed(
                             feed: feed,
                             to: ListingStatus.refreshing,
                             sortBy: newSortBy,
-                          )));
+                          ));
                         },
                         sortArgs: _sortArgs,
                         currentSort: feed.sortBy,
@@ -110,11 +110,11 @@ class FeedPage extends PageEntry {
                       if (feed.sortFrom != null)
                         TimeSortButton(
                           onSortChanged: (TimeSort newSortFrom) {
-                            context.then(Then(TransitionFeed(
+                            context.then(TransitionFeed(
                               feed: feed,
                               to: ListingStatus.refreshing,
                               sortFrom: newSortFrom,
-                            )));
+                            ));
                           },
                           currentSort: feed.sortFrom!,
                         ),

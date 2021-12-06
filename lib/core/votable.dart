@@ -32,11 +32,12 @@ class Vote implements Update {
   final User? user;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     assert(user != null || owner.accounts.currentUser != null,
         'Tried to up/down vote without a User being signed in or manually selecting a User.');
 
     final oldVoteDir = votable.voteDir;
+    final oldScore = votable.score;
     switch (voteDir) {
       case VoteDir.up:
         switch (oldVoteDir) {
@@ -71,69 +72,20 @@ class Vote implements Update {
         break;
     }
 
-    return Then(_PostVote(
-      votable: votable,
-      oldVoteDir: oldVoteDir,
-      user: user ?? owner.accounts.currentUser!,
-    ));
-  }
-}
-
-class _PostVote implements Effect {
-
-  _PostVote({
-    required this.votable,
-    required this.oldVoteDir,
-    required this.user,
-  });
-
-  final Votable votable;
-
-  final VoteDir oldVoteDir;
-
-  final User user;
-
-  @override
-  Future<Then> effect(CoreContext context) {
-    return context.clientFromUser(user)
-      .postVote(votable.fullId, votable.voteDir)
-      .then((_) => Then.done())
-      .catchError((_) {
-        return Then(_PostVoteFailed(
-            votable: votable,
-            oldVoteDir: oldVoteDir));
-      });
-  }
-}
-
-class _PostVoteFailed implements Update {
-
-  _PostVoteFailed({
-    required this.votable,
-    required this.oldVoteDir
-  });
-
-  final Votable votable;
-
-  final VoteDir oldVoteDir;
-
-  @override
-  Then update(_) {
-    switch (oldVoteDir) {
-      // votable was previously not voted in any direction so we have to add or remove a point.
-      case VoteDir.none:
-        votable.score += votable.voteDir == VoteDir.down ? 1 : -1;
-        break;
-      // votable was previously upvoted so we have to add back points.
-      case VoteDir.up:
-        votable.score += votable.voteDir == VoteDir.none ? 1 : 2;
-        break;
-      // votable was previously downvoted so we have to remove points.
-      case VoteDir.down:
-        votable.score -= votable.voteDir == VoteDir.none ? 1 : 2;
-        break;
-    }
-
-    return Then.done();
+    return Effect((CoreContext context) {
+      return context.clientFromUser(user)
+        .postVote(votable.fullId, votable.voteDir)
+        .then(
+          (_) => None(),
+          onError: (_) => Update((_) {
+            // TODO: Something needs to be done here in the case where the
+            // Votable object is updated elsewhere, in which case oldVoteDir
+            // and oldScore may be outdated.
+            votable..voteDir = oldVoteDir
+                   ..score = oldScore;
+            return None();
+          }),
+        );
+    });
   }
 }

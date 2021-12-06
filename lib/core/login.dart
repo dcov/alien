@@ -43,11 +43,10 @@ class StartLogin implements Update {
   final Login login;
 
   @override
-  Then update(_) {
+  Action update(_) {
     assert(login.status == LoginStatus.idle);
     login.status = LoginStatus.settingUp;
-    return Then(_GetScopes(
-      login: login));
+    return _GetScopes(login: login);
   }
 }
 
@@ -60,17 +59,20 @@ class _GetScopes implements Effect {
   final Login login;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     return context.reddit.asDevice()
       .getScopes()
-      .then((Iterable<ScopeData> result) {
-        return Then(_InitializeAuthSession(
-          login: login,
-          result: result));
-      })
-      .catchError((_) {
-        return Then(_GetScopesFailed(login: login));
-      });
+      .then(
+        (Iterable<ScopeData> result) {
+          return _InitializeAuthSession(
+            login: login,
+            result: result,
+          );
+        },
+        onError: (_) {
+          return _GetScopesFailed(login: login);
+        },
+      );
   }
 }
 
@@ -86,7 +88,7 @@ class _InitializeAuthSession implements Update {
   final Iterable<ScopeData> result;
 
   @override
-  Then update(AuthOwner owner) {
+  Action update(AuthOwner owner) {
     final Auth auth = owner.auth;
 
     // Initialize the login session
@@ -98,7 +100,7 @@ class _InitializeAuthSession implements Update {
     // Set that status to awaiting the user authentication code
     login.status = LoginStatus.awaitingCode;
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -110,11 +112,9 @@ class _GetScopesFailed implements Update {
 
   final Login login;
 
-  @override
-  Then update(AuthOwner owner) {
+  Action update(AuthOwner owner) {
     login.status = LoginStatus.failed;
-
-    return Then.done();
+    return None();
   }
 }
 
@@ -130,28 +130,27 @@ class TryAuthenticating implements Update {
   final String url;
 
   @override
-  Then update(_) {
+  Action update(_) {
     if (login.status != LoginStatus.authenticating) {
       final queryParameters = Uri.parse(url).queryParameters;
       if (queryParameters['error'] != null) {
-        return Then(_AuthenticationFailed(
-          login: login));
+        return _AuthenticationFailed(login: login);
       }
 
       if (queryParameters['code'] != null) {
         if (queryParameters['state'] != login.session!.state) {
-          return Then(_AuthenticationFailed(
-            login: login));
+          return _AuthenticationFailed(login: login);
         }
 
         login.status = LoginStatus.authenticating;
-        return Then(_PostCode(
+        return _PostCode(
           login: login,
-          code: queryParameters['code']!));
+          code: queryParameters['code']!,
+        );
       }
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -164,9 +163,9 @@ class _AuthenticationFailed implements Update {
   final Login login;
 
   @override
-  Then update(_) {
+  Action update(_) {
     login.status = LoginStatus.failed;
-    return Then.done();
+    return None();
   }
 }
 
@@ -182,7 +181,7 @@ class _PostCode implements Effect {
   final String code;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     try {
       final reddit = context.reddit;
       final tokenData = await reddit.postCode(code);
@@ -190,13 +189,13 @@ class _PostCode implements Effect {
           .asUser(tokenData.refreshToken)
           .getMe();
 
-      return Then(_FinishLogin(
+      return _FinishLogin(
         login: login,
         tokenData: tokenData,
-        accountData: accountData));
+        accountData: accountData,
+      );
     } catch (_) {
-      return Then(_PostCodeFailed(
-        login: login));
+      return _PostCodeFailed(login: login);
     }
   }
 }
@@ -216,7 +215,7 @@ class _FinishLogin implements Update {
   final AccountData accountData;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     login.status = LoginStatus.succeeded;
 
     final Accounts accounts = owner.accounts;
@@ -233,21 +232,21 @@ class _FinishLogin implements Update {
       final newUser = AppUser(
         name: accountData.username,
         token: tokenData.refreshToken);
-      return Then.all({
+      return Unchained({
         // Add the new user to the accounts data
         AddUser(user: newUser),
         // Switch to the new user
-        SetCurrentUser(to: newUser)
+        SetCurrentUser(to: newUser),
       });
     } 
 
     if (existingUser != accounts.currentUser) {
       /// The [accountData] corresponded to an existing user,
       /// but it isn't the currently signed in user so we'll switch to it.
-      return Then(SetCurrentUser(to: existingUser));
+      return SetCurrentUser(to: existingUser);
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -260,8 +259,8 @@ class _PostCodeFailed implements Update {
   final Login login;
 
   @override
-  Then update(_) {
+  Action update(_) {
     login.status = LoginStatus.failed;
-    return Then.done();
+    return None();
   }
 }

@@ -71,7 +71,7 @@ class PostPage extends PageStackEntry {
                   children: <Widget>[
                     SortButton(
                       onSortChanged: (CommentsSort newSort) {
-                        context.then(Then(RefreshPostComments(comments: _comments, sortBy: newSort)));
+                        context.then(RefreshPostComments(comments: _comments, sortBy: newSort));
                       },
                       sortArgs: CommentsSort.values,
                       currentSort: _comments.sortBy,
@@ -392,7 +392,7 @@ class _MoreTile extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: (more.depth * 16.0) + 1),
       child: Clickable(
-        onClick: () => context.then(Then(LoadMoreComments(more: more, comments: comments))),
+        onClick: () => context.then(LoadMoreComments(more: more, comments: comments)),
         child: Material(child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Text(

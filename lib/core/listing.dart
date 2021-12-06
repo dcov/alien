@@ -55,18 +55,18 @@ class TransitionListing implements Update {
   /// This only applies if [to] == [ListingStatus.refreshing].
   final bool forceIfRefreshing;
 
-  final Update Function(List<String> ids) onRemoveIds;
+  final Action Function(List<String> ids) onRemoveIds;
 
-  final Effect Function(Page page, Object marker) onLoadPage;
+  final Action Function(Page page, Object marker) onLoadPage;
 
   @override
-  Then update(_) {
+  Action update(_) {
     switch(to) {
       case ListingStatus.refreshing:
         // If we're already refreshing and we're not forced to re-refresh then we don't have
         // anything to do.
         if (listing.status == ListingStatus.refreshing && !forceIfRefreshing)
-          return Then.done();
+          return None();
 
         final removedIds = listing.ids.toList();
         listing..status = to
@@ -74,7 +74,7 @@ class TransitionListing implements Update {
                ..pagination = Pagination()
                ..latestTransitionMarker = Object();
 
-        return Then.all({
+        return Unchained({
           if (removedIds.isNotEmpty)
             onRemoveIds(removedIds),
           onLoadPage(listing.pagination.nextPage!, listing.latestTransitionMarker!),
@@ -83,14 +83,14 @@ class TransitionListing implements Update {
         // If we're already loading the next listing or refreshing then we should ignore this
         // update.
         if (listing.status != ListingStatus.idle)
-          return Then.done();
+          return None();
 
         assert(listing.pagination.nextPageExists);
 
         listing..status = to
                ..latestTransitionMarker = Object();
 
-        return Then(onLoadPage(listing.pagination.nextPage!, listing.latestTransitionMarker!));
+        return onLoadPage(listing.pagination.nextPage!, listing.latestTransitionMarker!);
       case ListingStatus.idle:
         throw StateError('TransitionListing cannot transition to .idle');
     }
@@ -112,14 +112,14 @@ class FinishListingTransition<TD extends ThingData, T extends Thing> implements 
 
   final ListingData<TD> data;
 
-  final Update Function(List<TD> things, Then then) onAddNewThings;
+  final Action Function(List<TD> things) onAddNewThings;
 
   @override
-  Then update(_) {
+  Action update(_) {
     // If the latest marker isn't the marker we have, then this transition has been overriden by a
     // different transition, in which case we don't need to do anything.
     if (transitionMarker != listing.latestTransitionMarker) {
-      return Then.done();
+      return None();
     }
 
     listing.pagination = listing.pagination.forward(data);
@@ -137,34 +137,16 @@ class FinishListingTransition<TD extends ThingData, T extends Thing> implements 
       }
     }
 
-    return Then(onAddNewThings(
-      newThings,
-      Then(_AddedNewThings(
-        listing: listing,
-        newIds: newThings.map((thing) => thing.id).toList(growable: false),
-      )),
-    ));
-  }
-}
-
-class _AddedNewThings implements Update {
-
-  _AddedNewThings({
-    required this.listing,
-    required this.newIds,
-  });
-
-  final Listing listing;
-
-  final List<String> newIds;
-
-  @override
-  Then update(_) {
-    listing..status = ListingStatus.idle
-           ..ids.addAll(newIds)
-           ..latestTransitionMarker = null;
-
-    return Then.done();
+    return Chained({
+      onAddNewThings(newThings),
+      Update((_) {
+        final newIds = newThings.map((thing) => thing.id);
+        listing..status = ListingStatus.idle
+               ..ids.addAll(newIds)
+               ..latestTransitionMarker = null;
+        return None();
+      }),
+    });
   }
 }
 
@@ -180,12 +162,11 @@ class ListingTransitionFailed implements Update {
   final Object transitionMarker;
 
   @override
-  Then update(_) {
+  Action update(_) {
     if (transitionMarker == listing.latestTransitionMarker) {
       listing..status = ListingStatus.idle
              ..latestTransitionMarker = null;
     }
-
-    return Then.done();
+    return None();
   }
 }

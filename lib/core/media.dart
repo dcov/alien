@@ -39,10 +39,10 @@ class LoadThumbnail implements Update {
   final Media media;
 
   @override
-  Then update(_) {
+  Action update(_) {
     assert(media.thumbnailStatus == ThumbnailStatus.notLoaded);
     media.thumbnailStatus = ThumbnailStatus.loading;
-    return Then(_ScrapeThumbnail(media: media));
+    return _ScrapeThumbnail(media: media);
   }
 }
 
@@ -109,7 +109,7 @@ class _ScrapeThumbnail implements Effect {
   }
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     try {
       String? thumbnail;
 
@@ -130,14 +130,12 @@ class _ScrapeThumbnail implements Effect {
         await context.cache.put(thumbnailCacheKey, thumbnail);
       }
 
-      return Then(_UpdateThumbnail(
+      return _UpdateThumbnail(
         media: media,
         thumbnail: thumbnail,
-      ));
+      );
     } catch (_) {
-      return Then(_ScrapeThumbnailFailed(
-        media: media,
-      ));
+      return _ScrapeThumbnailFailed(media: media);
     }
   }
 }
@@ -154,14 +152,14 @@ class _UpdateThumbnail implements Update {
   final String? thumbnail;
 
   @override
-  Then update(_) {
+  Action update(_) {
     media
       ..thumbnailStatus = thumbnail != null
           ? ThumbnailStatus.loaded
           : ThumbnailStatus.notFound
       ..thumbnail = thumbnail;
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -174,8 +172,8 @@ class _ScrapeThumbnailFailed implements Update {
   final Media media;
 
   @override
-  Then update(_) {
+  Action update(_) {
     media.thumbnailStatus = ThumbnailStatus.notFound;
-    return Then.done();
+    return None();
   }
 }

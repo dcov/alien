@@ -60,83 +60,67 @@ List<AppUser> unpackUsersList(String jsonData) {
 /// if along the way there is an error.
 class InitAccounts implements Update {
 
-  InitAccounts({ this.then });
-
-  /// Called once the [Accounts] data has been initialized.
-  final Then? then;
+  const InitAccounts();
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     // Check if we're running in script mode, in which case we need to get the script user's data.
     if (owner.accounts.isInScriptMode) {
-      return Then(_GetScriptUserData(then: then));
+      return const _GetScriptUserData();
     }
 
     // Kick off a side effect to retrieve any stored users data.
-    return Then(_GetPackedAccountsData(then: then));
+    return const _GetPackedAccountsData();
   }
 }
 
 class _GetScriptUserData implements Effect {
 
-  _GetScriptUserData({ this.then });
-
-  final Then? then;
+  const _GetScriptUserData();
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     return context.redditScriptClient!
       .getMe()
       .then((AccountData data) {
-          return Then(_AddScriptUser(
-            data: data,
-            then: then,
-          ));
+          return _AddScriptUser(data: data);
         },
-        onError: (_) => then ?? Then.done(),
+        onError: (_) => None(),
       );
   }
 }
 
 class _AddScriptUser implements Update {
 
-  _AddScriptUser({
-   required this.data,
-   this.then,
-  });
+  _AddScriptUser({ required this.data });
 
   final AccountData data;
 
-  final Then? then;
-
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     final user = ScriptUser(name: data.username);
     owner.accounts..users.add(user)
                   ..currentUser = user;
-    return then ?? Then.done();
+    return None();
   }
 }
 
 class _GetPackedAccountsData implements Effect {
 
-  _GetPackedAccountsData({ this.then });
-
-  final Then? then;
+  const _GetPackedAccountsData();
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     try {
       final accountsBox = await context.hive.openBox<String?>(_kAccountsBoxKey);
       final usersData = accountsBox.get(_kUsersDataKey);
       final currentUserData = accountsBox.get(_kCurrentUserDataKey);
-      return Then(_UnpackAccountsData(
+      return _UnpackAccountsData(
         usersData: usersData,
         currentUserData: currentUserData,
-        then: then, 
-      ));
+      );
     } catch (_) {
-      return then ?? Then.done();
+      return None();
     }
   }
 }
@@ -146,17 +130,14 @@ class _UnpackAccountsData implements Update {
   _UnpackAccountsData({
     this.usersData,
     this.currentUserData,
-    this.then,
   });
 
   final String? usersData;
 
   final String? currentUserData;
-  
-  final Then? then;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     if (usersData != null) {
       final accounts = owner.accounts;
       accounts.users.addAll(unpackUsersList(usersData!));
@@ -167,20 +148,18 @@ class _UnpackAccountsData implements Update {
       }
     }
 
-    return then ?? Then.done();
+    return None();
   }
 }
 
 class AddUser implements Update {
 
-  AddUser({
-    required this.user,
-  });
+  AddUser({ required this.user });
 
   final User user;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     assert(!owner.accounts.isInScriptMode,
       'Cannot add user while app is running in script mode.');
 
@@ -198,23 +177,21 @@ class AddUser implements Update {
 
     accounts.users.add(user);
 
-    return Then(_PutPackedAccountsData(
+    return _PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name
-    ));
+      currentUserData: accounts.currentUser?.name,
+    );
   }
 }
 
 class RemoveUser implements Update {
 
-  RemoveUser({
-    required this.user
-  });
+  RemoveUser({ required this.user });
 
   final User user;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     assert(!owner.accounts.isInScriptMode,
       'Cannot remove user while app is running in script mode.');
 
@@ -238,10 +215,10 @@ class RemoveUser implements Update {
       accounts.currentUser = null;
     }
 
-    return Then(_PutPackedAccountsData(
+    return _PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name
-    ));
+      currentUserData: accounts.currentUser?.name,
+    );
   }
 }
 
@@ -252,7 +229,7 @@ class SetCurrentUser implements Update {
   final User? to;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     final accounts = owner.accounts;
     assert(to != accounts.currentUser,
       'Tried to set currentUser but was already currentUser');
@@ -261,12 +238,12 @@ class SetCurrentUser implements Update {
 
     /// If we're in script mode we don't store any changes to currentUser.
     if (accounts.isInScriptMode)
-      return Then.done();
+      return None();
 
-    return Then(_PutPackedAccountsData(
+    return _PutPackedAccountsData(
       usersData: packUsersList(accounts.users.cast<AppUser>()),
-      currentUserData: accounts.currentUser?.name
-    ));
+      currentUserData: accounts.currentUser?.name,
+    );
   }
 }
 
@@ -282,7 +259,7 @@ class _PutPackedAccountsData implements Effect {
   final String? currentUserData;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     try {
       final box = await context.hive.openBox<String?>(_kAccountsBoxKey);
       await box.putAll({
@@ -293,6 +270,6 @@ class _PutPackedAccountsData implements Effect {
       // TODO: better handle this error case
     }
 
-    return Then.done();
+    return None();
   }
 }

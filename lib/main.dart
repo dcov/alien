@@ -18,7 +18,7 @@ import 'subreddit_page.dart';
 void main() {
   const runInScriptMode = bool.hasEnvironment('script_mode');
   runLoop(
-    initial: InitApp(
+    state: App(
       appId: Credentials.appId,
       appRedirect: Credentials.appRedirect,
       isInScriptMode: runInScriptMode,
@@ -31,6 +31,7 @@ void main() {
       scriptUsername: Credentials.scriptUsername,
       scriptPassword: Credentials.scriptPassword,
     ),
+    initial: const InitApp(),
     view: MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),

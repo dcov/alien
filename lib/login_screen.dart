@@ -64,7 +64,7 @@ class _LoginScreen extends StatelessWidget {
                 switch (login.status) {
                   case LoginStatus.idle:
                     ServicesBinding.instance!.addPostFrameCallback((_) {
-                      context.then(Then(StartLogin(login: login)));
+                      context.then(StartLogin(login: login));
                     });
                     continue renderSettingUpIndicator;
                   renderSettingUpIndicator:
@@ -77,9 +77,10 @@ class _LoginScreen extends StatelessWidget {
                       url: login.session!.url,
                       onPageFinished: (String pageUrl) {
                         context.then(
-                          Then(TryAuthenticating(
+                          TryAuthenticating(
                             login: login,
-                            url: pageUrl)));
+                            url: pageUrl,
+                          ));
                       });
                   case LoginStatus.authenticating:
                     return _Indicator(text: 'Authenticating');

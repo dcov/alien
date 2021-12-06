@@ -21,7 +21,7 @@ class MediaThumbnail extends StatelessWidget {
     switch (media.thumbnailStatus) {
       case ThumbnailStatus.notLoaded:
         SchedulerBinding.instance!.addPostFrameCallback((_) {
-          context.then(Then(LoadThumbnail(media: this.media)));
+          context.then(LoadThumbnail(media: this.media));
         });
         continue renderStatic;
       renderStatic:

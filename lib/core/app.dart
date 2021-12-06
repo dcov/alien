@@ -30,37 +30,20 @@ abstract class App implements Model, AccountsOwner, AuthOwner, CompletionOwner {
   set initialized(bool value);
 }
 
-class InitApp implements Initial {
+class InitApp implements Effect {
   
-  InitApp({
-    required this.appId,
-    required this.appRedirect,
-    required this.isInScriptMode
-  });
-
-  final String appId;
-
-  final String appRedirect;
-
-  final bool isInScriptMode;
+  const InitApp();
 
   @override
-  Init init() {
-    return Init(
-      state: App(
-        appId: appId,
-        appRedirect: appRedirect,
-        isInScriptMode: isInScriptMode,
-      ),
-      then: Then(Effect((CoreContext context) async {
-        await context.init();
-        return Then(InitAccounts(
-          then: Then(Update((App app) {
-            app.initialized = true;
-            return Then(const RefreshSubscriptions());
-          })),
-        ));
-      })),
-    );
+  Future<Action> effect(CoreContext context) async {
+    await context.init();
+    return Chained({
+      const InitAccounts(),
+      const RefreshSubscriptions(),
+      Update((App app) {
+        app.initialized = true;
+        return None();
+      }),
+    });
   }
 }

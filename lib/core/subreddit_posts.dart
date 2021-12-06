@@ -59,7 +59,7 @@ class TransitionSubredditPosts implements Update {
   final TimeSort? sortFrom;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     bool changedSort = false;
     if (sortBy != null && (sortBy != posts.sortBy || sortFrom != posts.sortFrom)) {
       assert(to == ListingStatus.refreshing);
@@ -68,7 +68,7 @@ class TransitionSubredditPosts implements Update {
       changedSort = true;
     }
 
-    return Then(TransitionListing(
+    return TransitionListing(
       listing: posts.listing,
       to: to,
       forceIfRefreshing: changedSort,
@@ -83,7 +83,7 @@ class TransitionSubredditPosts implements Update {
           user: owner.accounts.currentUser,
         );
       },
-    ));
+    );
   }
 }
 
@@ -105,25 +105,25 @@ class _GetSubredditPosts implements Effect {
   final User? user;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     try {
       final listing = await context
           .clientFromUser(user)
           .getSubredditPosts(posts.subredditName, page, posts.sortBy, posts.sortFrom);
 
-      return Then(FinishListingTransition(
+      return FinishListingTransition(
         listing: posts.listing,
         transitionMarker: transitionMarker,
         data: listing,
-        onAddNewThings: (List<PostData> posts, Then then) {
-          return StorePosts(posts: posts, then: then);
+        onAddNewThings: (List<PostData> posts) {
+          return StorePosts(posts: posts);
         },
-      ));
+      );
     } catch (_) {
-      return Then(ListingTransitionFailed(
+      return ListingTransitionFailed(
         listing: posts.listing,
         transitionMarker: transitionMarker,
-      ));
+      );
     }
   }
 }

@@ -38,17 +38,12 @@ abstract class ThingStoreOwner {
 
 class StorePosts implements Update {
 
-  StorePosts({
-    required this.posts,
-    this.then,
-  });
+  StorePosts({ required this.posts });
 
   final List<PostData> posts;
 
-  final Then? then;
-
   @override
-  Then update(ThingStoreOwner owner) {
+  Action update(ThingStoreOwner owner) {
     final store = owner.store;
 
     final newPosts = <PostData>[];
@@ -64,67 +59,24 @@ class StorePosts implements Update {
     }
 
     if (newPosts.isEmpty) {
-      return then ?? Then.done();
+      return None();
     }
 
-    return Then(_GetPostsHaveBeenViewed(
-      posts: newPosts,
-      then: then,
-    ));
-  }
-}
-
-class _GetPostsHaveBeenViewed implements Effect {
-
-  _GetPostsHaveBeenViewed({
-    required this.posts,
-    this.then,
-  });
-
-  final List<PostData> posts;
-
-  final Then? then;
-
-  @override
-  Future<Then> effect(CoreContext context) async {
-    final result = <String, bool>{};
-    for (final data in posts) {
-      result[data.id] = await context.getPostHasBeenViewed(data.id);
-    }
-    return Then(_StoreNewPosts(
-      posts: posts,
-      hasBeenViewed: result,
-      then: then,
-    ));
-  }
-}
-
-class _StoreNewPosts implements Update {
-
-  _StoreNewPosts({
-    required this.posts,
-    required this.hasBeenViewed,
-    this.then,
-  });
-
-  final List<PostData> posts;
-
-  final Map<String, bool> hasBeenViewed;
-
-  final Then? then;
-
-  @override
-  Then update(ThingStoreOwner owner) {
-    final store = owner.store;
-
-    for (final data in posts) {
-      store.posts[data.id] = _StoredThing(Post(
-        data: data,
-        hasBeenViewed: hasBeenViewed[data.id]!,
-      ));
-    }
-
-    return then ?? Then.done();
+    return Effect((CoreContext context) async {
+      final hasBeenViewed = <String, bool>{};
+      for (final data in posts) {
+        hasBeenViewed[data.id] = await context.getPostHasBeenViewed(data.id);
+      }
+      return Update((_) {
+        for (final data in posts) {
+          store.posts[data.id] = _StoredThing(Post(
+            data: data,
+            hasBeenViewed: hasBeenViewed[data.id]!,
+          ));
+        }
+        return None();
+      });
+    });
   }
 }
 
@@ -137,9 +89,9 @@ class UnstorePosts implements Update {
   final List<String> postIds;
 
   @override
-  Then update(ThingStoreOwner owner) {
+  Action update(ThingStoreOwner owner) {
     _unstoreAll(postIds, owner.store.posts);
-    return Then.done();
+    return None();
   }
 }
 
@@ -152,7 +104,7 @@ class StoreSubreddits implements Update {
   final List<SubredditData> subreddits;
 
   @override
-  Then update(ThingStoreOwner owner) {
+  Action update(ThingStoreOwner owner) {
     final store = owner.store;
 
     for (final data in subreddits) {
@@ -167,7 +119,7 @@ class StoreSubreddits implements Update {
       );
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -180,9 +132,9 @@ class UnstoreSubreddits implements Update {
   final List<String> subredditIds;
 
   @override
-  Then update(ThingStoreOwner owner) {
+  Action update(ThingStoreOwner owner) {
     _unstoreAll(subredditIds, owner.store.subreddits);
-    return Then.done();
+    return None();
   }
 }
 
@@ -195,7 +147,7 @@ class StoreComments implements Update {
   final List<CommentData> comments;
 
   @override
-  Then update(ThingStoreOwner owner) {
+  Action update(ThingStoreOwner owner) {
     final store = owner.store;
 
     for (final data in comments) {
@@ -209,7 +161,7 @@ class StoreComments implements Update {
       );
     }
 
-    return Then.done();
+    return None();
   }
 }
 
@@ -222,9 +174,9 @@ class UnstoreComments implements Update {
   final List<String> commentIds;
 
   @override
-  Then update(ThingStoreOwner owner) {
+  Action update(ThingStoreOwner owner) {
     _unstoreAll(commentIds, owner.store.comments);
-    return Then.done();
+    return None();
   }
 }
 

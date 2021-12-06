@@ -33,7 +33,7 @@ class RefreshSubscriptions implements Update {
   const RefreshSubscriptions();
 
   @override
-  Then update(Object owner) {
+  Action update(Object owner) {
     assert(owner is AccountsOwner);
     assert(owner is SubscriptionsOwner);
     final accounts = (owner as AccountsOwner).accounts;
@@ -44,7 +44,7 @@ class RefreshSubscriptions implements Update {
     final removedIds = subscriptions.subscribers.keys.toList(growable: false);
     subscriptions.subscribers.clear();
 
-    return Then.all({
+    return Unchained({
       if (removedIds.isNotEmpty)
         UnstoreSubreddits(subredditIds: removedIds),
       if (accounts.users.isNotEmpty)
@@ -60,7 +60,7 @@ class _GetSubscriptions implements Effect {
   final List<User> users;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     final result = <MapEntry<User, List<SubredditData>>>[];
     for (final user in users) {
       final userResult = <SubredditData>[];
@@ -76,14 +76,14 @@ class _GetSubscriptions implements Effect {
           userResult.addAll(listing.things);
           pagination = pagination.forward(listing);
         } catch (_) {
-          return Then(const _RefreshFailed());
+          return const _RefreshFailed();
         }
       } while (pagination.nextPageExists);
 
       result.add(MapEntry(user, userResult));
     }
 
-    return Then(_FinishRefreshing(result));
+    return _FinishRefreshing(result);
   }
 }
 
@@ -94,7 +94,7 @@ class _FinishRefreshing implements Update {
   final List<MapEntry<User, List<SubredditData>>> result;
 
   @override
-  Then update(SubscriptionsOwner owner) {
+  Action update(SubscriptionsOwner owner) {
     final subscriptions = owner.subscriptions;
     assert(subscriptions.refreshing);
 
@@ -120,7 +120,7 @@ class _FinishRefreshing implements Update {
 
     subscriptions.refreshing = false;
 
-    return Then(StoreSubreddits(subreddits: subreddits));
+    return StoreSubreddits(subreddits: subreddits);
   }
 }
 
@@ -129,8 +129,8 @@ class _RefreshFailed implements Update {
   const _RefreshFailed();
 
   @override
-  Then update(SubscriptionsOwner owner) {
+  Action update(SubscriptionsOwner owner) {
     owner.subscriptions.refreshing = false;
-    return Then.done();
+    return None();
   }
 }

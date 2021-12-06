@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' hide Page;
+import 'package:flutter/material.dart' hide Action, Page;
 import 'package:muex/muex.dart';
 
 import '../reddit/endpoints.dart';
@@ -80,7 +80,7 @@ class TransitionFeed implements Update {
   final TimeSort? sortFrom;
 
   @override
-  Then update(AccountsOwner owner) {
+  Action update(AccountsOwner owner) {
     assert(feed.kind != FeedKind.home || owner.accounts.currentUser != null,
         'Tried to load the home feed without a signed in user');
 
@@ -105,7 +105,7 @@ class TransitionFeed implements Update {
       feed.sortFrom = TimeSort.day;
     }
 
-    return Then(TransitionListing(
+    return TransitionListing(
       listing: feed.listing,
       to: to,
       forceIfRefreshing: changedSort,
@@ -120,7 +120,7 @@ class TransitionFeed implements Update {
           user: owner.accounts.currentUser,
         );
       },
-    ));
+    );
   }
 }
 
@@ -142,7 +142,7 @@ class _GetFeedPosts implements Effect {
   final User? user;
 
   @override
-  Future<Then> effect(CoreContext context) async {
+  Future<Action> effect(CoreContext context) async {
     assert(feed.kind != FeedKind.home || user != null);
     try {
       ListingData<PostData> listing;
@@ -155,22 +155,27 @@ class _GetFeedPosts implements Effect {
         assert(feed.sortBy is SubredditSort);
         final subredditName = feed.kind.name;
         listing = await context.clientFromUser(user)
-            .getSubredditPosts(subredditName, page, feed.sortBy as SubredditSort, feed.sortFrom);
+            .getSubredditPosts(
+              subredditName,
+              page,
+              feed.sortBy as SubredditSort,
+              feed.sortFrom,
+            );
       }
 
-      return Then(FinishListingTransition(
+      return FinishListingTransition(
         listing: feed.listing,
         transitionMarker: transitionMarker,
         data: listing,
-        onAddNewThings: (List<PostData> newThings, Then then) {
-          return StorePosts(posts: newThings, then: then);
+        onAddNewThings: (List<PostData> newThings) {
+          return StorePosts(posts: newThings);
         },
-      ));
+      );
     } catch (_) {
-      return Then(ListingTransitionFailed(
+      return ListingTransitionFailed(
         listing: feed.listing,
         transitionMarker: transitionMarker,
-      ));
+      );
     }
   }
 }

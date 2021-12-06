@@ -25,7 +25,7 @@ class VoteButton extends StatelessWidget {
   Widget build(_) => Connector(builder: (BuildContext context) {
     return Clickable(
       onClick: context.userIsSignedIn
-        ? () => context.then(Then(Vote(votable: votable, voteDir: voteDir)))
+        ? () => context.then(Vote(votable: votable, voteDir: voteDir))
         : null,
       child: voteDir == VoteDir.up
         ?  Icon(
