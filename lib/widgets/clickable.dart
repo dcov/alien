@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 typedef ClickableChildBuilder = Widget Function(BuildContext context, bool hovering, Widget? child);
 

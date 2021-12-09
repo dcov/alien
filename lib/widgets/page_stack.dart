@@ -37,38 +37,48 @@ abstract class PageStackEntry extends Page {
   }
 }
 
-typedef CreatePageCallback = PageStackEntry Function(
-  BuildContext context,
-  String id,
-  Object? args,
-);
-
 class PageStack extends StatefulWidget {
 
   PageStack({
     Key? key,
     required this.onCreateRoot,
     required this.onCreatePage,
+    required this.onStackChanged,
   }) : super(key: key);
 
-  final CreatePageCallback onCreateRoot;
+  final PageStackEntry Function(BuildContext context) onCreateRoot;
 
-  final CreatePageCallback onCreatePage;
+  final PageStackEntry Function(BuildContext context, String id, Object? args) onCreatePage;
+
+  final void Function(List<PageStackEntry> stack) onStackChanged;
 
   static final rootId = 'root';
 
   @override
-  _PageStackState createState() => _PageStackState();
+  PageStackState createState() => PageStackState();
 }
 
-class _PageStackState extends State<PageStack> {
+class PageStackState extends State<PageStack> {
 
   PageStackEntry? _rootEntry;
   final _entries = <PageStackEntry>[];
 
   bool _rootIsTopOfStack = false;
 
-  void _handlePush(String id, Object? args) {
+  List<PageStackEntry> _buildStack() {
+    if (_rootIsTopOfStack)
+      return <PageStackEntry>[
+        ..._entries,
+        _rootEntry!,
+      ];
+
+    return <PageStackEntry>[
+      _rootEntry!,
+      ..._entries,
+    ];
+  }
+
+  void push(String id, Object? args) {
     if (id == PageStack.rootId) {
       setState(() {
         _rootIsTopOfStack = true;
@@ -104,6 +114,15 @@ class _PageStackState extends State<PageStack> {
         });
       }
     }
+    widget.onStackChanged(_buildStack());
+  }
+
+  void popRoot() {
+    assert(_rootIsTopOfStack);
+    setState(() {
+      _rootIsTopOfStack = false;
+    });
+    widget.onStackChanged(_buildStack());
   }
 
   bool _handlePop(Route route, dynamic result) {
@@ -121,6 +140,8 @@ class _PageStackState extends State<PageStack> {
         });
       }
 
+      widget.onStackChanged(_buildStack());
+
       return true;
     }
 
@@ -131,7 +152,7 @@ class _PageStackState extends State<PageStack> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_rootEntry == null) {
-      _rootEntry = widget.onCreateRoot(context, PageStack.rootId, null);
+      _rootEntry = widget.onCreateRoot(context);
       assert(_rootEntry!.id == PageStack.rootId);
       _rootEntry!.initState(context);
     }
@@ -143,9 +164,7 @@ class _PageStackState extends State<PageStack> {
       state: this,
       child: Navigator(
         onPopPage: _handlePop,
-        pages: _rootIsTopOfStack
-          ? <Page>[ ..._entries, _rootEntry! ]
-          : <Page>[ _rootEntry!, ..._entries ],
+        pages: _buildStack(),
       ),
     );
   }
@@ -159,7 +178,7 @@ class _PageStackScope extends InheritedWidget {
     required Widget child,
   }) : super(key: key, child: child);
 
-  final _PageStackState state;
+  final PageStackState state;
 
   @override
   bool updateShouldNotify(_PageStackScope oldScope) {
@@ -169,13 +188,13 @@ class _PageStackScope extends InheritedWidget {
 
 extension PageStackExtension on BuildContext {
 
-  _PageStackState get _state {
+  PageStackState get _state {
     return this.dependOnInheritedWidgetOfExactType<_PageStackScope>()!.state;
   }
 
-  List<PageStackEntry> get entries => UnmodifiableListView(_state._entries);
+  List<PageStackEntry> get pageStack => UnmodifiableListView(_state._entries);
 
   void push(String id, [Object? args]) {
-    _state._handlePush(id, args);
+    _state.push(id, args);
   }
 }

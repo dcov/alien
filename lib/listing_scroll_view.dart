@@ -5,10 +5,6 @@ import 'package:muex_flutter/muex_flutter.dart';
 import 'core/listing.dart';
 import 'core/thing.dart';
 
-typedef TransitionListingCallback = void Function(ListingStatus to);
-
-typedef ThingBuilder<T extends Thing> = Widget Function(BuildContext context, T thing);
-
 class ListingScrollView<T extends Thing> extends StatefulWidget {
 
   ListingScrollView({
@@ -18,11 +14,11 @@ class ListingScrollView<T extends Thing> extends StatefulWidget {
     required this.thingBuilder,
   }) : super(key: key);
 
-  final Listing<T> listing;
+  final Listing listing;
 
-  final TransitionListingCallback onTransitionListing;
+  final void Function(ListingStatus to) onTransitionListing;
 
-  final ThingBuilder<T> thingBuilder;
+  final Widget Function(BuildContext context, String id) thingBuilder;
 
   @override
   _ListingScrollViewState<T> createState() => _ListingScrollViewState<T>();
@@ -39,6 +35,12 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
     _controller.addListener(_handlePositionChange);
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   void _handlePositionChange() {
     if (!_trackOffset)
       return;
@@ -49,7 +51,7 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
     }
   }
 
-  void _checkShouldHandlePositionChange(Listing<T> listing) {
+  void _checkShouldHandlePositionChange(Listing listing) {
     _trackOffset = listing.status == ListingStatus.idle && 
                    listing.pagination.nextPageExists == true;
   }
@@ -58,22 +60,16 @@ class _ListingScrollViewState<T extends Thing> extends State<ListingScrollView<T
   Widget build(_) {
     return Connector(
       builder: (BuildContext context) {
-        final Listing<T> listing = widget.listing;
+        final Listing listing = widget.listing;
         _checkShouldHandlePositionChange(listing);
         return ListView.builder(
           controller: _controller,
-          itemCount: listing.things.length,
+          itemCount: listing.ids.length,
           itemBuilder: (BuildContext context, int index) {
-            return widget.thingBuilder(context, listing.things[index]);
+            return widget.thingBuilder(context, listing.ids[index]);
           },
         );
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

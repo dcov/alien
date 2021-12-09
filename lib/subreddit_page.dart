@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import 'core/listing.dart';
-import 'core/post.dart';
 import 'core/subreddit.dart';
 import 'core/subreddit_posts.dart';
+import 'core/thing_store.dart';
 import 'reddit/types.dart';
 import 'widgets/page_stack.dart';
 
@@ -23,7 +23,7 @@ class SubredditPage extends PageStackEntry {
 
   @override
   void initState(BuildContext context) {
-    _posts = postsFromSubreddit(subreddit);
+    _posts = SubredditPosts(subredditName: subreddit.name);
     context.then(TransitionSubredditPosts(
       posts: _posts,
       to: ListingStatus.refreshing,
@@ -45,9 +45,9 @@ class SubredditPage extends PageStackEntry {
               to: to,
             ));
           },
-          thingBuilder: (BuildContext _, Post post) {
+          thingBuilder: (BuildContext context, String id) {
             return PostTile(
-              post: post,
+              post: (context.state as ThingStoreOwner).store.idToPost(id),
               includeSubredditName: false,
             );
           },

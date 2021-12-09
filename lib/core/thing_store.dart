@@ -24,16 +24,58 @@ abstract class ThingStore implements Model {
     return _$ThingStore();
   }
 
-  Map<String, _StoredThing<Subreddit>> get subreddits;
+  Map<String, _StoredThing<Comment>> get comments;
 
   Map<String, _StoredThing<Post>> get posts;
 
-  Map<String, _StoredThing<Comment>> get comments;
+  Map<String, _StoredThing<Subreddit>> get subreddits;
 }
 
 abstract class ThingStoreOwner {
 
   ThingStore get store;
+}
+
+class StoreComments implements Update {
+
+  StoreComments({
+    required this.comments,
+  });
+
+  final List<CommentData> comments;
+
+  @override
+  Action update(ThingStoreOwner owner) {
+    final store = owner.store;
+
+    for (final data in comments) {
+      store.comments.update(
+        data.id,
+        (_StoredThing<Comment> stored) {
+          stored.refCount += 1;
+          return stored;
+        },
+        ifAbsent: () => _StoredThing(Comment(data: data)),
+      );
+    }
+
+    return None();
+  }
+}
+
+class UnstoreComments implements Update {
+
+  UnstoreComments({
+    required this.commentIds,
+  });
+
+  final List<String> commentIds;
+
+  @override
+  Action update(ThingStoreOwner owner) {
+    _unstoreAll(commentIds, owner.store.comments);
+    return None();
+  }
 }
 
 class StorePosts implements Update {
@@ -138,48 +180,6 @@ class UnstoreSubreddits implements Update {
   }
 }
 
-class StoreComments implements Update {
-
-  StoreComments({
-    required this.comments,
-  });
-
-  final List<CommentData> comments;
-
-  @override
-  Action update(ThingStoreOwner owner) {
-    final store = owner.store;
-
-    for (final data in comments) {
-      store.comments.update(
-        data.id,
-        (_StoredThing<Comment> stored) {
-          stored.refCount += 1;
-          return stored;
-        },
-        ifAbsent: () => _StoredThing(Comment(data: data)),
-      );
-    }
-
-    return None();
-  }
-}
-
-class UnstoreComments implements Update {
-
-  UnstoreComments({
-    required this.commentIds,
-  });
-
-  final List<String> commentIds;
-
-  @override
-  Action update(ThingStoreOwner owner) {
-    _unstoreAll(commentIds, owner.store.comments);
-    return None();
-  }
-}
-
 void _unstoreAll(List<String> ids, Map<String, _StoredThing> things) {
   for (final id in ids) {
     final stored = things[id]!;
@@ -188,5 +188,20 @@ void _unstoreAll(List<String> ids, Map<String, _StoredThing> things) {
     if (stored.refCount == 0) {
       things.remove(id);
     }
+  }
+}
+
+extension ThingStoreExtension on ThingStore {
+
+  Comment idToComment(String id) {
+    return this.comments[id]!.thing;
+  }
+
+  Post idToPost(String id) {
+    return this.posts[id]!.thing;
+  }
+
+  Subreddit idToSubreddit(String id) {
+    return this.subreddits[id]!.thing;
   }
 }

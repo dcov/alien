@@ -4,8 +4,7 @@ import '../reddit/endpoints.dart';
 import '../reddit/types.dart';
 
 import 'context.dart';
-import 'accounts.dart';
-import 'subreddit.dart';
+import 'thing_store.dart';
 import 'user.dart';
 
 part 'defaults.g.dart';
@@ -15,108 +14,64 @@ abstract class Defaults implements Model {
   factory Defaults() {
     return _$Defaults(
       refreshing: false,
-      things: const <Subreddit>[],
+      ids: const <String>[],
     );
   }
 
   bool get refreshing;
   set refreshing(bool value);
 
-  List<Subreddit> get things;
+  List<String> get ids;
+}
+
+abstract class DefaultsOwner {
+  Defaults get defaults;
 }
 
 class RefreshDefaults implements Update {
-
-  RefreshDefaults({ required this.defaults });
-
-  final Defaults defaults;
+  
+  const RefreshDefaults();
 
   @override
-  Action update(AccountsOwner owner) {
-    if (defaults.refreshing) {
+  Action update(DefaultsOwner owner) {
+    final defaults = owner.defaults;
+
+    if (defaults.refreshing)
       return None();
-    }
-    
+
+    final removedIds = defaults.ids.toList(growable: false);
     defaults..refreshing = true
-            ..things.clear();
+            ..ids.clear();
 
-    return GetDefaults(
-      defaults: defaults,
-      user: owner.accounts.currentUser,
-    );
-  }
-}
+    return Unchained({
+      UnstoreSubreddits(subredditIds: removedIds),
+      Effect((CoreContext context) async {
+        try {
+          final result = await context
+            .clientFromUser(null)
+            .getSubredditsWhere(
+              Subreddits.defaults,
+              Page(limit: Page.kMaxLimit),
+            );
 
-class GetDefaults implements Effect {
-
-  GetDefaults({
-    required this.defaults,
-    this.user
-  });
-
-  final Defaults defaults;
-
-  final User? user;
-
-  @override
-  Future<Action> effect(CoreContext context) {
-    return context.clientFromUser(user)
-      .getSubredditsWhere(
-          Subreddits.defaults,
-          Page(limit: Page.kMaxLimit))
-      .then(
-        (ListingData<SubredditData> result) {
-          return GetDefaultsSuccess(
-            defaults: defaults,
-            result: result.things,
-          );
-        },
-        onError: (e) {
-          return GetDefaultsFailure(defaults: defaults);
-        },
-      );
-  }
-}
-
-class GetDefaultsSuccess implements Update {
-
-  GetDefaultsSuccess({
-    required this.defaults,
-    required this.result
-  });
-
-  final Defaults defaults;
-
-  final Iterable<SubredditData> result;
-
-  @override
-  Action update(_) {
-    // Ensure we're still expecting this.
-    if (defaults.refreshing) {
-      defaults
-        ..refreshing = false
-        ..things.addAll(result.map((data) => Subreddit(data: data)))
-        ..things.sort((s1, s2) {
-            return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
+          return Update((_) {
+            final subreddits = result.things.toList(growable: false);
+            defaults.ids.addAll(subreddits.map((sub) => sub.id));
+            return Chained({
+              StoreSubreddits(subreddits: subreddits),
+              Update((_) {
+                defaults.refreshing = false;
+                return None();
+              }),
+            });
           });
-    }
-
-    return None();
-  }
-}
-
-class GetDefaultsFailure implements Update {
-
-  GetDefaultsFailure({
-    required this.defaults
-  });
-
-  final Defaults defaults;
-
-  @override
-  Action update(_) {
-    // TODO: better handle this error case
-    defaults.refreshing = false;
-    return None();
+        } catch (_) {
+          return Update((_) {
+            defaults.refreshing = false;
+            return None();
+          });
+        }
+      }),
+    });
   }
 }

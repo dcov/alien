@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muex/muex.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
 import 'core/comment.dart';
@@ -34,7 +35,7 @@ class PostPage extends PageStackEntry {
       permalink: post.permalink,
       fullPostId: post.fullId,
     );
-    context.then(Then.all({
+    context.then(Unchained({
       MarkPostAsViewed(post: post),
       RefreshPostComments(comments: _comments),
     }));
@@ -102,14 +103,8 @@ class _CommentsTreeView extends StatefulWidget {
 
 class _CommentsTreeViewState extends State<_CommentsTreeView> with ConnectionCaptureStateMixin {
 
-  @visibleForTesting
-  List<Thing> get visible => _visible!;
-  List<Thing>? _visible;
-
-  @visibleForTesting
-  Set<String> get collapsed => _collapsed;
+  List<TreeItem>? _visible;
   final _collapsed = Set<String>();
-
   late CommentsSort _latestSortBy;
 
   @override
@@ -118,27 +113,27 @@ class _CommentsTreeViewState extends State<_CommentsTreeView> with ConnectionCap
 
     /// We place all of the state we depend on in variables so that we can track changes to it, regardless of whether
     /// we use them the first time or not.
-    final things = comments.things;
+    final items = comments.items;
     final latestSortBy = comments.sortBy;
     final refreshing = comments.refreshing;
 
     setState(() {
       if (_visible == null) {
         /// We're initializing our state for the first time
-        _visible = List<Thing>.from(things);
+        _visible = List.from(items);
         _latestSortBy = latestSortBy;
         return;
       }
 
       if (refreshing) {
         /// If we're refreshing due to a sortBy change, we'll clear the _visible list
-        if (_latestSortBy != latestSortBy){
-          _visible = const <Thing>[];
+        if (_latestSortBy != latestSortBy) {
+          _visible = const <TreeItem>[];
         }
         return;
       }
         
-      _visible = List<Thing>.from(things);
+      _visible = List.from(items);
       if (_latestSortBy != latestSortBy) {
         /// The completed refresh was due to a sort change so the currently collapsed items
         /// no longer apply.
@@ -150,10 +145,10 @@ class _CommentsTreeViewState extends State<_CommentsTreeView> with ConnectionCap
       if (_collapsed.isNotEmpty) {
         final noLongerCollapsed = Set<String>.from(_collapsed);
         for (var i = 0; i < _visible!.length; i++) {
-          final thing = _visible![i];
-          if (thing is Comment && _collapsed.contains(thing.id)) {
-            _collapse(thing, i, setState);
-            noLongerCollapsed.remove(thing.id);
+          final item = _visible![i];
+          if (_collapsed.contains(item.id)) {
+            _collapse(item, i, setState);
+            noLongerCollapsed.remove(item.id);
           }
         }
         _collapsed.removeAll(noLongerCollapsed);
@@ -161,101 +156,80 @@ class _CommentsTreeViewState extends State<_CommentsTreeView> with ConnectionCap
     });
   }
 
-  int _getThingDepth(Thing thing) {
-    if (thing is Comment) {
-      return thing.depth!;
-    } else if (thing is More) {
-      return thing.depth;
-    } else {
-      assert(false, '$thing was not instance of type Comment or More');
-      return 0;
-    }
-  }
-
-  void _collapse(Comment comment, int index, [StateSetter? setState]) {
+  void _collapse(TreeItem item, int index, [StateSetter? setState]) {
     setState ??= this.setState;
     setState(() {
       for (var i = index + 1; i < _visible!.length;) {
-        if (_getThingDepth(_visible![i]) <= comment.depth!) {
+        if (_visible![i].depth <= item.depth) {
           break;
         }
         _visible!.removeAt(i);
       }
-      _collapsed.add(comment.id);
+      _collapsed.add(item.id);
     });
   }
 
-  void _collapseToRoot(Comment comment, int index) {
-    if (comment.depth == 0) {
+  void _collapseToRoot(TreeItem item, int index) {
+    if (item.depth == 0) {
       return;
     }
 
-    late Comment rootComment;
+    late TreeItem rootItem;
     late int rootIndex;
     for (var i = index - 1; i >= 0; i--) {
-      if (_getThingDepth(_visible![i]) == 0) {
-        rootComment = _visible![i] as Comment;
+      if (_visible![i].depth == 0) {
+        rootItem = _visible![i];
         rootIndex = i;
         break;
       }
     }
-    _collapse(rootComment, rootIndex);
+    _collapse(rootItem, rootIndex);
   }
 
-  void _uncollapse(Comment comment, int index) {
-    assert(_collapsed.contains(comment.id));
+  void _uncollapse(TreeItem from, int index) {
+    assert(_collapsed.contains(from.id));
 
-    final mainThings = widget.comments.things;
-    final mainIndex = mainThings.indexOf(comment);
+    final mainItems = widget.comments.items;
+    final mainIndex = mainItems.indexOf(from);
     assert(mainIndex != -1);
 
-    final uncollapsed = <Thing>[];
-    for (var i = mainIndex + 1; i < mainThings.length; i++) {
-      final thing = mainThings[i];
-      if (_getThingDepth(thing) <= comment.depth!)
+    final uncollapsed = <TreeItem>[];
+    for (var i = mainIndex + 1; i < mainItems.length; i++) {
+      final item = mainItems[i];
+      if (item.depth <= from.depth)
         break;
 
-      uncollapsed.add(thing);
-      if (_collapsed.contains(thing.id)) {
-        for (; i < mainThings.length; i++) {
-          if (_getThingDepth(mainThings[i + 1]) <= _getThingDepth(thing))
+      uncollapsed.add(item);
+      if (_collapsed.contains(item.id)) {
+        for (; i < mainItems.length; i++) {
+          if (mainItems[i + 1].depth <= item.depth)
             break;
         }
       }
     }
 
     setState(() {
-      _collapsed.remove(comment.id);
+      _collapsed.remove(from.id);
       _visible!.insertAll(index + 1, uncollapsed);
     });
   }
 
-  Widget _buildItem(_, int index) {
-    final thing = _visible![index];
-    Widget child;
-    if (thing is Comment) {
-      child = _CommentTile(
-        comment: thing,
-        collapsed: _collapsed.contains(thing.id),
-        onCollapse: () {
-          _collapse(thing, index);
-        },
-        onCollapseToRoot: () {
-          _collapseToRoot(thing, index);
-        },
-        onUncollapse: () {
-          _uncollapse(thing, index);
-        },
+  Widget _buildItem(BuildContext context, int index) {
+    final item = _visible![index];
+    if (item.id[0] == kMoreCommentsIdPrefix) {
+      return _MoreTile(
+        comments: widget.comments,
+        more: widget.comments.idToMore[item.id]!,
       );
     } else {
-      assert(thing is More);
-      child = _MoreTile(
-        comments: widget.comments,
-        more: thing as More,
+      return _CommentTile(
+        comment: (context.state as ThingStoreOwner).store.idToComment(item.id),
+        collapsed: _collapsed.contains(item.id),
+        onCollapse: () => _collapse(item, index),
+        onCollapseToRoot: () => _collapseToRoot(item, index),
+        onUncollapse: () => _uncollapse(item, index),
       );
     }
-    
-    return child;
   }
 
   @override

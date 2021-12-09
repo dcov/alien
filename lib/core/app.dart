@@ -4,11 +4,14 @@ import 'accounts.dart';
 import 'auth.dart';
 import 'completion.dart';
 import 'context.dart';
+import 'defaults.dart';
 import 'subscriptions.dart';
+import 'thing_store.dart';
 
 part 'app.g.dart';
 
-abstract class App implements Model, AccountsOwner, AuthOwner, CompletionOwner {
+abstract class App implements Model, AccountsOwner, AuthOwner, CompletionOwner,
+    DefaultsOwner, SubscriptionsOwner, ThingStoreOwner {
 
   factory App({
     required String appId,
@@ -23,6 +26,9 @@ abstract class App implements Model, AccountsOwner, AuthOwner, CompletionOwner {
         appRedirect: appRedirect,
       ),
       completion: Completion(),
+      defaults: Defaults(),
+      store: ThingStore(),
+      subscriptions: Subscriptions(),
     );
   }
 
@@ -39,7 +45,10 @@ class InitApp implements Effect {
     await context.init();
     return Chained({
       const InitAccounts(),
-      const RefreshSubscriptions(),
+      Unchained({
+        const RefreshDefaults(),
+        const RefreshSubscriptions(),
+      }),
       Update((App app) {
         app.initialized = true;
         return None();

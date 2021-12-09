@@ -13,6 +13,12 @@ part 'post_comments.g.dart';
 
 const kMoreCommentsIdPrefix = '+';
 
+class TreeItem {
+  TreeItem(this.id, this.depth);
+  final String id;
+  final int depth;
+}
+
 abstract class More implements Model, Thing {
 
   factory More({
@@ -77,7 +83,7 @@ abstract class PostComments implements Model {
     required bool refreshing,
     Object? latestRefreshMarker,
     required CommentsSort sortBy,
-    List<String> ids,
+    List<TreeItem> items,
     Map<String, More> idToMore,
   }) = _$PostComments;
 
@@ -101,7 +107,7 @@ abstract class PostComments implements Model {
   CommentsSort get sortBy;
   set sortBy(CommentsSort value);
 
-  List<String> get ids;
+  List<TreeItem> get items;
 
   Map<String, More> get idToMore;
 }
@@ -131,11 +137,12 @@ class RefreshPostComments implements Update {
             ..sortBy = sortBy ?? comments.sortBy
             ..idToMore.clear();
 
-    final removedIds = comments.ids
-      .where((String id) => id[0] != kMoreCommentsIdPrefix)
+    final removedIds = comments.items
+      .where((item) => item.id[0] != kMoreCommentsIdPrefix)
+      .map((item) => item.id)
       .toList(growable: false);
 
-    comments.ids.clear();
+    comments.items.clear();
     
     return Unchained({
       UnstoreComments(commentIds: removedIds),
@@ -331,8 +338,14 @@ class _InsertMoreComments implements Update {
     more.isLoading = false;
 
     if (more.refreshMarker == comments.latestRefreshMarker) {
-      final insertIndex = comments.ids.indexOf(kMoreCommentsIdPrefix + more.id);
-      comments.ids.removeAt(insertIndex);
+      late final int insertIndex;
+      for (var i = 0; i < comments.items.length; i++) {
+        if (comments.items[i].id == kMoreCommentsIdPrefix + more.id) {
+          insertIndex = i;
+          break;
+        }
+      }
+      comments.items.removeAt(insertIndex);
 
       final newComments = _addToTree(
         comments,
@@ -379,18 +392,18 @@ List<CommentData> _addToTree(PostComments comments, Iterable<ThingData> newThing
     if (thing is CommentData) {
       result.add(thing);
       if (insertIndex != null) {
-        comments.ids.insert(insertIndex.value, thing.id);
+        comments.items.insert(insertIndex.value, TreeItem(thing.id, thing.depth));
         insertIndex.value += 1;
       } else {
-        comments.ids.add(thing.id);
+        comments.items.add(TreeItem(thing.id, thing.depth));
       }
       _addToTree(comments, thing.replies, insertIndex, result);
     } else if (thing is MoreData) {
       final id = kMoreCommentsIdPrefix + thing.id;
       if (insertIndex != null) {
-        comments.ids.insert(insertIndex.value, id);
+        comments.items.insert(insertIndex.value, TreeItem(id, thing.depth));
       } else {
-        comments.ids.add(id);
+        comments.items.add(TreeItem(id, thing.depth));
       }
       comments.idToMore[id] = More(
         data: thing,
