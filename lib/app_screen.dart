@@ -17,67 +17,64 @@ class AppScreen extends StatefulWidget {
     Key? key,
     required this.app,
     required this.pageStackController,
+    required this.revealController,
   }) : super(key: key);
 
   final App app;
 
   final PageStackController pageStackController;
 
+  final AnimationController revealController;
+
+  static AnimationController createRevealController(TickerProvider vsync, [double? value]) {
+    return AnimationController(
+      duration: const Duration(milliseconds: 200),
+      value: value ?? 1.0,
+      vsync: vsync,
+    );
+  }
+
   @override
   _AppScreenState createState() => _AppScreenState();
 }
 
-class _AppScreenState extends State<AppScreen> with TickerProviderStateMixin {
-
-  late AnimationController _revealController;
-  late List<PageStackEntry> _pageStack;
-
-  AnimationController _createRevealController() {
-    return AnimationController(
-      duration: const Duration(milliseconds: 200),
-      value: 1.0,
-      vsync: this,
-    );
-  }
+class _AppScreenState extends State<AppScreen> {
 
   void _handleMenuButtonClick() {
-    switch (_revealController.status) {
+    switch (widget.revealController.status) {
       case AnimationStatus.forward:
       case AnimationStatus.completed:
-        _revealController.reverse();
+        widget.revealController.reverse();
         break;
       case AnimationStatus.reverse:
       case AnimationStatus.dismissed:
-        _revealController.forward();
+        widget.revealController.forward();
         break;
     }
   }
 
   void _handlePageStackChange() {
-    setState(() {
-      _pageStack = widget.pageStackController.stack;
-      switch (_revealController.status) {
-        case AnimationStatus.dismissed:
-          if (_pageStack.isEmpty) {
-            _revealController.forward();
-          }
-          break;
-        case AnimationStatus.completed:
-          if (_pageStack.isNotEmpty) {
-            _revealController.reverse();
-          }
-          break;
-        default:
-          break;
-      }
-    });
+    switch (widget.revealController.status) {
+      case AnimationStatus.dismissed:
+        if (widget.pageStackController.stack.isEmpty) {
+          widget.revealController.forward();
+          setState(() { });
+        }
+        break;
+      case AnimationStatus.completed:
+        if (widget.pageStackController.stack.isNotEmpty) {
+          widget.revealController.reverse();
+          setState(() { });
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    _revealController = _createRevealController();
-    _pageStack = widget.pageStackController.stack;
     widget.pageStackController.addListener(_handlePageStackChange);
   }
 
@@ -91,39 +88,26 @@ class _AppScreenState extends State<AppScreen> with TickerProviderStateMixin {
   }
 
   @override
-  void reassemble() {
-    _revealController.dispose();
-    super.reassemble();
-    _revealController = _createRevealController();
-  }
-
-  @override
   void dispose() {
-    _revealController.dispose();
     widget.pageStackController.removeListener(_handlePageStackChange);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final swatch = AlienColorSwatch.of(context);
     return Stack(children: <Widget>[
-      ValueListenableBuilder(
-        valueListenable: _revealController,
+      IgnorePointer(child: ValueListenableBuilder(
+        valueListenable: widget.revealController,
         builder: (BuildContext context, double value, Widget? child) {
-          // We return a RawGestureDetector instead of the typical GestureDetector because we don't
-          // actually want to receive input events, and instead only want to block the elements
-          // behind us from receiving them by toggling the [HitTestBehavior].
-          return RawGestureDetector(
-            behavior: value != 0.0 ? HitTestBehavior.opaque : HitTestBehavior.translucent,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black54.withOpacity(value),
-              ),
-              child: const SizedBox.expand(),
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.black54.withOpacity(value),
             ),
+            child: const SizedBox.expand(),
           );
         },
-      ),
+      )),
       LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
         const appBarWidth = 400.0;
         const appBarRadius = 16.0;
@@ -137,20 +121,32 @@ class _AppScreenState extends State<AppScreen> with TickerProviderStateMixin {
           clipper: _OvalRevealClipper(
             beginRect: appBarRect,
             beginRadius: appBarRadius,
-            animation: _revealController,
+            animation: widget.revealController,
           ),
-          child: Stack(children: <Widget>[
-            _AppBody(
-              app: widget.app,
-              pageStack: _pageStack,
-            ),
-            _AppBar(
-              rect: appBarRect,
-              radius: appBarRadius,
-              menuButtonAnimation: _pageStack.isNotEmpty ? _revealController : null,
-              onMenuClick: _handleMenuButtonClick,
-            ),
-          ]),
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: swatch.surface),
+            child: Stack(children: <Widget>[
+              ValueListenableBuilder(
+                valueListenable: widget.revealController,
+                builder: (BuildContext context, double value, Widget? child) {
+                  return IgnorePointer(
+                    ignoring: value != 1.0,
+                    child: child,
+                  );
+                },
+                child: _AppBody(
+                  app: widget.app,
+                  pageStackController: widget.pageStackController,
+                ),
+              ),
+              _AppBar(
+                rect: appBarRect,
+                radius: appBarRadius,
+                menuButtonAnimation: widget.pageStackController.stack.isNotEmpty ? widget.revealController : null,
+                onMenuClick: _handleMenuButtonClick,
+              ),
+            ]),
+          ),
         );
       }),
     ]);
@@ -180,39 +176,37 @@ class _AppBar extends StatelessWidget {
     final theme = Theme.of(context);
     return Positioned.fromRect(
       rect: rect,
-      child: SizedBox.expand(child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: Colors.black38,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radius),
-          ),
-        ),
-        child: Row(children: <Widget>[
-          Clickable(
-            onClick: menuButtonAnimation != null ? onMenuClick : null,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(right: BorderSide(
-                  width: 0.1,
-                  color: Colors.grey,
-                )),
-              ),
-              child: SizedBox.square(
-                dimension: rect.height,
-                child: Center(child: AnimatedIcon(
-                  icon: AnimatedIcons.menu_close,
-                  progress: menuButtonAnimation ?? kAlwaysDismissedAnimation,
-                  color: menuButtonAnimation != null ? theme.iconTheme.color : theme.disabledColor,
-                )),
+      child: SizedBox.expand(child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Colors.black38),
+          child: Row(children: <Widget>[
+            Clickable(
+              onClick: menuButtonAnimation != null ? onMenuClick : null,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(right: BorderSide(
+                    width: 0.1,
+                    color: Colors.grey,
+                  )),
+                ),
+                child: SizedBox.square(
+                  dimension: rect.height,
+                  child: Center(child: AnimatedIcon(
+                    icon: AnimatedIcons.menu_close,
+                    progress: menuButtonAnimation ?? kAlwaysCompleteAnimation,
+                    color: menuButtonAnimation != null ? theme.iconTheme.color : theme.disabledColor,
+                  )),
+                ),
               ),
             ),
-          ),
-          Expanded(child: TextField(
-            decoration: null,
-            onChanged: (String value) {
-            },
-          )),
-        ]),
+            Expanded(child: TextField(
+              decoration: null,
+              onChanged: (String value) {
+              },
+            )),
+          ]),
+        ),
       )),
     );
   }
@@ -223,12 +217,12 @@ class _AppBody extends StatelessWidget {
   _AppBody({
     Key? key,
     required this.app,
-    required this.pageStack,
+    required this.pageStackController,
   }) : super(key: key);
 
   final App app;
 
-  final List<PageStackEntry> pageStack;
+  final PageStackController pageStackController;
 
   List<Subreddit> _collectSubreddits() {
     final allIds = <String>{
@@ -243,10 +237,16 @@ class _AppBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final swatch = AlienColorSwatch.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(color: swatch.mainSurface),
-      child: Padding(
-        padding: EdgeInsets.only(top: 72.0),
+    final pageStack = pageStackController.stack;
+    return Padding(
+      padding: EdgeInsets.only(top: 72.0),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(
+            width: 0.1,
+            color: swatch.divider,
+          )),
+        ),
         child: Connector(builder: (BuildContext context) {
           final subreddits = _collectSubreddits();
           return CustomScrollView(slivers: <Widget>[
@@ -255,9 +255,11 @@ class _AppBody extends StatelessWidget {
                 return ListTile();
               }).toList(),
             )),
-            SliverToBoxAdapter(child: Divider(color: swatch.altSurface)),
             SliverList(delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) => _SubredditTile(subreddit: subreddits[index]),
+              (BuildContext context, int index) => _SubredditTile(
+                subreddit: subreddits[index],
+                pageStackController: pageStackController,
+              ),
               childCount: subreddits.length,
             )),
           ]);
@@ -272,17 +274,43 @@ class _SubredditTile extends StatelessWidget {
   _SubredditTile({
     Key? key,
     required this.subreddit,
+    required this.pageStackController,
   }) : super(key: key);
 
   final Subreddit subreddit;
 
+  final PageStackController pageStackController;
+
   @override
   Widget build(BuildContext context) {
-    return Material(child: ListTile(
-      tileColor: AlienColorSwatch.of(context).mainSurface,
-      leading: const Icon(AlienIcons.subreddit),
-      title: Text(subreddit.name),
-    ));
+    final swatch = AlienColorSwatch.of(context);
+    return Clickable(
+      onClick: () {
+        pageStackController.push(context, subreddit);
+      },
+      child: SizedBox(
+        height: 48.0,
+        child: Row(children: <Widget>[
+          const Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.0,
+            ),
+            child: Icon(
+              AlienIcons.subreddit,
+              size: 24.0,
+            ),
+          ),
+          Expanded(child: Text(
+            subreddit.name,
+            style: TextStyle(
+              color: swatch.text,
+              fontSize: 16.0,
+              fontWeight: FontWeight.w500,
+            ),
+          )),
+        ]),
+      ),
+    );
   }
 }
 

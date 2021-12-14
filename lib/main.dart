@@ -68,9 +68,24 @@ class _AppView extends StatefulWidget {
   _AppViewState createState() => _AppViewState();
 }
 
-class _AppViewState extends State<_AppView> {
+class _AppViewState extends State<_AppView> with TickerProviderStateMixin {
 
   late final _pageStackController = _createPageStackController();
+  late var _revealController = AppScreen.createRevealController(this);
+
+  @override
+  void reassemble() {
+    final value = _revealController.value;
+    _revealController.dispose();
+    super.reassemble();
+    _revealController = AppScreen.createRevealController(this, value);
+  }
+
+  @override
+  void dispose() {
+    _revealController.dispose();
+    super.dispose();
+  }
 
   PageStackController _createPageStackController() {
     return PageStackController(
@@ -105,8 +120,21 @@ class _AppViewState extends State<_AppView> {
     return AlienColorSwatch(
       data: AlienColorSwatchData.dark(),
       child: Stack(children: <Widget>[
-        PageStackView(controller: _pageStackController),
-        AppScreen(app: widget.app, pageStackController: _pageStackController),
+        ValueListenableBuilder(
+          valueListenable: _revealController,
+          builder: (BuildContext context, double value, Widget? child) {
+            return IgnorePointer(
+              ignoring: value != 0.0,
+              child: child,
+            );
+          },
+          child: PageStackView(controller: _pageStackController),
+        ),
+        AppScreen(
+          app: widget.app,
+          pageStackController: _pageStackController,
+          revealController: _revealController,
+        ),
         _WindowButtonRow(),
       ]),
     );

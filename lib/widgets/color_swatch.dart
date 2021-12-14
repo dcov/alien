@@ -4,27 +4,27 @@ class AlienColorSwatchData {
 
   factory AlienColorSwatchData.dark() {
     return const AlienColorSwatchData.raw(
-      mainSurface: Color(0xFF212121),
-      altSurface: Color(0xFF424242),
-      mainText: Color(0xFFFFFFFF),
-      detailText: Color(0xB3FFFFFF),
+      surface: Color(0xFF212121),
+      divider: Color(0xFF424242),
+      text: Color(0xFFFFFFFF),
+      textVariant: Color(0xB3FFFFFF),
     );
   }
 
   const AlienColorSwatchData.raw({
-    required this.mainSurface,
-    required this.altSurface,
-    required this.mainText,
-    required this.detailText,
+    required this.surface,
+    required this.divider,
+    required this.text,
+    required this.textVariant,
   });
 
-  final Color mainSurface;
+  final Color surface;
 
-  final Color altSurface;
+  final Color divider;
 
-  final Color mainText;
+  final Color text;
 
-  final Color detailText;
+  final Color textVariant;
 }
 
 class AlienColorSwatch extends InheritedWidget {
