@@ -6,8 +6,8 @@ class AlienColorSwatchData {
     return const AlienColorSwatchData.raw(
       mainSurface: Color(0xFF212121),
       altSurface: Color(0xFF424242),
-      mainText: Color(0xFF),
-      detailText: Color(0xFF),
+      mainText: Color(0xFFFFFFFF),
+      detailText: Color(0xB3FFFFFF),
     );
   }
 

@@ -1,6 +1,7 @@
 import 'core/post.dart';
 import 'core/subreddit.dart';
-import 'widgets/page_stack.dart';
+
+import 'page_stack.dart';
 
 String idFromObject(Object obj) {
   if (obj is Post) {

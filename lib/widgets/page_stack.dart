@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/widgets.dart';
 
 abstract class PageStackEntry extends Page {
@@ -37,134 +35,98 @@ abstract class PageStackEntry extends Page {
   }
 }
 
-class PageStack extends StatefulWidget {
+class PageStackController extends ChangeNotifier {
 
-  PageStack({
-    Key? key,
-    required this.onCreateRoot,
+  PageStackController({
     required this.onCreatePage,
-    required this.onStackChanged,
-  }) : super(key: key);
+    required this.onPageAdded,
+    required this.onPageRemoved,
+  });
 
-  final PageStackEntry Function(BuildContext context) onCreateRoot;
+  final PageStackEntry Function(Object arg) onCreatePage;
 
-  final PageStackEntry Function(BuildContext context, String id, Object? args) onCreatePage;
+  final void Function(PageStackEntry page) onPageAdded;
 
-  final void Function(List<PageStackEntry> stack) onStackChanged;
+  final void Function(PageStackEntry page) onPageRemoved;
 
-  static final rootId = 'root';
+  List<PageStackEntry> get stack => List.from(_stack);
+  final _stack = <PageStackEntry>[];
 
-  @override
-  PageStackState createState() => PageStackState();
+  void push(BuildContext context, Object arg) {
+    final newPage = onCreatePage(arg);
+
+    int? index;
+    for (var i = 0; i < _stack.length; i++) {
+      if (_stack[i].id == newPage.id) {
+        index = i;
+        break;
+      }
+    }
+
+    if (index == null) {
+      newPage.initState(context);
+      _stack.add(newPage);
+      onPageAdded(newPage);
+      notifyListeners();
+    } else if (index != _stack.length - 1) {
+      final page = _stack.removeAt(index);
+      _stack.add(page);
+      notifyListeners();
+    }
+  }
+
+  void remove(BuildContext context, String id) {
+    int? index;
+    for (var i = 0; i < _stack.length; i++) {
+      if (_stack[i].id == id) {
+        index = i;
+        break;
+      }
+    }
+
+    assert(index != null);
+
+    final page = _stack.removeAt(index!);
+    page.dispose(context);
+    onPageRemoved(page);
+    notifyListeners();
+  }
 }
 
-class PageStackState extends State<PageStack> {
+class PageStackView extends StatelessWidget {
 
-  PageStackEntry? _rootEntry;
-  final _entries = <PageStackEntry>[];
+  PageStackView({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
 
-  bool _rootIsTopOfStack = false;
-
-  List<PageStackEntry> _buildStack() {
-    if (_rootIsTopOfStack)
-      return <PageStackEntry>[
-        ..._entries,
-        _rootEntry!,
-      ];
-
-    return <PageStackEntry>[
-      _rootEntry!,
-      ..._entries,
-    ];
-  }
-
-  void push(String id, Object? args) {
-    if (id == PageStack.rootId) {
-      setState(() {
-        _rootIsTopOfStack = true;
-      });
-    } else {
-      int? index;
-      for (var i = 0; i < _entries.length; i++) {
-        if (_entries[i].id == id) {
-          index = i;
-          break;
-        }
-      }
-
-      if (index == null) {
-        final newEntry = widget.onCreatePage(context, id, args);
-        assert(newEntry.id == id);
-        newEntry.initState(context);
-        setState(() {
-          _entries.add(newEntry);
-          _rootIsTopOfStack = false;
-        });
-      } else if (index == _entries.length - 1) {
-        if (_rootIsTopOfStack) {
-          setState(() {
-            _rootIsTopOfStack = false;
-          });
-        }
-      } else {
-        setState(() {
-          final entry = _entries.removeAt(index!);
-          _entries.add(entry);
-          _rootIsTopOfStack = false;
-        });
-      }
-    }
-    widget.onStackChanged(_buildStack());
-  }
-
-  void popRoot() {
-    assert(_rootIsTopOfStack);
-    setState(() {
-      _rootIsTopOfStack = false;
-    });
-    widget.onStackChanged(_buildStack());
-  }
-
-  bool _handlePop(Route route, dynamic result) {
-    if (route.didPop(result)) {
-      final page = route.settings as PageStackEntry;
-      if (page.id == PageStack.rootId) {
-        setState(() {
-          _rootIsTopOfStack = false;
-        });
-      } else {
-        page.dispose(context);
-        setState(() {
-          final removed = _entries.remove(page);
-          assert(removed);
-        });
-      }
-
-      widget.onStackChanged(_buildStack());
-
-      return true;
-    }
-
-    return false;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_rootEntry == null) {
-      _rootEntry = widget.onCreateRoot(context);
-      assert(_rootEntry!.id == PageStack.rootId);
-      _rootEntry!.initState(context);
-    }
-  }
+  final PageStackController controller;
 
   @override
   Widget build(BuildContext context) {
     return _PageStackScope(
-      state: this,
-      child: Navigator(
-        onPopPage: _handlePop,
-        pages: _buildStack(),
+      controller: controller,
+      child: AnimatedBuilder(
+        animation: controller,
+        builder: (BuildContext context, Widget? child) {
+          final stack = controller.stack;
+          if (stack.isEmpty) {
+            return const SizedBox();
+          }
+
+          return Navigator(
+            onPopPage: (Route route, dynamic result) {
+              if (route.didPop(result)) {
+                final page = route.settings as PageStackEntry;
+                controller.remove(context, page.id);
+                return true;
+              }
+
+              return false;
+            },
+            pages: controller.stack,
+          );
+        },
       ),
     );
   }
@@ -174,27 +136,25 @@ class _PageStackScope extends InheritedWidget {
 
   _PageStackScope({
     Key? key,
-    required this.state,
+    required this.controller,
     required Widget child,
   }) : super(key: key, child: child);
 
-  final PageStackState state;
+  final PageStackController controller;
 
   @override
-  bool updateShouldNotify(_PageStackScope oldScope) {
-    return this.state != oldScope.state;
+  bool updateShouldNotify(_PageStackScope oldWidget) {
+    return this.controller != oldWidget.controller;
   }
 }
 
 extension PageStackExtension on BuildContext {
 
-  PageStackState get _state {
-    return this.dependOnInheritedWidgetOfExactType<_PageStackScope>()!.state;
+  PageStackController get _controller {
+    return this.dependOnInheritedWidgetOfExactType<_PageStackScope>()!.controller;
   }
 
-  List<PageStackEntry> get pageStack => UnmodifiableListView(_state._entries);
-
-  void push(String id, [Object? args]) {
-    _state.push(id, args);
+  void push(Object arg) {
+    _controller.push(this, arg);
   }
 }

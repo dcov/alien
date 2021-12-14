@@ -8,7 +8,6 @@ import 'reddit/types.dart';
 import 'widgets/clickable.dart';
 import 'widgets/custom_render_object.dart';
 import 'widgets/formatting.dart';
-import 'widgets/page_router.dart';
 
 import 'media_thumbnail.dart';
 import 'post_page.dart';

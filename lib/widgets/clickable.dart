@@ -42,7 +42,26 @@ class _ClickableState extends State<Clickable> {
   }
 
   @override
+  void didUpdateWidget(Clickable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.onClick == null && _hovering) {
+      _hovering = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    Widget child;
+    if (widget.builder != null) {
+      child = widget.builder!(context, _hovering, widget.child);
+    } else {
+      child = widget.child ?? const SizedBox();
+    }
+
+    if (widget.onClick == null) {
+      return child;
+    }
+
     return GestureDetector(
       behavior: widget.opaque ? HitTestBehavior.opaque : null,
       onTap: widget.onClick,
@@ -55,9 +74,7 @@ class _ClickableState extends State<Clickable> {
             color: Colors.white.withOpacity(_hovering ? 0.1 : 0.0),
           ),
           position: DecorationPosition.foreground,
-          child: widget.builder != null
-            ? widget.builder!(context, _hovering, widget.child)
-            : widget.child,
+          child: child,
         ),
       ),
     );
