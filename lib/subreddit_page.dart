@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:muex_flutter/muex_flutter.dart';
 
@@ -6,6 +7,7 @@ import 'core/subreddit.dart';
 import 'core/subreddit_posts.dart';
 import 'core/thing_store.dart';
 import 'reddit/types.dart';
+import 'widgets/constants.dart';
 import 'widgets/page_stack.dart';
 
 import 'listing_scroll_view.dart';
@@ -33,43 +35,53 @@ class SubredditPage extends PageStackEntry {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      key: ValueKey(subreddit),
-      verticalDirection: VerticalDirection.up,
+    BoxDecoration bannerDecoration;
+    if (subreddit.bannerImageUrl != null) {
+      bannerDecoration = BoxDecoration(
+        image: DecorationImage(
+          image: CachedNetworkImageProvider(subreddit.bannerImageUrl!),
+          fit: BoxFit.fill,
+        ),
+      );
+    } else if (subreddit.bannerBackgroundColor != null) {
+      bannerDecoration = BoxDecoration(
+        color: Color(subreddit.bannerBackgroundColor!),
+      );
+    } else {
+      bannerDecoration = const BoxDecoration();
+    }
+
+    return Stack(
+      key: ValueKey(subreddit.id),
       children: <Widget>[
-        Expanded(child: ListingScrollView(
-          listing: _posts.listing,
-          onTransitionListing: (ListingStatus to) {
-            context.then(TransitionSubredditPosts(
-              posts: _posts,
-              to: to,
-            ));
-          },
-          thingBuilder: (BuildContext context, String id) {
-            return PostTile(
-              post: (context.state as ThingStoreOwner).store.idToPost(id),
-              includeSubredditName: false,
-            );
-          },
-        )),
-        Material(
-          elevation: 1.0,
-          child: SizedBox(
-            height: 56.0,
-            child: NavigationToolbar(
-              centerMiddle: false,
-              leading: CloseButton(),
-              middle: Text(
-                subreddit.name,
-                style: const TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+        Padding(
+          padding: EdgeInsets.only(top: kTotalAppBarHeight),
+          child: ListingScrollView(
+            listing: _posts.listing,
+            onTransitionListing: (ListingStatus to) {
+              context.then(TransitionSubredditPosts(
+                posts: _posts,
+                to: to,
+              ));
+            },
+            thingBuilder: (BuildContext context, String id) {
+              return PostTile(
+                post: (context.state as ThingStoreOwner).store.idToPost(id),
+                includeSubredditName: false,
+              );
+            },
           ),
         ),
-      ]
+        DecoratedBox(
+          decoration: bannerDecoration,
+          position: DecorationPosition.foreground,
+          child: SizedBox(
+            width: double.infinity,
+            height: kTotalAppBarHeight,
+          ),
+        ),
+        PopPageButton(),
+      ],
     );
   }
 }

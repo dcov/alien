@@ -160,9 +160,7 @@ class _WindowButtonRow extends StatelessWidget {
         child: Row(children: <Widget>[
           const Expanded(child: SizedBox.expand()),
           DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.black38,
-            ),
+            decoration: const BoxDecoration(color: Colors.black54),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[

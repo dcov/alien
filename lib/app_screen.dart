@@ -8,6 +8,7 @@ import 'core/subreddit.dart';
 import 'core/thing_store.dart';
 import 'widgets/clickable.dart';
 import 'widgets/color_swatch.dart';
+import 'widgets/constants.dart';
 import 'widgets/icons.dart';
 import 'widgets/page_stack.dart';
 
@@ -113,9 +114,9 @@ class _AppScreenState extends State<AppScreen> {
         const appBarRadius = 16.0;
         final appBarRect = Rect.fromLTWH(
           (constraints.maxWidth - appBarWidth) / 2,
-          16.0,
+          kAppBarVerticalPadding,
           appBarWidth,
-          40.0,
+          kAppBarHeight,
         );
         return ClipRRect(
           clipper: _OvalRevealClipper(

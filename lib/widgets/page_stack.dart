@@ -1,4 +1,6 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
+import 'clickable.dart';
 
 abstract class PageStackEntry extends Page {
 
@@ -156,5 +158,32 @@ extension PageStackExtension on BuildContext {
 
   void push(Object arg) {
     _controller.push(this, arg);
+  }
+}
+
+class PopPageButton extends StatelessWidget {
+
+  PopPageButton({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: DecoratedBox(
+        decoration: const BoxDecoration(color: Colors.black54),
+        child: Clickable(
+          onClick: () => Navigator.of(context, rootNavigator: false).pop(),
+          child: SizedBox.square(
+            dimension: 40.0,
+            child: Center(child: Icon(
+              Icons.close,
+              size: 24.0,
+            )),
+          ),
+        ),
+      ),
+    );
   }
 }
